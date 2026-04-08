@@ -1,0 +1,35 @@
+.stories-container {
+  padding: 2rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.story-card {
+  background: #fff8ee;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.story-card h3 {
+  margin-top: 0;
+  color: #6b3e1d;
+}
+
+.story-card p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.story-image {
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 6px;
+}

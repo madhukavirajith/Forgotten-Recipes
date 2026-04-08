@@ -1,0 +1,59 @@
+.calendar-page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', sans-serif;
+  color: #222;
+  text-align: center;
+}
+
+.calendar-subtitle {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.calendar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+/* Highlight festival days */
+.react-calendar__tile.highlight {
+  background: #7e2de3;
+  color: white;
+  border-radius: 8px;
+}
+
+.react-calendar__tile.highlight:hover {
+  background: #5a1cb0;
+}
+
+.calendar-event-details {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-event-details h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.calendar-event-details h3 {
+  color: #7e2de3;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.calendar-event-details ul {
+  list-style: none;
+  padding: 0;
+}
+
+.calendar-event-details li {
+  font-size: 14px;
+  margin-bottom: 6px;
+}

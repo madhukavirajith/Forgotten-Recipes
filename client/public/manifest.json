@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Forgotten Recipes",
+  "name": "Forgotten Recipes - Traditional Sri Lankan Cuisine",
+  "description": "Bringing back traditional Sri Lankan tastes with a modern twist",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#d97706",
   "background_color": "#ffffff"
 }

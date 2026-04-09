@@ -1,44 +1,45 @@
-
+// client/src/components/dashboards/VisitorDashboard.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-
+import './VisitorDashboard.css';
 import Chat from '../Chat';
-import CookbookPanel from '../CookbookPanel'; 
+import CookbookPanel from '../CookbookPanel';
 
+// Constants
+const API_BASE = process.env.REACT_APP_API_URL || '';
 const CATEGORIES = ['Main Course', 'Snack', 'Dessert', 'Beverage'];
 const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy'];
 const DIET_TYPES = ['Vegan', 'Vegetarian', 'Non-Vegetarian'];
 
-function StatusBadge({ status }) {
-  const s = (status || '').toLowerCase();
-  const color =
-    s === 'approved' ? '#16a34a' :
-    s === 'rejected' ? '#dc2626' :
-    '#f59e0b';
-  const label = s || 'pending';
+// Status Badge Component
+const StatusBadge = ({ status }) => {
+  const statusLower = (status || '').toLowerCase();
+  const getStatusConfig = () => {
+    switch (statusLower) {
+      case 'approved':
+        return { label: 'Approved', className: 'status-approved' };
+      case 'rejected':
+        return { label: 'Rejected', className: 'status-rejected' };
+      default:
+        return { label: 'Pending', className: 'status-pending' };
+    }
+  };
+  
+  const { label, className } = getStatusConfig();
+  
   return (
-    <span
-      style={{
-        display: 'inline-block',
-        padding: '.15rem .5rem',
-        borderRadius: '999px',
-        fontSize: '.85rem',
-        fontWeight: 700,
-        color: '#fff',
-        background: color,
-        marginLeft: 6
-      }}
-      title={`Status: ${label}`}
-    >
+    <span className={`status-badge ${className}`} title={`Status: ${label}`}>
       {label}
     </span>
   );
-}
+};
 
-export default function VisitorDashboard() {
+// Main Component
+const VisitorDashboard = () => {
   const [myRecipes, setMyRecipes] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
   const [newRecipe, setNewRecipe] = useState({
     name: '',
     ingredients: '',
@@ -53,42 +54,61 @@ export default function VisitorDashboard() {
   const token = localStorage.getItem('token');
   const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
 
-  /* ----------------------------- Load submitted ----------------------------- */
+  // Fetch user's submitted recipes
   const fetchMyRecipes = async () => {
     if (!token) return;
     try {
-      const res = await axios.get('/api/visitor/my-recipes', authHeader);
+      const res = await axios.get(`${API_BASE}/api/visitor/my-recipes`, authHeader);
       setMyRecipes(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error('Failed to fetch submitted recipes:', err?.response?.data || err.message);
+      console.error('Failed to fetch recipes:', err?.response?.data || err.message);
+      showNotification('Failed to load your recipes', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchMyRecipes();
-    
-  }, []);
+  // Show notification
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 3000);
+  };
 
-  /* ------------------------------ Submit recipe ----------------------------- */
+  // Handle recipe image upload
   const handleRecipeImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification('Image size should be less than 5MB', 'error');
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onloadend = () => setNewRecipe((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
   };
 
+  // Submit new recipe
   const submitRecipe = async (e) => {
     e.preventDefault();
-    if (!token) return alert('Please log in to submit a recipe.');
-    if (!newRecipe.category || !newRecipe.spiceLevel || !newRecipe.dietType) {
-      alert('Please choose Category, Spice Level, and Diet Type.');
+    
+    if (!token) {
+      showNotification('Please log in to submit a recipe', 'error');
       return;
     }
+    
+    if (!newRecipe.category || !newRecipe.spiceLevel || !newRecipe.dietType) {
+      showNotification('Please select Category, Spice Level, and Diet Type', 'error');
+      return;
+    }
+    
     try {
       setSubmitting(true);
-      await axios.post('/api/visitor/submit-recipe', newRecipe, authHeader);
-      alert('Recipe submitted for approval!');
+      await axios.post(`${API_BASE}/api/visitor/submit-recipe`, newRecipe, authHeader);
+      
+      showNotification('Recipe submitted for approval!', 'success');
+      
+      // Reset form
       setNewRecipe({
         name: '',
         ingredients: '',
@@ -99,175 +119,249 @@ export default function VisitorDashboard() {
         spiceLevel: '',
         dietType: '',
       });
+      
       fetchMyRecipes();
     } catch (err) {
       console.error('Failed to submit recipe:', err?.response?.data || err.message);
-      alert(err?.response?.data?.error || 'Submission failed.');
+      showNotification(err?.response?.data?.error || 'Submission failed', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* ---------------------------------- UI ----------------------------------- */
-  return (
-    <div className="dashboard-container" style={{ maxWidth: 1100, margin: '0 auto', padding: '1rem' }}>
-      <h2 style={{ fontWeight: 800, margin: '0.25rem 0 1rem' }}>Visitor Dashboard</h2>
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewRecipe(prev => ({ ...prev, [name]: value }));
+  };
 
-      {/* ========== My Cookbook  ========== */}
-      <section style={{ marginBottom: '1rem' }}>
+  useEffect(() => {
+    fetchMyRecipes();
+  }, []);
+
+  return (
+    <div className="dashboard-container">
+      {/* Notification Toast */}
+      {notification.show && (
+        <div className={`toast-${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
+      <h2>Welcome, Visitor</h2>
+
+      {/* My Cookbook Section */}
+      <section className="cookbook-section">
+        <h3>My Cookbook</h3>
         <CookbookPanel />
       </section>
 
-      {/* ========== Submit Recipe ========== */}
-      <section style={{ marginBottom: '1rem' }}>
-        <h3 style={{ fontWeight: 800, margin: '0 0 .5rem' }}>Submit Your Recipe</h3>
-        <form onSubmit={submitRecipe} className="form-block" style={{ display: 'grid', gap: '.6rem' }}>
-          <input
-            type="text"
-            placeholder="Recipe Name"
-            required
-            value={newRecipe.name}
-            onChange={(e) => setNewRecipe({ ...newRecipe, name: e.target.value })}
-          />
-
-          <textarea
-            placeholder="Ingredients"
-            rows={4}
-            required
-            value={newRecipe.ingredients}
-            onChange={(e) => setNewRecipe({ ...newRecipe, ingredients: e.target.value })}
-          />
-          <textarea
-            placeholder="Instructions"
-            rows={5}
-            required
-            value={newRecipe.instructions}
-            onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })}
-          />
-
-          {/* Required selects for approval flow */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '.5rem' }}>
-            <select
-              value={newRecipe.category}
-              onChange={(e) => setNewRecipe({ ...newRecipe, category: e.target.value })}
+      {/* Submit Recipe Section */}
+      <section>
+        <h3>Share Your Recipe</h3>
+        <p className="section-subtitle">
+          Share your culinary creations with our community. Your recipe will be reviewed by our head chef.
+        </p>
+        
+        <form onSubmit={submitRecipe} className="form-block">
+          <div className="form-group">
+            <label htmlFor="recipeName">Recipe Name *</label>
+            <input
+              id="recipeName"
+              name="name"
+              type="text"
+              placeholder="e.g., Grandma's Special Curry"
               required
-            >
-              <option value="">Select Category</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={newRecipe.spiceLevel}
-              onChange={(e) => setNewRecipe({ ...newRecipe, spiceLevel: e.target.value })}
-              required
-            >
-              <option value="">Select Spice Level</option>
-              {SPICE_LEVELS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={newRecipe.dietType}
-              onChange={(e) => setNewRecipe({ ...newRecipe, dietType: e.target.value })}
-              required
-            >
-              <option value="">Select Diet Type</option>
-              {DIET_TYPES.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+              value={newRecipe.name}
+              onChange={handleInputChange}
+            />
           </div>
 
-          <input
-            type="text"
-            placeholder="Cultural Origin (optional)"
-            value={newRecipe.culture}
-            onChange={(e) => setNewRecipe({ ...newRecipe, culture: e.target.value })}
-          />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="category">Category *</label>
+              <select
+                id="category"
+                name="category"
+                value={newRecipe.category}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select Category</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <input type="file" accept="image/*" onChange={handleRecipeImage} />
+            <div className="form-group">
+              <label htmlFor="spiceLevel">Spice Level *</label>
+              <select
+                id="spiceLevel"
+                name="spiceLevel"
+                value={newRecipe.spiceLevel}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select Spice Level</option>
+                {SPICE_LEVELS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="dietType">Diet Type *</label>
+              <select
+                id="dietType"
+                name="dietType"
+                value={newRecipe.dietType}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select Diet Type</option>
+                {DIET_TYPES.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="ingredients">Ingredients *</label>
+            <textarea
+              id="ingredients"
+              name="ingredients"
+              placeholder="List all ingredients with quantities..."
+              rows={4}
+              required
+              value={newRecipe.ingredients}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="instructions">Instructions *</label>
+            <textarea
+              id="instructions"
+              name="instructions"
+              placeholder="Step by step cooking instructions..."
+              rows={5}
+              required
+              value={newRecipe.instructions}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="culture">Cultural Origin (Optional)</label>
+            <input
+              id="culture"
+              name="culture"
+              type="text"
+              placeholder="e.g., Sri Lankan, Italian, Thai"
+              value={newRecipe.culture}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="recipeImage">Recipe Image (Optional)</label>
+            <input
+              id="recipeImage"
+              type="file"
+              accept="image/*"
+              onChange={handleRecipeImage}
+              className="file-input"
+            />
             {newRecipe.image && (
-              <img
-                src={newRecipe.image}
-                alt="preview"
-                width="140"
-                style={{ display: 'block', marginTop: 8, borderRadius: 10, border: '1px solid #eee' }}
-              />
+              <div className="image-preview">
+                <img src={newRecipe.image} alt="Recipe preview" />
+                <button
+                  type="button"
+                  className="remove-image"
+                  onClick={() => setNewRecipe(prev => ({ ...prev, image: '' }))}
+                >
+                  ×
+                </button>
+              </div>
             )}
           </div>
 
-          <button type="submit" disabled={submitting}>
-            {submitting ? 'Submitting…' : 'Submit for Approval'}
+          <button type="submit" disabled={submitting} className="submit-btn">
+            {submitting ? 'Submitting...' : 'Submit for Approval'}
           </button>
         </form>
       </section>
 
-      {/* ========== My Submitted Recipes ========== */}
-      <section style={{ marginBottom: '1.25rem' }}>
-        <h3 style={{ fontWeight: 800, margin: '0 0 .5rem' }}>My Submitted Recipes</h3>
+      {/* My Submitted Recipes Section */}
+      <section>
+        <h3>My Submitted Recipes</h3>
         {myRecipes.length === 0 ? (
-          <p className="muted">No recipes submitted.</p>
+          <div className="empty-state">
+            <p>You haven't submitted any recipes yet.</p>
+            <p className="empty-state-hint">Share your first recipe using the form above!</p>
+          </div>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '.5rem' }}>
-            {myRecipes.map((r) => {
-              const status =
-                r.status ||
-                (typeof r.approved === 'boolean' ? (r.approved ? 'approved' : 'pending') : 'pending');
+          <div className="recipes-grid">
+            {myRecipes.map((recipe) => {
+              const status = recipe.status || 
+                (typeof recipe.approved === 'boolean' ? (recipe.approved ? 'approved' : 'pending') : 'pending');
+              
               return (
-                <li
-                  key={r._id}
-                  style={{
-                    border: '1px solid #ece7e1',
-                    borderRadius: 12,
-                    padding: '.65rem .75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '.5rem',
-                    background: '#fff',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 800 }}>
-                      <Link to={`/recipes/${r._id}`} style={{ color: '#222', textDecoration: 'none' }}>
-                        {r.name}
+                <div key={recipe._id} className="recipe-card">
+                  <div className="recipe-card-content">
+                    <div className="recipe-header">
+                      <Link to={`/recipes/${recipe._id}`} className="recipe-title">
+                        {recipe.name}
                       </Link>
                       <StatusBadge status={status} />
                     </div>
-                    <div style={{ color: '#6b7280', fontSize: '.9rem' }}>
-                      {[r.category, r.spiceLevel, r.dietType].filter(Boolean).join(' • ')}
+                    
+                    <div className="recipe-meta">
+                      {recipe.category && <span className="meta-tag">{recipe.category}</span>}
+                      {recipe.spiceLevel && <span className="meta-tag">{recipe.spiceLevel}</span>}
+                      {recipe.dietType && <span className="meta-tag">{recipe.dietType}</span>}
+                      {recipe.culture && <span className="meta-tag culture">{recipe.culture}</span>}
                     </div>
+                    
+                    {recipe.ingredients && (
+                      <div className="recipe-preview">
+                        {recipe.ingredients.split('\n').slice(0, 2).map((line, idx) => (
+                          <p key={idx} className="preview-text">{line}</p>
+                        ))}
+                        {recipe.ingredients.split('\n').length > 2 && (
+                          <span className="more-indicator">...</span>
+                        )}
+                      </div>
+                    )}
+                    
+                    <Link to={`/recipes/${recipe._id}`} className="view-link">
+                      View Recipe →
+                    </Link>
                   </div>
-                  <Link to={`/recipes/${r._id}`}>
-                    <button className="btn-outline" style={{ padding: '.45rem .7rem' }}>Open</button>
-                  </Link>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
       </section>
 
-      {/* ========== Western Twist Tool Link ========== */}
-      <section style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontWeight: 800, margin: '0 0 .5rem' }}>Try Our Western Twist Tool</h3>
-        <Link to="/twist-tool">
-          <button>Go to Tool</button>
+      {/* Western Twist Tool Section */}
+      <section className="twist-section">
+        <h3>Feeling Creative?</h3>
+        <p className="section-subtitle">
+          Try our Western Twist Tool to transform traditional recipes with a modern twist!
+        </p>
+        <Link to="/twist-tool" className="twist-tool-link">
+          <button className="btn-primary">🎨 Try Western Twist Tool</button>
         </Link>
       </section>
 
-      {/* Floating chat widget for registered visitors */}
+      {/* Chat Widget */}
       <Chat />
     </div>
   );
-}
+};
+
+export default VisitorDashboard;

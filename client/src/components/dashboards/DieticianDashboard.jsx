@@ -346,7 +346,7 @@ function StaffChat({ role }) {
   const scroller = useRef(null);
   
 const REST_BASE  = process.env.REACT_APP_API_URL || '';
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'process.env.REACT_APP_API_URL';
 
 
 if (!socketRef.current) {

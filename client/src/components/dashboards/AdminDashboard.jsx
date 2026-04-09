@@ -3,6 +3,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './AdminDashboard.css';
 
+// ✅ FIX: Define API_BASE once at the top
+const API_BASE = process.env.REACT_APP_API_URL || '';
+
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
@@ -33,23 +36,21 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     })();
-   
   }, [token]);
 
   /* ----------------------------- Data fetchers ----------------------------- */
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('/api/admin/users', authHeader);
+      const res = await axios.get(`${API_BASE}/api/admin/users`, authHeader); // ✅
       setUsers(res.data || []);
     } catch (err) {
       setError('Error loading users: ' + (err.response?.data?.msg || err.message));
     }
   };
 
-  // NOTE: feedbacks are served by /api/feedback (GET) for admins
   const fetchFeedbacks = async () => {
     try {
-      const res = await axios.get('/api/feedback', authHeader);
+      const res = await axios.get(`${API_BASE}/api/feedback`, authHeader); // ✅
       setFeedbacks(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error loading feedbacks:', err.response?.data || err.message);
@@ -59,7 +60,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('/api/admin/stats', authHeader);
+      const res = await axios.get(`${API_BASE}/api/admin/stats`, authHeader); // ✅
       setStats(res.data || { totalUsers: 0, totalVisitors: 0, systemRoles: { admin: 0, headchef: 0, dietician: 0 } });
     } catch (err) {
       console.error('Error loading stats:', err.response?.data || err.message);
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Delete this user?')) return;
     try {
-      await axios.delete(`/api/admin/users/${userId}`, authHeader);
+      await axios.delete(`${API_BASE}/api/admin/users/${userId}`, authHeader); // ✅
       await fetchUsers();
       alert('User deleted successfully.');
     } catch (err) {
@@ -82,8 +83,7 @@ const AdminDashboard = () => {
   /* ---------------------------- Feedback actions -------------------------- */
   const handleFeedbackStatus = async (id, status) => {
     try {
-      await axios.patch(`/api/feedback/${id}/status`, { status }, authHeader);
-      // optimistic UI
+      await axios.patch(`${API_BASE}/api/feedback/${id}/status`, { status }, authHeader); // ✅
       setFeedbacks((prev) =>
         prev.map((f) => (f._id === id ? { ...f, status } : f))
       );
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
   const handleDeleteFeedback = async (id) => {
     if (!window.confirm('Delete this feedback?')) return;
     try {
-      await axios.delete(`/api/feedback/${id}`, authHeader);
+      await axios.delete(`${API_BASE}/api/feedback/${id}`, authHeader); // ✅
       setFeedbacks((prev) => prev.filter((f) => f._id !== id));
     } catch (err) {
       alert('Could not delete feedback');
@@ -120,7 +120,7 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      await axios.post('/api/blogs', blog, authHeader); 
+      await axios.post(`${API_BASE}/api/blogs`, blog, authHeader); // ✅
       alert('Blog posted successfully!');
       setBlog({ title: '', content: '', image: '' });
     } catch (err) {
@@ -264,6 +264,5 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
 
 

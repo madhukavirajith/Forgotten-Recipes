@@ -37,15 +37,15 @@ const Home = () => {
         >
           <div>
             <img src="/carousel1.jpg" alt="Ambulthiyal" />
-            <p className="legend">Traditional Fish Ambulthiyal</p>
+            
           </div>
           <div>
             <img src="/carousel2.jpg" alt="Kiribath" />
-            <p className="legend">Kiribath for Avurudu</p>
+            
           </div>
           <div>
             <img src="/carousel3.jpg" alt="Hoppers" />
-            <p className="legend">Egg Hoppers with Lunu Miris</p>
+            
           </div>
         </Carousel>
       </section>

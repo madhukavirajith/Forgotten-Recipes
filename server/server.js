@@ -29,8 +29,21 @@ connectDB();
 const app = express();
 
 // CORS
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
-app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://forgotten-recipes.vercel.app'
+];
+
+app.use(cors({
+  origin: function(origin, callback){
+    if(!origin || allowedOrigins.includes(origin)){
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));

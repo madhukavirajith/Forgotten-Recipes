@@ -1,4 +1,3 @@
-
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -28,17 +27,24 @@ connectDB();
 
 const app = express();
 
-// CORS
+// --- Updated CORS Configuration ---
+// Only include origins that actually exist and you control.
+// For production, it's best to use environment variables.
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://forgotten-recipes.vercel.app'
+  'http://localhost:3000',               // Local React dev server
+  'https://forgotten-recipes.vercel.app' // Your production frontend on Vercel
 ];
+
+// Allow your Render backend's own URL for same-origin requests if needed, but it's not typical for a browser to send a different origin.
+// A more flexible approach for development vs. production is shown below.
 
 app.use(cors({
   origin: function(origin, callback){
+    // Allow requests with no origin (like mobile apps, curl, server-to-server) or if the origin is in our allowed list
     if(!origin || allowedOrigins.includes(origin)){
       callback(null, true);
     } else {
+      console.warn(`Blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -59,7 +65,7 @@ app.use('/api/headchef', headchefRoutes);
 app.use('/api/visitor', visitorRoutes);
 app.use('/api/dietician', dieticianRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/api/feedback', feedbackRoutes); // <-- NEW
+app.use('/api/feedback', feedbackRoutes);
 
 // Health check
 app.get('/', (_req, res) => {
@@ -74,23 +80,28 @@ app.get('/', (_req, res) => {
   });
 });
 
-// -------------------- Socket.IO server --------------------
+// -------------------- CREATE HTTP SERVER FIRST --------------------
+const server = http.createServer(app);
+
+// -------------------- THEN INITIALIZE SOCKET.IO --------------------
 const io = new Server(server, {
   cors: { 
-    origin: allowedOrigins,  // ✅ Use your existing allowedOrigins array
+    origin: allowedOrigins, // Use the same allowed origins list for Socket.IO
     credentials: true 
   },
 });
 
-// Simple room-based chat for Visitor <-> Dietician/Head Chef
+// Simple room-based chat
 io.on('connection', (socket) => {
-  // Client joins a conversation room by its ID
+  console.log('New client connected:', socket.id);
+  
   socket.on('join', ({ conversationId }) => {
-    if (conversationId) socket.join(conversationId);
+    if (conversationId) {
+      socket.join(conversationId);
+      console.log(`Socket ${socket.id} joined room ${conversationId}`);
+    }
   });
 
-  // Persist and broadcast a message
-  // payload: { conversationId, text, senderId, senderRole: 'visitor'|'dietician'|'headchef' }
   socket.on('message', async (payload) => {
     try {
       if (!payload?.conversationId || !payload?.text || !payload?.senderRole) return;
@@ -102,7 +113,6 @@ io.on('connection', (socket) => {
         senderRole: payload.senderRole,
       });
 
-      // keep the conversation "fresh" for inbox ordering
       await Conversation.findByIdAndUpdate(payload.conversationId, {
         $set: { updatedAt: new Date() },
       });
@@ -114,10 +124,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    // no-op
+    console.log('Client disconnected:', socket.id);
   });
 });
 
-// -------------------- Start server --------------------
+// -------------------- START SERVER LAST --------------------
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server + Socket.IO running on port ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server + Socket.IO running on port ${PORT}`);
+  console.log(`📍 Allowed CORS origins: ${allowedOrigins.join(', ')}`);
+});

@@ -60,7 +60,7 @@ const LoginRegisterForm = () => {
       }
     }
 
-    const url = `http://localhost:5000/api/users/${isRegister ? 'register' : 'login'}`;
+    const url = `${process.env.REACT_APP_API_URL}/api/users/${isRegister ? 'register' : 'login'}`;
     const payload = isRegister ? {
       name: formData.name,
       email: formData.email,

@@ -11,7 +11,7 @@ const API_ROOT = RAW_BASE
 
 const SOCKET_URL =
   process.env.REACT_APP_SOCKET_URL ||
-  'http://localhost:5000'; 
+  'process.env.REACT_APP_API_URL'; 
 
 
 function decodeJWT(token) {

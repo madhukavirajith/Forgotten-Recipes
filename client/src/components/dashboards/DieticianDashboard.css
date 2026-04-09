@@ -1,218 +1,766 @@
+/* client/src/components/dashboards/DieticianDashboard.css */
 
+/* ===== CSS Variables for Dietician Dashboard ===== */
+:root {
+  /* Dietician-specific colors */
+  --dietician-primary: #10b981;
+  --dietician-primary-dark: #059669;
+  --dietician-primary-light: #34d399;
+  --dietician-secondary: #3b82f6;
+  --dietician-accent: #8b5cf6;
+  --dietician-warning: #f59e0b;
+  --dietician-danger: #ef4444;
+  --dietician-success: #10b981;
+  --dietician-info: #06b6d4;
+  
+  /* Gradients */
+  --gradient-dietician: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-dietician-dark: linear-gradient(135deg, #0f766e 0%, #059669 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+}
 
+/* ===== Main Container ===== */
 .dietician {
-  --border: #eaeaea;
-  --muted: #888;
-  --bg: #fff;
-  --text: #111;
-  --pill: #f0f0f0;
-  --pill-hover: #e5e5e5;
-  color: var(--text);
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding: var(--spacing-6);
+  animation: fadeIn 0.5s ease-out;
 }
 
-
-.p-4 { padding: 1rem; }
-
+/* ===== Title Section ===== */
 .dietician .title {
-  font-weight: 700;
-  font-size: 1.6rem;
-  margin: 0 0 .75rem 0;
+  font-size: var(--font-4xl);
+  font-weight: var(--font-bold);
+  background: var(--gradient-dietician);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: var(--spacing-8);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 3px solid var(--dietician-primary);
+  display: inline-block;
+  letter-spacing: -0.02em;
+  position: relative;
+  animation: slideInLeft 0.5s ease-out;
 }
 
-/* Layout */
+.dietician .title::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 60%;
+  height: 3px;
+  background: var(--gradient-dietician);
+  border-radius: var(--radius-full);
+}
+
+/* ===== Grid Layout ===== */
 .dietician .grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 1rem;
+  grid-template-columns: 320px 1fr;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+  animation: fadeInUp 0.6s ease-out;
 }
 
-/* Left list */
+@media (max-width: 1024px) {
+  .dietician .grid {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dietician .grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+}
+
+/* ===== Sidebar List ===== */
 .dietician .list {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: .5rem;
-  background: var(--bg);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  transition: var(--transition-base);
+  height: fit-content;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  position: sticky;
+  top: var(--spacing-6);
+}
+
+.dietician .list:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .dietician .list h3 {
-  margin: .25rem .5rem .5rem;
-  font-size: 1rem;
+  padding: var(--spacing-4) var(--spacing-6);
+  margin: 0;
+  background: linear-gradient(135deg, var(--dietician-primary) 0%, var(--dietician-primary-dark) 100%);
+  color: white;
+  font-size: var(--font-lg);
+  font-weight: var(--font-semibold);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .dietician .list ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: calc(100vh - 210px);
-  overflow: auto;
 }
 
 .dietician .list li {
-  padding: .55rem .6rem;
-  border-radius: 8px;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-bottom: 1px solid var(--border-light);
   cursor: pointer;
-  line-height: 1.15;
+  transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
 }
 
-.dietician .list li:hover { background: #f7f7f7; }
-.dietician .list li.selected { background: #e9f5ff; }
+.dietician .list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-dietician);
+  transform: scaleY(0);
+  transition: transform var(--transition-base);
+}
 
-.dietician .list .name { font-weight: 600; }
+.dietician .list li:hover {
+  background: var(--bg-secondary);
+  transform: translateX(4px);
+}
+
+.dietician .list li:hover::before {
+  transform: scaleY(1);
+}
+
+.dietician .list li.selected {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+  border-left: 3px solid var(--dietician-primary);
+}
+
+.dietician .list .name {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-md);
+}
+
 .dietician .list .meta {
-  font-size: .8rem;
-  color: var(--muted);
-  margin-top: .15rem;
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
 }
 
-/* Editor card */
-.editor {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem;
-  background: var(--bg);
-  min-height: 420px;
+.dietician .list .muted {
+  padding: var(--spacing-6);
+  text-align: center;
+  color: var(--text-tertiary);
 }
 
-.editor-head {
+/* ===== Editor Main Area ===== */
+.dietician .editor {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
+  border: 1px solid var(--border-light);
+  transition: var(--transition-base);
+  animation: fadeInRight 0.5s ease-out;
+}
+
+.dietician .editor:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Editor Header */
+.dietician .editor-head {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: .75rem;
-  margin-bottom: .5rem;
+  align-items: center;
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 2px solid var(--border-light);
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
 }
 
-.flag {
-  color: #fff;
-  padding: .2rem .55rem;
-  border-radius: 6px;
-  text-transform: capitalize;
-  font-size: .85rem;
+.dietician .editor-head h2 {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0;
 }
 
-/* Form controls */
-.dietician input,
-.dietician select,
-.dietician textarea {
-  width: 100%;
-  padding: .55rem .65rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fff;
+.dietician .flag {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+  box-shadow: var(--shadow-sm);
+  animation: pulse 2s infinite;
+}
+
+/* ===== Nutrition Section ===== */
+.dietician .nutrition {
+  margin-bottom: var(--spacing-8);
+}
+
+.dietician .fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+.dietician .fields label {
+  display: flex;
+  flex-direction: column;
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  gap: var(--spacing-2);
+}
+
+.dietician .fields input,
+.dietician .fields select {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-md);
+  transition: var(--transition-base);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dietician .fields input:focus,
+.dietician .fields select:focus {
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
-  font: inherit;
+  border-color: var(--dietician-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-.dietician input:focus,
-.dietician select:focus,
-.dietician textarea:focus {
-  border-color: #9ac7ff;
-  box-shadow: 0 0 0 3px rgba(154, 199, 255, .25);
+.dietician .fields input:hover,
+.dietician .fields select:hover {
+  border-color: var(--dietician-primary);
 }
 
-.nutrition .fields {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(160px, 1fr));
-  gap: .75rem;
-  margin: 1rem 0;
+/* ===== Chart Section ===== */
+.dietician .chart {
+  background: var(--bg-secondary);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-6);
+  text-align: center;
 }
 
-.nutrition .fields label {
-  font-size: .9rem;
-  display: grid;
-  gap: .35rem;
+.dietician .chart small {
+  display: block;
+  margin-top: var(--spacing-4);
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
 }
 
-/* Chart area */
-.nutrition .chart { margin: .5rem 0 1rem; }
-.nutrition .chart small { color: var(--muted); }
-
-/* Vitamins editor */
-.vitamins h4,
-.benefits h4,
-.tags h4 {
-  margin: .25rem 0 .5rem;
-  font-size: 1rem;
+/* ===== Vitamins Section ===== */
+.dietician .vitamins {
+  background: var(--bg-secondary);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-6);
 }
 
-.vitamins .row {
+.dietician .vitamins h4 {
+  font-size: var(--font-lg);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--spacing-4);
+  color: var(--text-primary);
+}
+
+.dietician .vitamins .row {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
-  gap: .5rem;
-  margin-bottom: .5rem;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+  align-items: center;
 }
 
-.vitamins .row button {
+.dietician .vitamins input {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dietician .vitamins button {
+  background: var(--dietician-danger);
+  color: white;
   border: none;
-  background: #ffefef;
-  color: #b10000;
-  padding: .45rem .7rem;
-  border-radius: 8px;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
   cursor: pointer;
+  transition: var(--transition-base);
 }
 
-.vitamins .row button:hover { background: #ffdcdc; }
+.dietician .vitamins button:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
+}
 
-/* Benefits textarea */
-.benefits textarea { margin-top: .25rem; min-height: 96px; resize: vertical; }
+.dietician .vitamins > button {
+  background: var(--gradient-dietician);
+  margin-top: var(--spacing-4);
+  width: 100%;
+  padding: var(--spacing-3);
+}
 
-/* Actions */
-.actions {
+/* ===== Benefits Section ===== */
+.dietician .benefits {
+  background: var(--bg-secondary);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-6);
+}
+
+.dietician .benefits h4 {
+  font-size: var(--font-lg);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--spacing-4);
+  color: var(--text-primary);
+}
+
+.dietician .benefits textarea {
+  width: 100%;
+  padding: var(--spacing-3);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  resize: vertical;
+  transition: var(--transition-base);
+}
+
+.dietician .benefits textarea:focus {
+  outline: none;
+  border-color: var(--dietician-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* ===== Actions Buttons ===== */
+.dietician .actions {
   display: flex;
-  gap: .5rem;
-  margin-top: .5rem;
+  gap: var(--spacing-4);
+  justify-content: flex-end;
 }
 
-.actions button,
-.add button {
-  padding: .48rem .9rem;
+.dietician .actions button {
+  background: var(--gradient-dietician);
+  color: white;
   border: none;
-  border-radius: 8px;
-  background: #111;
-  color: #fff;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
   cursor: pointer;
-  font-weight: 600;
+  transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
 }
 
-.actions button:hover,
-.add button:hover { opacity: .9; }
+.dietician .actions button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
 
-/* Tags */
-.pill-row {
+.dietician .actions button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.dietician .actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== Tags Section ===== */
+.dietician .tags {
+  background: var(--bg-secondary);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-xl);
+}
+
+.dietician .tags h4 {
+  font-size: var(--font-lg);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--spacing-4);
+  color: var(--text-primary);
+}
+
+.dietician .pill-row {
   display: flex;
-  gap: .4rem;
   flex-wrap: wrap;
-  margin-bottom: .5rem;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
 }
 
-.pill {
-  background: var(--pill);
-  border-radius: 999px;
-  padding: .2rem .6rem;
-  font-size: .85rem;
+.dietician .pill {
+  background: linear-gradient(135deg, var(--dietician-primary) 0%, var(--dietician-primary-dark) 100%);
+  color: white;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-sm);
   cursor: pointer;
-  user-select: none;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
 }
 
-.pill:hover { background: var(--pill-hover); }
+.dietician .pill:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+  background: var(--dietician-danger);
+}
 
-.add {
+.dietician .add {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.dietician .add input {
+  flex: 1;
+  padding: var(--spacing-3);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dietician .add button {
+  background: var(--gradient-dietician);
+  color: white;
+  border: none;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.dietician .add button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== Staff Chat Inbox ===== */
+.dietician .staff-chat {
+  margin-top: var(--spacing-8);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+}
+
+.dietician .staff-chat:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.chat-header {
+  padding: var(--spacing-4) var(--spacing-6);
+  background: linear-gradient(135deg, var(--dietician-primary) 0%, var(--dietician-primary-dark) 100%);
+  color: white;
+  font-weight: var(--font-bold);
+  font-size: var(--font-lg);
+}
+
+.chat-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: .5rem;
+  grid-template-columns: 280px 1fr;
+  min-height: 400px;
 }
 
-.muted { color: var(--muted); }
-
-/* Responsive */
-@media (max-width: 980px) {
-  .dietician .grid { grid-template-columns: 1fr; }
-  .dietician .list ul { max-height: none; }
-  .nutrition .fields { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+@media (max-width: 768px) {
+  .chat-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: 560px) {
-  .nutrition .fields { grid-template-columns: 1fr; }
-  .vitamins .row { grid-template-columns: 1fr; }
+.chat-sidebar {
+  border-right: 1px solid var(--border-light);
+  max-height: 400px;
+  overflow-y: auto;
 }
 
+.chat-conversation {
+  padding: var(--spacing-3) var(--spacing-4);
+  cursor: pointer;
+  transition: var(--transition-base);
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+}
+
+.chat-conversation:hover {
+  background: var(--bg-secondary);
+  transform: translateX(4px);
+}
+
+.chat-conversation.active {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+  border-left: 3px solid var(--dietician-primary);
+}
+
+.chat-conversation-name {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.chat-conversation-time {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.chat-messages-area {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+}
+
+.chat-messages-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  background: var(--bg-secondary);
+}
+
+.chat-message {
+  margin-bottom: var(--spacing-3);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.chat-message-bubble {
+  max-width: 75%;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.chat-message-user {
+  margin-left: auto;
+}
+
+.chat-message-user .chat-message-bubble {
+  background: var(--gradient-dietician);
+  color: white;
+}
+
+.chat-message-staff .chat-message-bubble {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+.chat-message-text {
+  word-wrap: break-word;
+}
+
+.chat-message-time {
+  font-size: var(--font-xs);
+  opacity: 0.7;
+  margin-top: var(--spacing-1);
+}
+
+.chat-input-area {
+  display: flex;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-card);
+}
+
+.chat-input {
+  flex: 1;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.chat-send-btn {
+  background: var(--gradient-dietician);
+  color: white;
+  border: none;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.chat-send-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== Macro Pie Chart ===== */
+.macro-pie-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.macro-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.macro-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.macro-color {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.macro-color.carbs { background: #f59e0b; }
+.macro-color.protein { background: #3b82f6; }
+.macro-color.fat { background: #ef4444; }
+
+/* ===== Animations ===== */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* ===== Loading States ===== */
+.dietician .loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.dietician .loading::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--dietician-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .dietician {
+    padding: var(--spacing-4);
+  }
+  
+  .dietician .title {
+    font-size: var(--font-3xl);
+  }
+  
+  .dietician .fields {
+    grid-template-columns: 1fr;
+  }
+  
+  .dietician .vitamins .row {
+    grid-template-columns: 1fr;
+  }
+  
+  .dietician .actions {
+    flex-direction: column;
+  }
+  
+  .dietician .actions button {
+    width: 100%;
+  }
+  
+  .macro-pie-container {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .dietician .staff-chat,
+  .dietician .actions button {
+    display: none;
+  }
+  
+  .dietician .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  .dietician *,
+  .dietician *::before,
+  .dietician *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

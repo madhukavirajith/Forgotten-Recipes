@@ -1,0 +1,704 @@
+/* client/src/components/dashboards/VisitorDashboard.css */
+
+/* ===== CSS Variables for Visitor Dashboard ===== */
+:root {
+  /* Visitor specific colors */
+  --visitor-primary: #3b82f6;
+  --visitor-primary-dark: #2563eb;
+  --visitor-primary-light: #60a5fa;
+  --visitor-secondary: #8b5cf6;
+  --visitor-accent: #06b6d4;
+  --visitor-success: #10b981;
+  --visitor-warning: #f59e0b;
+  --visitor-danger: #ef4444;
+  --visitor-info: #8b5cf6;
+  
+  /* Gradients */
+  --gradient-visitor: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-visitor-dark: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+}
+
+/* ===== Main Container ===== */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+  background: var(--bg-primary);
+  min-height: 100vh;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ===== Header Section ===== */
+.dashboard-container h2 {
+  font-size: var(--font-4xl);
+  font-weight: var(--font-bold);
+  background: var(--gradient-visitor);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: var(--spacing-8);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 3px solid var(--visitor-primary);
+  display: inline-block;
+  letter-spacing: -0.02em;
+  position: relative;
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.dashboard-container h2::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 60%;
+  height: 3px;
+  background: var(--gradient-visitor);
+  border-radius: var(--radius-full);
+}
+
+/* ===== Section Styles ===== */
+.dashboard-container section {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.dashboard-container section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-visitor);
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+}
+
+.dashboard-container section:hover::before {
+  transform: scaleX(1);
+}
+
+.dashboard-container section:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.dashboard-container section h3 {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  position: relative;
+  padding-bottom: var(--spacing-2);
+}
+
+.dashboard-container section h3::before {
+  content: '';
+  width: 4px;
+  height: 28px;
+  background: var(--gradient-visitor);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== Form Styles ===== */
+.form-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.form-block input,
+.form-block textarea,
+.form-block select {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-md);
+  transition: var(--transition-base);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  width: 100%;
+}
+
+.form-block input:focus,
+.form-block textarea:focus,
+.form-block select:focus {
+  outline: none;
+  border-color: var(--visitor-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-block input:hover,
+.form-block textarea:hover,
+.form-block select:hover {
+  border-color: var(--visitor-primary);
+}
+
+.form-block textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Select Grid */
+.select-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-3);
+}
+
+@media (max-width: 768px) {
+  .select-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Image Preview */
+.image-preview {
+  margin-top: var(--spacing-3);
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview img {
+  width: 140px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-light);
+  transition: var(--transition-base);
+}
+
+.image-preview img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+/* Submit Button */
+.form-block button {
+  background: var(--gradient-visitor);
+  color: white;
+  border: none;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-md);
+  cursor: pointer;
+  transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.form-block button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.form-block button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.form-block button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.form-block button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Recipe List Styles ===== */
+.dashboard-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--spacing-3);
+}
+
+.dashboard-container li {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-container li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-visitor);
+  transform: scaleY(0);
+  transition: transform var(--transition-base);
+}
+
+.dashboard-container li:hover::before {
+  transform: scaleY(1);
+}
+
+.dashboard-container li:hover {
+  transform: translateX(5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--visitor-primary);
+}
+
+.recipe-info {
+  flex: 1;
+}
+
+.recipe-title {
+  font-weight: var(--font-bold);
+  font-size: var(--font-lg);
+  margin-bottom: var(--spacing-1);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.recipe-title a {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--transition-base);
+}
+
+.recipe-title a:hover {
+  color: var(--visitor-primary);
+}
+
+.recipe-meta {
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+}
+
+/* ===== Status Badge ===== */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse 2s infinite;
+}
+
+.status-approved {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.status-rejected {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+/* ===== Button Styles ===== */
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--visitor-primary);
+  color: var(--visitor-primary);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-base);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-sm);
+}
+
+.btn-outline:hover {
+  background: var(--visitor-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+  background: var(--gradient-visitor);
+  color: white;
+  border: none;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-base);
+  font-weight: var(--font-semibold);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--text-tertiary);
+  font-style: italic;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+/* ===== Cookbook Panel Integration ===== */
+.cookbook-panel {
+  margin-bottom: var(--spacing-6);
+}
+
+/* ===== Chat Widget ===== */
+.chat-widget {
+  position: fixed;
+  bottom: var(--spacing-6);
+  right: var(--spacing-6);
+  z-index: var(--z-fixed);
+}
+
+/* ===== Western Twist Tool Link ===== */
+.twist-tool-link {
+  display: inline-block;
+}
+
+.twist-tool-link button {
+  background: var(--gradient-visitor);
+  color: white;
+  border: none;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition-base);
+  font-size: var(--font-md);
+}
+
+.twist-tool-link button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== Loading State ===== */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-8);
+}
+
+.loading-spinner::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--visitor-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Animations ===== */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* ===== Skeleton Loading ===== */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-primary) 50%, var(--bg-secondary) 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+  .dashboard-container {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container h2 {
+    font-size: var(--font-3xl);
+  }
+  
+  .dashboard-container section h3 {
+    font-size: var(--font-xl);
+  }
+  
+  .dashboard-container section {
+    padding: var(--spacing-4);
+  }
+  
+  .dashboard-container li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .recipe-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .btn-outline {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .select-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: var(--spacing-3);
+  }
+  
+  .dashboard-container section {
+    padding: var(--spacing-3);
+  }
+  
+  .form-block button {
+    width: 100%;
+  }
+  
+  .recipe-title {
+    font-size: var(--font-md);
+  }
+}
+
+/* ===== Toast Notifications ===== */
+.toast-success {
+  position: fixed;
+  bottom: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-toast);
+  animation: slideInUp 0.3s ease-out;
+}
+
+.toast-error {
+  position: fixed;
+  bottom: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-toast);
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .dashboard-container {
+    background: white;
+    padding: 0;
+  }
+  
+  .dashboard-container section {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .form-block button,
+  .btn-outline,
+  .chat-widget {
+    display: none;
+  }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.dashboard-container button:focus-visible,
+.dashboard-container input:focus-visible,
+.dashboard-container textarea:focus-visible,
+.dashboard-container select:focus-visible,
+.dashboard-container a:focus-visible {
+  outline: 2px solid var(--visitor-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Custom selection */
+.dashboard-container ::selection {
+  background: var(--visitor-primary);
+  color: white;
+}
+
+/* ===== Tooltip Styles ===== */
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--text-primary);
+  color: white;
+  font-size: var(--font-xs);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: var(--z-tooltip);
+}
+
+[data-tooltip]:hover::before {
+  opacity: 1;
+}
+
+/* ===== Form Validation Styles ===== */
+.form-block input:invalid:focus,
+.form-block select:invalid:focus,
+.form-block textarea:invalid:focus {
+  border-color: var(--visitor-danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-block input:valid:focus,
+.form-block select:valid:focus,
+.form-block textarea:valid:focus {
+  border-color: var(--visitor-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* ===== Progress Indicator ===== */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-visitor);
+  transform-origin: 0%;
+  z-index: var(--z-fixed);
+  animation: progress 0.5s ease-out;
+}
+
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

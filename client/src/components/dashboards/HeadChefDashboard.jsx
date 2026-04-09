@@ -1,8 +1,10 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import './HeadChefDashboard.css';
+
+// ✅ FIX 1: Define base URL once at the top
+const API_BASE = process.env.REACT_APP_API_URL || '';
 
 const HeadChefDashboard = () => {
   const [recipes, setRecipes] = useState([]);
@@ -31,7 +33,8 @@ const HeadChefDashboard = () => {
   /* ---------------- Fetchers ---------------- */
   const fetchRecipes = async () => {
     try {
-      const res = await axios.get('/api/recipes/all', authHeader);
+      // ✅ FIX 2: Use API_BASE prefix on all axios calls
+      const res = await axios.get(`${API_BASE}/api/recipes/all`, authHeader);
       setRecipes(res.data || []);
     } catch (err) {
       console.error('Error fetching recipes:', err);
@@ -40,7 +43,7 @@ const HeadChefDashboard = () => {
 
   const fetchPendingRecipes = async () => {
     try {
-      const res = await axios.get('/api/headchef/pending-recipes', authHeader);
+      const res = await axios.get(`${API_BASE}/api/headchef/pending-recipes`, authHeader);
       setPendingRecipes(res.data || []);
     } catch (err) {
       console.error('Error fetching pending recipes:', err);
@@ -49,7 +52,7 @@ const HeadChefDashboard = () => {
 
   const fetchStories = async () => {
     try {
-      const res = await axios.get('/api/stories');
+      const res = await axios.get(`${API_BASE}/api/stories`);
       setStories(res.data || []);
     } catch (err) {
       console.error('Error fetching stories:', err);
@@ -58,7 +61,7 @@ const HeadChefDashboard = () => {
 
   const fetchPendingTwists = async () => {
     try {
-      const res = await axios.get('/api/headchef/pending-twists', authHeader);
+      const res = await axios.get(`${API_BASE}/api/headchef/pending-twists`, authHeader);
       setPendingTwists(res.data || []);
     } catch (err) {
       console.error('Error fetching pending twists:', err);
@@ -89,10 +92,10 @@ const HeadChefDashboard = () => {
     e.preventDefault();
     try {
       if (editRecipeId) {
-        await axios.put(`/api/recipes/${editRecipeId}`, newRecipe, authHeader);
+        await axios.put(`${API_BASE}/api/recipes/${editRecipeId}`, newRecipe, authHeader);
       } else {
         await axios.post(
-          '/api/recipes',
+          `${API_BASE}/api/recipes`,
           { ...newRecipe, status: 'approved', approved: true },
           authHeader
         );
@@ -133,7 +136,7 @@ const HeadChefDashboard = () => {
   const handleDeleteRecipe = async (id) => {
     if (!window.confirm('Delete this recipe?')) return;
     try {
-      await axios.delete(`/api/recipes/${id}`, authHeader);
+      await axios.delete(`${API_BASE}/api/recipes/${id}`, authHeader);
       fetchRecipes();
       fetchPendingRecipes();
     } catch (err) {
@@ -147,9 +150,9 @@ const HeadChefDashboard = () => {
     e.preventDefault();
     try {
       if (editStoryId) {
-        await axios.put(`/api/stories/${editStoryId}`, story, authHeader);
+        await axios.put(`${API_BASE}/api/stories/${editStoryId}`, story, authHeader);
       } else {
-        await axios.post('/api/stories', story, authHeader);
+        await axios.post(`${API_BASE}/api/stories`, story, authHeader);
       }
       setStory({ title: '', content: '', image: '' });
       setEditStoryId(null);
@@ -172,7 +175,7 @@ const HeadChefDashboard = () => {
   const handleDeleteStory = async (id) => {
     if (!window.confirm('Delete this story?')) return;
     try {
-      await axios.delete(`/api/stories/${id}`, authHeader);
+      await axios.delete(`${API_BASE}/api/stories/${id}`, authHeader);
       fetchStories();
     } catch (err) {
       console.error('Delete story error:', err);
@@ -183,7 +186,7 @@ const HeadChefDashboard = () => {
   /* ---------------- Pending visitor recipes ---------------- */
   const approveRecipe = async (id) => {
     try {
-      await axios.put(`/api/headchef/approve-recipe/${id}`, {}, authHeader);
+      await axios.put(`${API_BASE}/api/headchef/approve-recipe/${id}`, {}, authHeader);
       await Promise.all([fetchPendingRecipes(), fetchRecipes()]);
     } catch (err) {
       console.error('Approve failed:', err);
@@ -194,7 +197,7 @@ const HeadChefDashboard = () => {
   const rejectRecipe = async (id) => {
     if (!window.confirm('Reject this recipe?')) return;
     try {
-      await axios.put(`/api/headchef/reject-recipe/${id}`, {}, authHeader);
+      await axios.put(`${API_BASE}/api/headchef/reject-recipe/${id}`, {}, authHeader);
       fetchPendingRecipes();
       fetchRecipes();
     } catch (err) {
@@ -206,7 +209,7 @@ const HeadChefDashboard = () => {
   /* ---------------- Twists moderation ---------------- */
   const approveTwist = async (id) => {
     try {
-      await axios.put(`/api/headchef/approve-twist/${id}`, {}, authHeader);
+      await axios.put(`${API_BASE}/api/headchef/approve-twist/${id}`, {}, authHeader);
       fetchPendingTwists();
     } catch (err) {
       console.error('Approve twist failed:', err);
@@ -217,7 +220,7 @@ const HeadChefDashboard = () => {
   const rejectTwist = async (id) => {
     if (!window.confirm('Reject this twisted recipe?')) return;
     try {
-      await axios.put(`/api/headchef/reject-twist/${id}`, {}, authHeader);
+      await axios.put(`${API_BASE}/api/headchef/reject-twist/${id}`, {}, authHeader);
       fetchPendingTwists();
     } catch (err) {
       console.error('Reject twist failed:', err);
@@ -230,7 +233,7 @@ const HeadChefDashboard = () => {
     fetchPendingRecipes();
     fetchStories();
     fetchPendingTwists();
-  }, []); 
+  }, []);
 
   return (
     <div className="dashboard-container">
@@ -434,9 +437,9 @@ const HeadChefDashboard = () => {
 export default HeadChefDashboard;
 
 /* ----------------------- Minimal staff inbox component ---------------------- */
-function StaffChat({ role }) { 
-  const REST_BASE  = process.env.REACT_APP_API_URL || '';
-  const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+function StaffChat({ role }) {
+  // ✅ FIX 3: Use API_BASE for REST, and correctly read env var for socket (not a string literal)
+  const SOCKET_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const [convos, setConvos] = useState([]);
   const [active, setActive] = useState(null);
@@ -446,22 +449,29 @@ function StaffChat({ role }) {
   const scroller = useRef(null);
 
   const loadConvos = async () => {
-    const res = await fetch(`${REST_BASE}/api/chat/conversations?role=${role}`);
-    const data = await res.json();
-    setConvos(Array.isArray(data) ? data : []);
+    try {
+      const res = await fetch(`${API_BASE}/api/chat/conversations?role=${role}`);
+      const data = await res.json();
+      setConvos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error loading conversations:', err);
+    }
   };
 
   const loadHistory = async (conversationId) => {
-    const res = await fetch(`${REST_BASE}/api/chat/history/${conversationId}`);
-    const data = await res.json();
-    setMessages(Array.isArray(data) ? data : []);
-    setTimeout(() => scroller.current?.scrollTo(0, 999999), 50);
+    try {
+      const res = await fetch(`${API_BASE}/api/chat/history/${conversationId}`);
+      const data = await res.json();
+      setMessages(Array.isArray(data) ? data : []);
+      setTimeout(() => scroller.current?.scrollTo(0, 999999), 50);
+    } catch (err) {
+      console.error('Error loading history:', err);
+    }
   };
 
-  
-  useEffect(() => { loadConvos(); }, []); 
+  useEffect(() => { loadConvos(); }, []);
 
-  // init socket
+  // ✅ FIX 4: Socket now connects to correct Render URL, not localhost
   useEffect(() => {
     if (!socketRef.current) {
       socketRef.current = io(SOCKET_URL, {
@@ -470,11 +480,11 @@ function StaffChat({ role }) {
       });
     }
     return () => {
-      
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
   }, [SOCKET_URL]);
 
-  
   useEffect(() => {
     if (!active || !socketRef.current) return;
     (async () => {
@@ -491,7 +501,7 @@ function StaffChat({ role }) {
       socketRef.current.off('message');
       socketRef.current.on('message', onMsg);
     })();
-  }, [active]); 
+  }, [active]);
 
   const send = () => {
     if (!text.trim() || !active) return;

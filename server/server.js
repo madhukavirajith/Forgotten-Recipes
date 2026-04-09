@@ -75,9 +75,11 @@ app.get('/', (_req, res) => {
 });
 
 // -------------------- Socket.IO server --------------------
-const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: CLIENT_ORIGIN, credentials: true },
+  cors: { 
+    origin: allowedOrigins,  // ✅ Use your existing allowedOrigins array
+    credentials: true 
+  },
 });
 
 // Simple room-based chat for Visitor <-> Dietician/Head Chef

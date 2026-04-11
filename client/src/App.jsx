@@ -21,7 +21,13 @@ import Stories from './components/Stories';
 import Chat from './components/Chat';
 import MeasurementConverter from './components/MeasurementConverter';
 import TwistTool from './components/TwistTool';
-
+import ContactUs from './components/ContactUs';
+import FAQs from './components/FAQs';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
+import CookiePolicy from './components/CookiePolicy';
+import Accessibility from './components/Accessibility';
+import Sitemap from './components/Sitemap';
 function App() {
   return (
     <Router>
@@ -49,6 +55,15 @@ function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/convert" element={<MeasurementConverter />} />
             <Route path="/twist-tool" element={<TwistTool />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/faqs" element={<FAQs />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/accessibility" element={<Accessibility />} />
+            <Route path="/sitemap" element={<Sitemap />} />
+            
+            
 
             
           </Routes>

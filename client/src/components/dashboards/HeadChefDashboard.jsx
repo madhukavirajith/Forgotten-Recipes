@@ -1,19 +1,88 @@
-import React, { useEffect, useRef, useState } from 'react';
+// client/src/components/dashboards/HeadChefDashboard.jsx
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { io } from 'socket.io-client';
 import './HeadChefDashboard.css';
+import Chat from '../Chat';
 
-// ✅ FIX 1: Define base URL once at the top
+// Import icons
+import { 
+  FaUtensils, 
+  FaBook, 
+  FaScroll, 
+  FaCheckCircle, 
+  FaTimesCircle, 
+  FaEdit, 
+  FaTrash,
+  FaPlus,
+  FaEye,
+  FaClock,
+  FaFire,
+  FaLeaf,
+  FaSpinner,
+  FaSearch,
+  FaFilter,
+  FaChevronDown,
+  FaChevronUp,
+  FaImage,
+  FaTag,
+  FaStar,
+  FaUsers,
+  FaComments,
+  FaBell,
+  FaChartLine,
+  FaCalendarAlt,
+  FaInfoCircle,
+  FaExclamationTriangle,
+  FaThumbsUp,
+  FaThumbsDown,
+  FaArrowLeft,
+  FaArrowRight
+} from 'react-icons/fa';
+
 const API_BASE = process.env.REACT_APP_API_URL || '';
+
+// Status Badge Component
+const StatusBadge = ({ status, type }) => {
+  const getConfig = () => {
+    if (type === 'recipe') {
+      switch (status) {
+        case 'approved': return { label: 'Approved', className: 'status-approved', icon: <FaCheckCircle /> };
+        case 'rejected': return { label: 'Rejected', className: 'status-rejected', icon: <FaTimesCircle /> };
+        default: return { label: 'Pending', className: 'status-pending', icon: <FaClock /> };
+      }
+    }
+    return { label: status, className: 'status-info', icon: <FaInfoCircle /> };
+  };
+  
+  const { label, className, icon } = getConfig();
+  return <span className={`status-badge ${className}`}>{icon} {label}</span>;
+};
+
+// Stats Card Component
+const StatCard = ({ title, value, icon, color, trend }) => (
+  <div className="stat-card" style={{ borderBottomColor: color }}>
+    <div className="stat-card-icon" style={{ color }}>{icon}</div>
+    <div className="stat-card-info">
+      <div className="stat-card-value">{value}</div>
+      <div className="stat-card-title">{title}</div>
+      {trend && <div className="stat-card-trend">{trend}</div>}
+    </div>
+  </div>
+);
 
 const HeadChefDashboard = () => {
   const [recipes, setRecipes] = useState([]);
   const [pendingRecipes, setPendingRecipes] = useState([]);
   const [pendingTwists, setPendingTwists] = useState([]);
   const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
   const [story, setStory] = useState({ title: '', content: '', image: '' });
   const [editStoryId, setEditStoryId] = useState(null);
+  const [showStoryForm, setShowStoryForm] = useState(false);
 
   const [newRecipe, setNewRecipe] = useState({
     name: '',
@@ -26,14 +95,36 @@ const HeadChefDashboard = () => {
     dietType: '',
   });
   const [editRecipeId, setEditRecipeId] = useState(null);
+  const [showRecipeForm, setShowRecipeForm] = useState(false);
 
   const token = localStorage.getItem('token') || '';
   const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-  /* ---------------- Fetchers ---------------- */
+  // Show notification
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 3000);
+  };
+
+  // Fetch all data
+  const fetchAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchRecipes(),
+        fetchPendingRecipes(),
+        fetchStories(),
+        fetchPendingTwists()
+      ]);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const fetchRecipes = async () => {
     try {
-      // ✅ FIX 2: Use API_BASE prefix on all axios calls
       const res = await axios.get(`${API_BASE}/api/recipes/all`, authHeader);
       setRecipes(res.data || []);
     } catch (err) {
@@ -68,54 +159,35 @@ const HeadChefDashboard = () => {
     }
   };
 
-  /* ---------------- File inputs ---------------- */
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
+  // Recipe CRUD
   const handleRecipeImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () =>
-      setNewRecipe((prev) => ({ ...prev, image: reader.result }));
+    reader.onloadend = () => setNewRecipe((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
   };
 
-  const handleStoryImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () =>
-      setStory((prev) => ({ ...prev, image: reader.result }));
-    reader.readAsDataURL(file);
-  };
-
-  /* ---------------- Recipe CRUD ---------------- */
   const handleRecipeSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editRecipeId) {
         await axios.put(`${API_BASE}/api/recipes/${editRecipeId}`, newRecipe, authHeader);
+        showNotification('Recipe updated successfully!', 'success');
       } else {
-        await axios.post(
-          `${API_BASE}/api/recipes`,
-          { ...newRecipe, status: 'approved', approved: true },
-          authHeader
-        );
+        await axios.post(`${API_BASE}/api/recipes`, { ...newRecipe, status: 'approved', approved: true }, authHeader);
+        showNotification('Recipe created successfully!', 'success');
       }
-
-      setNewRecipe({
-        name: '',
-        ingredients: '',
-        instructions: '',
-        culture: '',
-        image: '',
-        category: '',
-        spiceLevel: '',
-        dietType: '',
-      });
-      setEditRecipeId(null);
-      fetchRecipes();
+      resetRecipeForm();
+      fetchAllData();
+      setShowRecipeForm(false);
     } catch (err) {
       console.error('Recipe save error:', err);
-      alert('Failed to save recipe.');
+      showNotification('Failed to save recipe.', 'error');
     }
   };
 
@@ -131,35 +203,60 @@ const HeadChefDashboard = () => {
       dietType: recipe.dietType || '',
     });
     setEditRecipeId(recipe._id);
+    setShowRecipeForm(true);
   };
 
   const handleDeleteRecipe = async (id) => {
     if (!window.confirm('Delete this recipe?')) return;
     try {
       await axios.delete(`${API_BASE}/api/recipes/${id}`, authHeader);
-      fetchRecipes();
-      fetchPendingRecipes();
+      showNotification('Recipe deleted successfully!', 'success');
+      fetchAllData();
     } catch (err) {
       console.error('Delete error:', err);
-      alert('Failed to delete recipe.');
+      showNotification('Failed to delete recipe.', 'error');
     }
   };
 
-  /* ---------------- Story CRUD ---------------- */
+  const resetRecipeForm = () => {
+    setNewRecipe({
+      name: '',
+      ingredients: '',
+      instructions: '',
+      culture: '',
+      image: '',
+      category: '',
+      spiceLevel: '',
+      dietType: '',
+    });
+    setEditRecipeId(null);
+  };
+
+  // Story CRUD
+  const handleStoryImage = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setStory((prev) => ({ ...prev, image: reader.result }));
+    reader.readAsDataURL(file);
+  };
+
   const handleStorySubmit = async (e) => {
     e.preventDefault();
     try {
       if (editStoryId) {
         await axios.put(`${API_BASE}/api/stories/${editStoryId}`, story, authHeader);
+        showNotification('Story updated successfully!', 'success');
       } else {
         await axios.post(`${API_BASE}/api/stories`, story, authHeader);
+        showNotification('Story created successfully!', 'success');
       }
-      setStory({ title: '', content: '', image: '' });
-      setEditStoryId(null);
+      resetStoryForm();
       fetchStories();
+      setShowStoryForm(false);
     } catch (err) {
       console.error('Story error:', err);
-      alert('Failed to save story.');
+      showNotification('Failed to save story.', 'error');
     }
   };
 
@@ -170,27 +267,35 @@ const HeadChefDashboard = () => {
       image: s.image || '',
     });
     setEditStoryId(s._id);
+    setShowStoryForm(true);
   };
 
   const handleDeleteStory = async (id) => {
     if (!window.confirm('Delete this story?')) return;
     try {
       await axios.delete(`${API_BASE}/api/stories/${id}`, authHeader);
+      showNotification('Story deleted successfully!', 'success');
       fetchStories();
     } catch (err) {
       console.error('Delete story error:', err);
-      alert('Failed to delete story.');
+      showNotification('Failed to delete story.', 'error');
     }
   };
 
-  /* ---------------- Pending visitor recipes ---------------- */
+  const resetStoryForm = () => {
+    setStory({ title: '', content: '', image: '' });
+    setEditStoryId(null);
+  };
+
+  // Approve/Reject
   const approveRecipe = async (id) => {
     try {
       await axios.put(`${API_BASE}/api/headchef/approve-recipe/${id}`, {}, authHeader);
-      await Promise.all([fetchPendingRecipes(), fetchRecipes()]);
+      showNotification('Recipe approved successfully!', 'success');
+      await fetchAllData();
     } catch (err) {
       console.error('Approve failed:', err);
-      alert('Failed to approve recipe.');
+      showNotification('Failed to approve recipe.', 'error');
     }
   };
 
@@ -198,22 +303,22 @@ const HeadChefDashboard = () => {
     if (!window.confirm('Reject this recipe?')) return;
     try {
       await axios.put(`${API_BASE}/api/headchef/reject-recipe/${id}`, {}, authHeader);
-      fetchPendingRecipes();
-      fetchRecipes();
+      showNotification('Recipe rejected.', 'info');
+      await fetchAllData();
     } catch (err) {
       console.error('Reject failed:', err);
-      alert('Failed to reject recipe.');
+      showNotification('Failed to reject recipe.', 'error');
     }
   };
 
-  /* ---------------- Twists moderation ---------------- */
   const approveTwist = async (id) => {
     try {
       await axios.put(`${API_BASE}/api/headchef/approve-twist/${id}`, {}, authHeader);
-      fetchPendingTwists();
+      showNotification('Twist approved successfully!', 'success');
+      await fetchPendingTwists();
     } catch (err) {
       console.error('Approve twist failed:', err);
-      alert('Failed to approve twist.');
+      showNotification('Failed to approve twist.', 'error');
     }
   };
 
@@ -221,352 +326,358 @@ const HeadChefDashboard = () => {
     if (!window.confirm('Reject this twisted recipe?')) return;
     try {
       await axios.put(`${API_BASE}/api/headchef/reject-twist/${id}`, {}, authHeader);
-      fetchPendingTwists();
+      showNotification('Twist rejected.', 'info');
+      await fetchPendingTwists();
     } catch (err) {
       console.error('Reject twist failed:', err);
-      alert('Failed to reject twist.');
+      showNotification('Failed to reject twist.', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchRecipes();
-    fetchPendingRecipes();
-    fetchStories();
-    fetchPendingTwists();
-  }, []);
+  // Stats
+  const stats = [
+    { title: 'Total Recipes', value: recipes.length, icon: <FaUtensils />, color: '#D2691E' },
+    { title: 'Pending Approval', value: pendingRecipes.length, icon: <FaClock />, color: '#f59e0b' },
+    { title: 'Pending Twists', value: pendingTwists.length, icon: <FaFire />, color: '#ef4444' },
+    { title: 'Cultural Stories', value: stories.length, icon: <FaScroll />, color: '#10b981' }
+  ];
+
+  // Filter recipes by search
+  const filteredRecipes = recipes.filter(recipe =>
+    recipe.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    recipe.culture?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="headchef-dashboard">
+        <div className="loading-container">
+          <FaSpinner className="loading-spinner" />
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="dashboard-container">
-      <h2>Head Chef Dashboard</h2>
+    <div className="headchef-dashboard">
+      {/* Notification Toast */}
+      {notification.show && (
+        <div className={`toast-notification ${notification.type}`}>
+          {notification.type === 'success' ? <FaCheckCircle /> : notification.type === 'error' ? <FaExclamationTriangle /> : <FaInfoCircle />}
+          <span>{notification.message}</span>
+        </div>
+      )}
 
-      {/* Add / Edit Recipe */}
-      <section>
-        <h3>{editRecipeId ? 'Edit Recipe' : 'Add New Recipe'}</h3>
-        <form onSubmit={handleRecipeSubmit} className="form-block">
-          <input
-            type="text"
-            placeholder="Recipe Name"
-            value={newRecipe.name}
-            onChange={(e) => setNewRecipe({ ...newRecipe, name: e.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Ingredients"
-            value={newRecipe.ingredients}
-            onChange={(e) => setNewRecipe({ ...newRecipe, ingredients: e.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Instructions"
-            value={newRecipe.instructions}
-            onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })}
-            required
-          />
-          <select
-            value={newRecipe.category}
-            onChange={(e) => setNewRecipe({ ...newRecipe, category: e.target.value })}
-            required
-          >
-            <option value="">Select Category</option>
-            <option>Main Course</option>
-            <option>Snack</option>
-            <option>Dessert</option>
-            <option>Beverage</option>
-          </select>
-          <select
-            value={newRecipe.spiceLevel}
-            onChange={(e) => setNewRecipe({ ...newRecipe, spiceLevel: e.target.value })}
-            required
-          >
-            <option value="">Select Spice Level</option>
-            <option>Mild</option>
-            <option>Medium</option>
-            <option>Spicy</option>
-          </select>
-          <select
-            value={newRecipe.dietType}
-            onChange={(e) => setNewRecipe({ ...newRecipe, dietType: e.target.value })}
-            required
-          >
-            <option value="">Select Diet Type</option>
-            <option>Vegan</option>
-            <option>Vegetarian</option>
-            <option>Non-Vegetarian</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Cultural Origin"
-            value={newRecipe.culture}
-            onChange={(e) => setNewRecipe({ ...newRecipe, culture: e.target.value })}
-          />
-          <input type="file" accept="image/*" onChange={handleRecipeImage} />
-          {newRecipe.image && <img src={newRecipe.image} alt="Preview" width="150" />}
-          <button type="submit">{editRecipeId ? 'Update Recipe' : 'Create Recipe'}</button>
-        </form>
-      </section>
+      {/* Header */}
+      <div className="dashboard-header">
+        <div className="header-content">
+          <h1 className="dashboard-title">
+            <span className="title-icon">👨‍🍳</span>
+            Head Chef Dashboard
+          </h1>
+          <p className="dashboard-subtitle">
+            Manage recipes, approve submissions, and curate cultural stories
+          </p>
+        </div>
+      </div>
 
-      {/* Recipe List */}
-      <section>
-        <h3>Recipe List</h3>
-        {recipes.length === 0 ? (
-          <p>No recipes added yet.</p>
-        ) : (
-          <ul>
-            {recipes.map((recipe) => (
-              <li key={recipe._id}>
-                <strong>{recipe.name}</strong> ({recipe.culture || 'Unknown'})
-                {recipe.isTwist && <span className="pill" style={{ marginLeft: 6 }}>Twisted</span>}
-                {!recipe.approved && ' • Pending'}
-                <br />
-                <button onClick={() => handleEditRecipe(recipe)}>Edit</button>
-                <button onClick={() => handleDeleteRecipe(recipe._id)}>Delete</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* Stats Cards */}
+      <div className="stats-grid">
+        {stats.map((stat, index) => (
+          <StatCard key={index} {...stat} />
+        ))}
+      </div>
 
-      {/* Pending Visitor Recipes */}
-      <section>
-        <h3>Pending Visitor Recipes</h3>
-        {pendingRecipes.length === 0 ? (
-          <p>No pending recipes to review.</p>
-        ) : (
-          <ul>
-            {pendingRecipes.map((r) => (
-              <li key={r._id}>
-                <strong>{r.name}</strong>{' '}
-                — submitted by {r.submittedBy?.name || r.createdBy?.name || 'Visitor'}
-                <div style={{ marginTop: 6 }}>
-                  <button onClick={() => approveRecipe(r._id)}>Approve</button>
-                  <button onClick={() => rejectRecipe(r._id)} style={{ marginLeft: 8 }}>
-                    Reject
-                  </button>
+      {/* Tab Navigation */}
+      <div className="dashboard-tabs">
+        <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+          <FaChartLine /> Overview
+        </button>
+        <button className={`tab-btn ${activeTab === 'recipes' ? 'active' : ''}`} onClick={() => setActiveTab('recipes')}>
+          <FaUtensils /> All Recipes
+        </button>
+        <button className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
+          <FaClock /> Pending Approval
+          {pendingRecipes.length > 0 && <span className="tab-badge">{pendingRecipes.length}</span>}
+        </button>
+        <button className={`tab-btn ${activeTab === 'twists' ? 'active' : ''}`} onClick={() => setActiveTab('twists')}>
+          <FaFire /> Twist Submissions
+          {pendingTwists.length > 0 && <span className="tab-badge">{pendingTwists.length}</span>}
+        </button>
+        <button className={`tab-btn ${activeTab === 'stories' ? 'active' : ''}`} onClick={() => setActiveTab('stories')}>
+          <FaScroll /> Cultural Stories
+        </button>
+      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div className="overview-tab">
+          <div className="quick-actions">
+            <h3>Quick Actions</h3>
+            <div className="action-buttons">
+              <button onClick={() => { setShowRecipeForm(true); setActiveTab('recipes'); }} className="quick-action-btn">
+                <FaPlus /> Add New Recipe
+              </button>
+              <button onClick={() => { setShowStoryForm(true); setActiveTab('stories'); }} className="quick-action-btn">
+                <FaPlus /> Add Cultural Story
+              </button>
+            </div>
+          </div>
+
+          <div className="recent-activity">
+            <h3>Recent Activity</h3>
+            <div className="activity-list">
+              {pendingRecipes.slice(0, 5).map(recipe => (
+                <div key={recipe._id} className="activity-item">
+                  <div className="activity-icon">📝</div>
+                  <div className="activity-content">
+                    <strong>{recipe.name}</strong> submitted by {recipe.submittedBy?.name || 'Visitor'}
+                    <div className="activity-time">Pending review</div>
+                  </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+              ))}
+              {pendingRecipes.length === 0 && (
+                <div className="activity-empty">No recent activity</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Western Twist Submissions */}
-      <section>
-        <h3>Western Twist Submissions</h3>
-        {pendingTwists.length === 0 ? (
-          <p>No pending twists to review.</p>
-        ) : (
-          <ul>
-            {pendingTwists.map((t) => (
-              <li key={t._id} style={{ marginBottom: 10 }}>
-                <strong>{t.name}</strong>
-                {t.parentRecipe?.name && (
-                  <span style={{ marginLeft: 8, color: '#666' }}>
-                    (from: {t.parentRecipe.name})
-                  </span>
-                )}
-                <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
-                  {Array.isArray(t.substitutions) && t.substitutions.length > 0 ? (
-                    <span>
-                      Subs:&nbsp;
-                      {t.substitutions.map((s, i) => (
-                        <span key={i}>
-                          {s.from} → <b>{s.to}</b>{i < t.substitutions.length - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    </span>
-                  ) : (
-                    <em>No substitutions listed</em>
-                  )}
+      {/* Recipes Tab */}
+      {activeTab === 'recipes' && (
+        <div className="recipes-tab">
+          <div className="tab-header">
+            <div className="search-bar">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search recipes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button className="add-btn" onClick={() => setShowRecipeForm(!showRecipeForm)}>
+              <FaPlus /> {showRecipeForm ? 'Cancel' : 'Add Recipe'}
+            </button>
+          </div>
+
+          {showRecipeForm && (
+            <div className="form-card">
+              <h3>{editRecipeId ? 'Edit Recipe' : 'Add New Recipe'}</h3>
+              <form onSubmit={handleRecipeSubmit} className="recipe-form">
+                <div className="form-row two-col">
+                  <div className="form-group">
+                    <label>Recipe Name *</label>
+                    <input type="text" value={newRecipe.name} onChange={(e) => setNewRecipe({ ...newRecipe, name: e.target.value })} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Cultural Origin</label>
+                    <input type="text" value={newRecipe.culture} onChange={(e) => setNewRecipe({ ...newRecipe, culture: e.target.value })} />
+                  </div>
                 </div>
-                <div style={{ marginTop: 6 }}>
-                  <button onClick={() => approveTwist(t._id)}>Approve</button>
-                  <button onClick={() => rejectTwist(t._id)} style={{ marginLeft: 8 }}>
-                    Reject
-                  </button>
+                <div className="form-row three-col">
+                  <div className="form-group">
+                    <label>Category *</label>
+                    <select value={newRecipe.category} onChange={(e) => setNewRecipe({ ...newRecipe, category: e.target.value })} required>
+                      <option value="">Select Category</option>
+                      <option>Main Course</option><option>Snack</option><option>Dessert</option><option>Beverage</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Spice Level *</label>
+                    <select value={newRecipe.spiceLevel} onChange={(e) => setNewRecipe({ ...newRecipe, spiceLevel: e.target.value })} required>
+                      <option value="">Select Spice Level</option>
+                      <option>Mild</option><option>Medium</option><option>Spicy</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Diet Type *</label>
+                    <select value={newRecipe.dietType} onChange={(e) => setNewRecipe({ ...newRecipe, dietType: e.target.value })} required>
+                      <option value="">Select Diet Type</option>
+                      <option>Vegan</option><option>Vegetarian</option><option>Non-Vegetarian</option>
+                    </select>
+                  </div>
                 </div>
-              </li>
+                <div className="form-group">
+                  <label>Ingredients *</label>
+                  <textarea rows={4} value={newRecipe.ingredients} onChange={(e) => setNewRecipe({ ...newRecipe, ingredients: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Instructions *</label>
+                  <textarea rows={5} value={newRecipe.instructions} onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Recipe Image</label>
+                  <div className="image-upload" onClick={() => document.getElementById('recipeImageInput').click()}>
+                    <input id="recipeImageInput" type="file" accept="image/*" onChange={handleRecipeImage} style={{ display: 'none' }} />
+                    {newRecipe.image ? (
+                      <img src={newRecipe.image} alt="Preview" />
+                    ) : (
+                      <div className="upload-placeholder"><FaImage /> Click to upload image</div>
+                    )}
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button type="button" onClick={() => { resetRecipeForm(); setShowRecipeForm(false); }} className="btn-secondary">Cancel</button>
+                  <button type="submit" className="btn-primary">{editRecipeId ? 'Update' : 'Create'} Recipe</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="items-grid">
+            {filteredRecipes.map(recipe => (
+              <div key={recipe._id} className="item-card">
+                <div className="item-image">
+                  {recipe.image ? <img src={recipe.image} alt={recipe.name} /> : <div className="image-placeholder"><FaUtensils /></div>}
+                </div>
+                <div className="item-info">
+                  <h4>{recipe.name}</h4>
+                  <div className="item-meta">
+                    <span className="meta-tag">{recipe.category}</span>
+                    <span className="meta-tag spice">{recipe.spiceLevel}</span>
+                    <span className="meta-tag diet">{recipe.dietType}</span>
+                  </div>
+                  <div className="item-actions">
+                    <button onClick={() => handleEditRecipe(recipe)} className="action-btn edit"><FaEdit /> Edit</button>
+                    <button onClick={() => handleDeleteRecipe(recipe._id)} className="action-btn delete"><FaTrash /> Delete</button>
+                  </div>
+                </div>
+              </div>
             ))}
-          </ul>
-        )}
-      </section>
+          </div>
+        </div>
+      )}
 
-      {/* Cultural Stories CRUD */}
-      <section>
-        <h3>{editStoryId ? 'Edit Cultural Story' : 'Submit Cultural Story'}</h3>
-        <form onSubmit={handleStorySubmit} className="form-block">
-          <input
-            type="text"
-            placeholder="Story Title"
-            value={story.title}
-            onChange={(e) => setStory({ ...story, title: e.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Story Content"
-            value={story.content}
-            onChange={(e) => setStory({ ...story, content: e.target.value })}
-            required
-          />
-          <input type="file" accept="image/*" onChange={handleStoryImage} />
-          {story.image && <img src={story.image} alt="Story" width="150" />}
-          <button type="submit">{editStoryId ? 'Update Story' : 'Submit Story'}</button>
-        </form>
-
-        <h4>Story List</h4>
-        {stories.length === 0 ? (
-          <p>No stories yet.</p>
-        ) : (
-          <ul>
-            {stories.map((s) => (
-              <li key={s._id}>
-                <strong>{s.title}</strong>
-                <button onClick={() => handleEditStory(s)}>Edit</button>
-                <button onClick={() => handleDeleteStory(s._id)}>Delete</button>
-              </li>
+      {/* Pending Recipes Tab */}
+      {activeTab === 'pending' && (
+        <div className="pending-tab">
+          <div className="items-list">
+            {pendingRecipes.map(recipe => (
+              <div key={recipe._id} className="pending-item">
+                <div className="pending-info">
+                  <h4>{recipe.name}</h4>
+                  <p>Submitted by <strong>{recipe.submittedBy?.name || recipe.createdBy?.name || 'Visitor'}</strong></p>
+                  <div className="item-meta">
+                    <span className="meta-tag">{recipe.category}</span>
+                    <span className="meta-tag spice">{recipe.spiceLevel}</span>
+                    <span className="meta-tag diet">{recipe.dietType}</span>
+                  </div>
+                </div>
+                <div className="pending-actions">
+                  <button onClick={() => approveRecipe(recipe._id)} className="approve-btn"><FaCheckCircle /> Approve</button>
+                  <button onClick={() => rejectRecipe(recipe._id)} className="reject-btn"><FaTimesCircle /> Reject</button>
+                </div>
+              </div>
             ))}
-          </ul>
-        )}
-      </section>
+            {pendingRecipes.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-icon">✅</div>
+                <p>No pending recipes to review</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-      {/* Head Chef Inbox (reply to visitors) */}
-      <StaffChat role="headchef" />
+      {/* Twists Tab */}
+      {activeTab === 'twists' && (
+        <div className="twists-tab">
+          <div className="items-list">
+            {pendingTwists.map(twist => (
+              <div key={twist._id} className="twist-item">
+                <div className="twist-info">
+                  <h4>{twist.name}</h4>
+                  <p>Based on: <strong>{twist.parentRecipe?.name}</strong></p>
+                  <div className="substitutions">
+                    <strong>Substitutions:</strong>
+                    {twist.substitutions?.map((s, i) => (
+                      <span key={i} className="sub-badge">{s.from} → {s.to}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="twist-actions">
+                  <button onClick={() => approveTwist(twist._id)} className="approve-btn"><FaCheckCircle /> Approve</button>
+                  <button onClick={() => rejectTwist(twist._id)} className="reject-btn"><FaTimesCircle /> Reject</button>
+                </div>
+              </div>
+            ))}
+            {pendingTwists.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-icon">🔄</div>
+                <p>No pending twist submissions</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Stories Tab */}
+      {activeTab === 'stories' && (
+        <div className="stories-tab">
+          <div className="tab-header">
+            <button className="add-btn" onClick={() => setShowStoryForm(!showStoryForm)}>
+              <FaPlus /> {showStoryForm ? 'Cancel' : 'Add Story'}
+            </button>
+          </div>
+
+          {showStoryForm && (
+            <div className="form-card">
+              <h3>{editStoryId ? 'Edit Story' : 'Add New Story'}</h3>
+              <form onSubmit={handleStorySubmit} className="story-form">
+                <div className="form-group">
+                  <label>Story Title *</label>
+                  <input type="text" value={story.title} onChange={(e) => setStory({ ...story, title: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Story Content *</label>
+                  <textarea rows={6} value={story.content} onChange={(e) => setStory({ ...story, content: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Story Image</label>
+                  <div className="image-upload" onClick={() => document.getElementById('storyImageInput').click()}>
+                    <input id="storyImageInput" type="file" accept="image/*" onChange={handleStoryImage} style={{ display: 'none' }} />
+                    {story.image ? (
+                      <img src={story.image} alt="Preview" />
+                    ) : (
+                      <div className="upload-placeholder"><FaImage /> Click to upload image</div>
+                    )}
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button type="button" onClick={() => { resetStoryForm(); setShowStoryForm(false); }} className="btn-secondary">Cancel</button>
+                  <button type="submit" className="btn-primary">{editStoryId ? 'Update' : 'Create'} Story</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="items-grid">
+            {stories.map(story => (
+              <div key={story._id} className="item-card story-card">
+                <div className="item-image">
+                  {story.image ? <img src={story.image} alt={story.title} /> : <div className="image-placeholder"><FaScroll /></div>}
+                </div>
+                <div className="item-info">
+                  <h4>{story.title}</h4>
+                  <p className="story-preview">{story.content?.substring(0, 80)}...</p>
+                  <div className="item-actions">
+                    <button onClick={() => handleEditStory(story)} className="action-btn edit"><FaEdit /> Edit</button>
+                    <button onClick={() => handleDeleteStory(story._id)} className="action-btn delete"><FaTrash /> Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Chat Widget */}
+      <Chat />
     </div>
   );
 };
 
 export default HeadChefDashboard;
-
-/* ----------------------- Minimal staff inbox component ---------------------- */
-function StaffChat({ role }) {
-  // ✅ FIX 3: Use API_BASE for REST, and correctly read env var for socket (not a string literal)
-  const SOCKET_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-  const [convos, setConvos] = useState([]);
-  const [active, setActive] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
-  const socketRef = useRef(null);
-  const scroller = useRef(null);
-
-  const loadConvos = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/chat/conversations?role=${role}`);
-      const data = await res.json();
-      setConvos(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Error loading conversations:', err);
-    }
-  };
-
-  const loadHistory = async (conversationId) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/chat/history/${conversationId}`);
-      const data = await res.json();
-      setMessages(Array.isArray(data) ? data : []);
-      setTimeout(() => scroller.current?.scrollTo(0, 999999), 50);
-    } catch (err) {
-      console.error('Error loading history:', err);
-    }
-  };
-
-  useEffect(() => { loadConvos(); }, []);
-
-  // ✅ FIX 4: Socket now connects to correct Render URL, not localhost
-  useEffect(() => {
-    if (!socketRef.current) {
-      socketRef.current = io(SOCKET_URL, {
-        transports: ['websocket'],
-        withCredentials: true
-      });
-    }
-    return () => {
-      socketRef.current?.disconnect();
-      socketRef.current = null;
-    };
-  }, [SOCKET_URL]);
-
-  useEffect(() => {
-    if (!active || !socketRef.current) return;
-    (async () => {
-      await loadHistory(active);
-      socketRef.current.emit('join', { conversationId: active });
-
-      const onMsg = (msg) => {
-        if (msg.conversation === active) {
-          setMessages((m) => [...m, msg]);
-          setTimeout(() => scroller.current?.scrollTo(0, 999999), 50);
-        }
-      };
-
-      socketRef.current.off('message');
-      socketRef.current.on('message', onMsg);
-    })();
-  }, [active]);
-
-  const send = () => {
-    if (!text.trim() || !active) return;
-    socketRef.current?.emit('message', {
-      conversationId: active,
-      text,
-      senderRole: role,
-    });
-    setText('');
-  };
-
-  return (
-    <div style={{ marginTop: '1rem', border: '1px solid #eee', borderRadius: 10, overflow: 'hidden' }}>
-      <div style={{ padding: '.6rem .8rem', fontWeight: 800, background: '#fff7ee', borderBottom: '1px solid #f2e3d5' }}>
-        {role === 'dietician' ? 'Dietician Inbox' : 'Head Chef Inbox'}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr' }}>
-        <aside style={{ borderRight: '1px solid #eee', maxHeight: 320, overflow: 'auto' }}>
-          {convos.map(c => (
-            <div key={c._id}
-                 style={{ padding: '.5rem .7rem', cursor: 'pointer', background: active === c._id ? '#eef6ff' : '#fff' }}
-                 onClick={() => setActive(c._id)}>
-              <div style={{ fontWeight: 600 }}>{c?.visitor?.name || 'Visitor'}</div>
-              <div style={{ color: '#666', fontSize: 12 }}>{new Date(c.updatedAt).toLocaleString()}</div>
-            </div>
-          ))}
-          {!convos.length && <div style={{ padding: '.6rem', color: '#666' }}>No conversations yet.</div>}
-        </aside>
-
-        <main style={{ display: 'flex', flexDirection: 'column' }}>
-          <div ref={scroller} style={{ height: 260, overflow: 'auto', padding: '.6rem', background: '#fbfbfb' }}>
-            {messages.map(m => (
-              <div key={m._id}
-                   style={{
-                     maxWidth: '75%', margin: '.35rem 0', padding: '.45rem .6rem',
-                     borderRadius: 12,
-                     background: m.senderRole === role ? '#111' : '#fff',
-                     color: m.senderRole === role ? '#fff' : '#111',
-                     border: m.senderRole === role ? '1px solid #111' : '1px solid #eee',
-                     marginLeft: m.senderRole === role ? 'auto' : 0
-                   }}>
-                <div>{m.text}</div>
-                <div style={{ fontSize: 11, opacity: .7, marginTop: 2 }}>
-                  {new Date(m.createdAt).toLocaleTimeString()}
-                </div>
-              </div>
-            ))}
-            {!messages.length && <div style={{ color: '#666' }}>Pick a conversation on the left.</div>}
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, padding: 8, borderTop: '1px solid #eee' }}>
-            <input
-              value={text}
-              onChange={e => setText(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && send()}
-              placeholder="Type a message…"
-              style={{ flex: 1, border: '1px solid #ddd', borderRadius: 10, padding: '.5rem .6rem' }}
-            />
-            <button onClick={send} style={{ border: 'none', background: '#111', color: '#fff', borderRadius: 10, padding: '.5rem .8rem' }}>
-              Send
-            </button>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}

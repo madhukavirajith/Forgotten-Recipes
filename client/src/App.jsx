@@ -28,6 +28,9 @@ import TermsOfService from './components/TermsOfService';
 import CookiePolicy from './components/CookiePolicy';
 import Accessibility from './components/Accessibility';
 import Sitemap from './components/Sitemap';
+import Profile from './components/Profile';
+import Settings from './components/Settings';
+
 function App() {
   return (
     <Router>
@@ -62,7 +65,8 @@ function App() {
             <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/accessibility" element={<Accessibility />} />
             <Route path="/sitemap" element={<Sitemap />} />
-            
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             
 
             

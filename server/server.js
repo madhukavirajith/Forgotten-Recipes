@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -16,9 +17,9 @@ const headchefRoutes = require('./routes/headchefRoutes');
 const visitorRoutes = require('./routes/visitorRoutes');
 const dieticianRoutes = require('./routes/dieticianRoutes');
 const chatRoutes = require('./routes/chatRoutes');
-const feedbackRoutes = require('./routes/feedbackRoutes'); 
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
-// Models used by Socket.IO handlers
+// Models used by Socket.IO
 const Message = require('./models/Message');
 const Conversation = require('./models/Conversation');
 
@@ -27,21 +28,16 @@ connectDB();
 
 const app = express();
 
-// --- Updated CORS Configuration ---
-// Only include origins that actually exist and you control.
-// For production, it's best to use environment variables.
+// Allowed origins (update with your actual frontend URLs)
 const allowedOrigins = [
-  'http://localhost:3000',               // Local React dev server
-  'https://forgotten-recipes.vercel.app' // Your production frontend on Vercel
+  'http://localhost:3000',
+  'https://forgotten-recipes.vercel.app'
 ];
 
-// Allow your Render backend's own URL for same-origin requests if needed, but it's not typical for a browser to send a different origin.
-// A more flexible approach for development vs. production is shown below.
-
+// CORS middleware
 app.use(cors({
-  origin: function(origin, callback){
-    // Allow requests with no origin (like mobile apps, curl, server-to-server) or if the origin is in our allowed list
-    if(!origin || allowedOrigins.includes(origin)){
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.warn(`Blocked request from origin: ${origin}`);
@@ -51,7 +47,6 @@ app.use(cors({
   credentials: true
 }));
 
-// Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
@@ -69,66 +64,128 @@ app.use('/api/feedback', feedbackRoutes);
 
 // Health check
 app.get('/', (_req, res) => {
-  res.json({
-    message: 'Forgotten Recipes API is running!',
-    roles: {
-      visitors: 'Can register and login freely',
-      admin: 'Pre-existing system role',
-      headchef: 'Pre-existing system role',
-      dietician: 'Pre-existing system role',
-    },
-  });
+  res.json({ message: 'Forgotten Recipes API is running!' });
 });
 
-// -------------------- CREATE HTTP SERVER FIRST --------------------
+// -------------------- Create HTTP server --------------------
 const server = http.createServer(app);
 
-// -------------------- THEN INITIALIZE SOCKET.IO --------------------
+// -------------------- Socket.IO with online user tracking --------------------
 const io = new Server(server, {
-  cors: { 
-    origin: allowedOrigins, // Use the same allowed origins list for Socket.IO
-    credentials: true 
-  },
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
 });
 
-// Simple room-based chat
+// Store online users: Map<userId, { socketId, role }>
+const onlineUsers = new Map();
+
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
-  
-  socket.on('join', ({ conversationId }) => {
+
+  // User joins with their ID and role
+  socket.on('join', ({ userId, userRole }) => {
+    if (userId) {
+      onlineUsers.set(userId.toString(), { socketId: socket.id, role: userRole });
+      // Broadcast updated online status to all clients
+      io.emit('status', { userId, role: userRole, isOnline: true });
+      console.log(`User ${userId} (${userRole}) is online`);
+    }
+  });
+
+  socket.on('joinRoom', ({ conversationId }) => {
     if (conversationId) {
       socket.join(conversationId);
       console.log(`Socket ${socket.id} joined room ${conversationId}`);
     }
   });
 
-  socket.on('message', async (payload) => {
-    try {
-      if (!payload?.conversationId || !payload?.text || !payload?.senderRole) return;
-
-      const msg = await Message.create({
-        conversation: payload.conversationId,
-        text: payload.text,
-        senderId: payload.senderId || null,
-        senderRole: payload.senderRole,
-      });
-
-      await Conversation.findByIdAndUpdate(payload.conversationId, {
-        $set: { updatedAt: new Date() },
-      });
-
-      io.to(payload.conversationId).emit('message', msg);
-    } catch (e) {
-      console.error('Socket message error:', e?.message || e);
+  socket.on('leaveRoom', ({ conversationId }) => {
+    if (conversationId) {
+      socket.leave(conversationId);
     }
   });
 
+  // Typing indicator
+  socket.on('typing', ({ conversationId, userId, userRole, isTyping }) => {
+    socket.to(conversationId).emit('typing', { conversationId, senderId: userId, senderRole: userRole, isTyping });
+  });
+
+  // New message
+  socket.on('message', async (payload) => {
+    try {
+      const { conversationId, text, senderId, senderRole, senderName } = payload;
+      if (!conversationId || !text || !senderRole) return;
+
+      // Save message to database
+      const message = await Message.create({
+        conversation: conversationId,
+        text,
+        senderId: senderId || null,
+        senderRole,
+        senderName: senderName || 'User',
+        read: false
+      });
+
+      // Update conversation's last message time
+      await Conversation.findByIdAndUpdate(conversationId, {
+        lastMessage: text,
+        lastMessageAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // Broadcast to all participants in the room
+      io.to(conversationId).emit('message', {
+        _id: message._id,
+        conversation: conversationId,
+        text: message.text,
+        senderId: message.senderId,
+        senderRole: message.senderRole,
+        senderName: message.senderName,
+        read: message.read,
+        createdAt: message.createdAt
+      });
+    } catch (err) {
+      console.error('Socket message error:', err.message);
+    }
+  });
+
+  // Mark messages as read
+  socket.on('read', async ({ conversationId, userId }) => {
+    try {
+      await Message.updateMany(
+        { conversation: conversationId, senderId: { $ne: userId }, read: false },
+        { read: true }
+      );
+      io.to(conversationId).emit('messagesRead', { conversationId, userId });
+    } catch (err) {
+      console.error('Read receipt error:', err.message);
+    }
+  });
+
+  // Handle disconnection
   socket.on('disconnect', () => {
+    let disconnectedUserId = null;
+    for (let [userId, data] of onlineUsers.entries()) {
+      if (data.socketId === socket.id) {
+        disconnectedUserId = userId;
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+    if (disconnectedUserId) {
+      io.emit('status', { userId: disconnectedUserId, isOnline: false });
+      console.log(`User ${disconnectedUserId} went offline`);
+    }
     console.log('Client disconnected:', socket.id);
   });
 });
 
-// -------------------- START SERVER LAST --------------------
+// Make onlineUsers available globally for controllers (optional)
+global.onlineUsers = onlineUsers;
+
+// -------------------- Start server --------------------
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server + Socket.IO running on port ${PORT}`);

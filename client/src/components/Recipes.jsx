@@ -1,33 +1,297 @@
 // client/src/components/Recipes.jsx
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import './Recipes.css';
-import RecipeCard from './RecipeCard';
 
 // Import icons
 import { 
   FaSearch, 
   FaFilter, 
   FaTimes, 
-  FaChevronDown,
-  FaChevronUp,
   FaUtensils,
   FaClock,
   FaFire,
-  FaLeaf,
   FaStar,
   FaHeart,
   FaBookmark,
   FaShare,
-  FaThumbsUp,
   FaEye,
   FaArrowLeft,
   FaArrowRight,
-  FaSpinner
+  FaSpinner,
+  FaChevronDown,
+  FaChevronUp,
+  FaRegClock,
+  FaChartLine,
+  FaTags
 } from 'react-icons/fa';
 
 const API = process.env.REACT_APP_API_URL || '';
 
+// Helper function to trim text
+const trimText = (txt = '', len = 100) =>
+  txt.length > len ? txt.slice(0, len).trim() + '…' : txt;
+
+// Recipe Card Component (Integrated)
+const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const n = recipe.nutrition || {};
+  const flag = n.ratingFlag || 'neutral';
+  
+  const flagConfig = {
+    'weight-loss': { color: '#10b981', icon: '🌱', label: 'Weight Loss Friendly' },
+    'weight-gain': { color: '#ef4444', icon: '💪', label: 'Weight Gain' },
+    'neutral': { color: '#f59e0b', icon: '⚖️', label: 'Balanced' }
+  };
+  
+  const currentFlag = flagConfig[flag] || flagConfig.neutral;
+  
+  const getDifficultyColor = (level) => {
+    switch(level?.toLowerCase()) {
+      case 'easy': return { bg: '#10b98120', color: '#10b981', icon: '😊' };
+      case 'medium': return { bg: '#f59e0b20', color: '#f59e0b', icon: '🌶️' };
+      case 'hard': return { bg: '#ef444420', color: '#ef4444', icon: '🔥' };
+      default: return { bg: '#6b728020', color: '#6b7280', icon: '🍽️' };
+    }
+  };
+  
+  const difficulty = getDifficultyColor(recipe.spiceLevel);
+  const estimatedTime = recipe.estimatedTime || '30-45 min';
+  
+  const handleSave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onSave) onSave();
+  };
+  
+  const handleLike = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onLike) onLike();
+  };
+  
+  const handleShare = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: recipe.name,
+          text: `Check out this delicious Sri Lankan recipe: ${recipe.name}`,
+          url: `${window.location.origin}/recipes/${recipe._id}`
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}/recipes/${recipe._id}`);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  // Grid View Card
+  if (viewMode === 'grid') {
+    return (
+      <div 
+        className="recipe-card-grid"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <Link to={`/recipes/${recipe._id}`} className="recipe-card-link">
+          <div className="recipe-card-image-wrapper">
+            {recipe.image ? (
+              <>
+                {!imageLoaded && <div className="recipe-card-image-skeleton"></div>}
+                <img 
+                  src={recipe.image} 
+                  alt={recipe.name}
+                  className={`recipe-card-image ${imageLoaded ? 'loaded' : ''}`}
+                  onLoad={() => setImageLoaded(true)}
+                  loading="lazy"
+                />
+              </>
+            ) : (
+              <div className="recipe-card-image-placeholder">
+                <FaUtensils />
+              </div>
+            )}
+            
+            <div className="recipe-card-badges">
+              {recipe.isNew && <span className="badge new">New</span>}
+              {recipe.isPopular && <span className="badge popular">🔥 Popular</span>}
+              {recipe.dietType === 'Vegetarian' && <span className="badge veg">🌱 Veg</span>}
+              {recipe.dietType === 'Vegan' && <span className="badge vegan">🌿 Vegan</span>}
+            </div>
+            
+            <div className={`recipe-card-overlay ${isHovered ? 'visible' : ''}`}>
+              <button 
+                className={`overlay-btn ${isLiked ? 'liked' : ''}`}
+                onClick={handleLike}
+                title={isLiked ? 'Unlike' : 'Like'}
+              >
+                <FaHeart />
+              </button>
+              <button 
+                className={`overlay-btn ${isSaved ? 'saved' : ''}`}
+                onClick={handleSave}
+                title={isSaved ? 'Saved' : 'Save to Cookbook'}
+              >
+                <FaBookmark />
+              </button>
+              <button 
+                className="overlay-btn"
+                onClick={handleShare}
+                title="Share"
+              >
+                <FaShare />
+              </button>
+            </div>
+          </div>
+          
+          <div className="recipe-card-content">
+            <div className="recipe-card-header">
+              <div className="recipe-card-meta">
+                <span className="meta-category">{recipe.category || 'Recipe'}</span>
+                <span className="meta-time">
+                  <FaRegClock /> {estimatedTime}
+                </span>
+              </div>
+              <h3 className="recipe-card-title">{recipe.name}</h3>
+            </div>
+            
+            <p className="recipe-card-description">
+              {trimText(recipe.ingredients || 'No description available', 80)}
+            </p>
+            
+            <div className="recipe-card-footer">
+              <div className="recipe-card-stats">
+                <div className="stat-item">
+                  <FaStar className="star-icon" />
+                  <span>{Number(recipe.averageRating || 0).toFixed(1)}</span>
+                  <span className="stat-count">({recipe.ratingsCount || 0})</span>
+                </div>
+                <div className="stat-item">
+                  <FaFire className="spice-icon" style={{ color: difficulty.color }} />
+                  <span>{recipe.spiceLevel || 'Medium'}</span>
+                </div>
+                <div className="stat-item">
+                  <FaChartLine />
+                  <span>{n.calories || 0} kcal</span>
+                </div>
+              </div>
+              
+              <div className="recipe-card-flag" style={{ background: currentFlag.color + '20', color: currentFlag.color }}>
+                <span>{currentFlag.icon}</span>
+                <span>{currentFlag.label}</span>
+              </div>
+            </div>
+            
+            <div className="recipe-card-cta">
+              <span className="view-details-btn">
+                View Details <FaArrowRight />
+              </span>
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
+  }
+  
+  // List View Card
+  return (
+    <div 
+      className="recipe-card-list"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Link to={`/recipes/${recipe._id}`} className="recipe-card-link list-view">
+        <div className="recipe-card-image-wrapper list">
+          {recipe.image ? (
+            <img 
+              src={recipe.image} 
+              alt={recipe.name}
+              className="recipe-card-image-list"
+              loading="lazy"
+            />
+          ) : (
+            <div className="recipe-card-image-placeholder-list">
+              <FaUtensils />
+            </div>
+          )}
+        </div>
+        
+        <div className="recipe-card-content-list">
+          <div className="recipe-card-header-list">
+            <div className="recipe-card-meta-list">
+              <span className="meta-category">{recipe.category || 'Recipe'}</span>
+              <span className="meta-time">
+                <FaRegClock /> {estimatedTime}
+              </span>
+              <span className="meta-difficulty" style={{ background: difficulty.bg, color: difficulty.color }}>
+                {difficulty.icon} {recipe.spiceLevel || 'Medium'}
+              </span>
+            </div>
+            <h3 className="recipe-card-title-list">{recipe.name}</h3>
+          </div>
+          
+          <p className="recipe-card-description-list">
+            {trimText(recipe.ingredients || 'No description available', 120)}
+          </p>
+          
+          <div className="recipe-card-footer-list">
+            <div className="recipe-card-stats-list">
+              <div className="stat-item">
+                <FaStar className="star-icon" />
+                <span>{Number(recipe.averageRating || 0).toFixed(1)}</span>
+                <span className="stat-count">({recipe.ratingsCount || 0})</span>
+              </div>
+              <div className="stat-item">
+                <FaFire className="spice-icon" style={{ color: difficulty.color }} />
+                <span>{recipe.spiceLevel || 'Medium'}</span>
+              </div>
+              <div className="stat-item">
+                <FaChartLine />
+                <span>{n.calories || 0} kcal</span>
+              </div>
+            </div>
+            
+            <div className="recipe-card-actions-list">
+              <button 
+                className={`action-btn ${isLiked ? 'liked' : ''}`}
+                onClick={handleLike}
+                title={isLiked ? 'Unlike' : 'Like'}
+              >
+                <FaHeart />
+              </button>
+              <button 
+                className={`action-btn ${isSaved ? 'saved' : ''}`}
+                onClick={handleSave}
+                title={isSaved ? 'Saved' : 'Save'}
+              >
+                <FaBookmark />
+              </button>
+              <button 
+                className="action-btn"
+                onClick={handleShare}
+                title="Share"
+              >
+                <FaShare />
+              </button>
+              <span className="view-link">
+                View Details <FaArrowRight />
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+};
+
+// Main Recipes Component
 const Recipes = () => {
   const [recipes, setRecipes] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -46,15 +310,14 @@ const Recipes = () => {
   
   // UI states
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState('grid'); // grid or list
-  const [sortBy, setSortBy] = useState('newest'); // newest, oldest, popular
+  const [viewMode, setViewMode] = useState('grid');
+  const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [savedRecipes, setSavedRecipes] = useState({});
   const [likedRecipes, setLikedRecipes] = useState({});
   
   const recipesPerPage = 9;
   const searchInputRef = useRef(null);
-  const filtersRef = useRef(null);
 
   // Fetch recipes
   useEffect(() => {
@@ -98,7 +361,6 @@ const Recipes = () => {
   useEffect(() => {
     let results = [...recipes];
     
-    // Apply filters
     if (selectedCategory !== 'All') {
       results = results.filter(r => r.category === selectedCategory);
     }
@@ -109,7 +371,6 @@ const Recipes = () => {
       results = results.filter(r => r.dietType === selectedDiet);
     }
     
-    // Apply search
     if (search.trim()) {
       const q = search.toLowerCase();
       results = results.filter(r =>
@@ -120,7 +381,6 @@ const Recipes = () => {
       );
     }
     
-    // Apply sorting
     switch (sortBy) {
       case 'newest':
         results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -145,7 +405,6 @@ const Recipes = () => {
     setCurrentPage(1);
   }, [search, selectedCategory, selectedSpice, selectedDiet, sortBy, recipes]);
 
-  // Pagination
   const indexOfLastRecipe = currentPage * recipesPerPage;
   const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
   const currentRecipes = filtered.slice(indexOfFirstRecipe, indexOfLastRecipe);
@@ -156,7 +415,6 @@ const Recipes = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setSearch('');
     setSelectedCategory('All');
@@ -168,21 +426,18 @@ const Recipes = () => {
     }
   };
 
-  // Save recipe to bookmarks
   const toggleSaveRecipe = (recipeId) => {
     const newSaved = { ...savedRecipes, [recipeId]: !savedRecipes[recipeId] };
     setSavedRecipes(newSaved);
     localStorage.setItem('savedRecipes', JSON.stringify(newSaved));
   };
 
-  // Like recipe
   const toggleLikeRecipe = (recipeId) => {
     const newLiked = { ...likedRecipes, [recipeId]: !likedRecipes[recipeId] };
     setLikedRecipes(newLiked);
     localStorage.setItem('likedRecipes', JSON.stringify(newLiked));
   };
 
-  // Get active filters count
   const getActiveFiltersCount = () => {
     let count = 0;
     if (selectedCategory !== 'All') count++;
@@ -192,7 +447,6 @@ const Recipes = () => {
     return count;
   };
 
-  // Loading skeleton
   if (loading) {
     return (
       <div className="recipes-container">
@@ -204,7 +458,6 @@ const Recipes = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="recipes-container">
@@ -357,17 +610,16 @@ const Recipes = () => {
       ) : (
         <>
           <div className={`recipes-${viewMode}`}>
-            {currentRecipes.map((recipe, index) => (
-              <div key={recipe._id} className="recipe-item-wrapper">
-                <RecipeCard 
-                  recipe={recipe} 
-                  viewMode={viewMode}
-                  isSaved={savedRecipes[recipe._id]}
-                  isLiked={likedRecipes[recipe._id]}
-                  onSave={() => toggleSaveRecipe(recipe._id)}
-                  onLike={() => toggleLikeRecipe(recipe._id)}
-                />
-              </div>
+            {currentRecipes.map((recipe) => (
+              <RecipeCard 
+                key={recipe._id}
+                recipe={recipe} 
+                viewMode={viewMode}
+                isSaved={savedRecipes[recipe._id]}
+                isLiked={likedRecipes[recipe._id]}
+                onSave={() => toggleSaveRecipe(recipe._id)}
+                onLike={() => toggleLikeRecipe(recipe._id)}
+              />
             ))}
           </div>
 
@@ -384,7 +636,6 @@ const Recipes = () => {
               
               <div className="page-numbers">
                 {[...Array(totalPages)].map((_, i) => {
-                  // Show limited page numbers
                   if (
                     i + 1 === 1 ||
                     i + 1 === totalPages ||

@@ -1,42 +1,130 @@
-
+// controllers/chatController.js
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const User = require('../models/User'); // assuming you have User model
 
-// Start or fetch a conversation (one per visitor per role)
+// Role-based permissions (who can chat with whom)
+const CHAT_PERMISSIONS = {
+  visitor: ['dietician', 'headchef'],
+  dietician: ['visitor', 'admin'],
+  headchef: ['visitor', 'admin'],
+  admin: ['headchef', 'dietician']
+};
+
+// Get available recipients for a user
+exports.getAvailableRecipients = async (req, res) => {
+  try {
+    const userRole = req.user.role; // from auth middleware
+    const userId = req.user.id;
+    const allowedRoles = CHAT_PERMISSIONS[userRole] || [];
+
+    // Find online users (you need to maintain online users in memory, see socket setup)
+    // For now, return all staff users with allowed roles (simplified)
+    const recipients = await User.find({
+      role: { $in: allowedRoles },
+      _id: { $ne: userId }
+    }).select('_id name role');
+
+    // You'll also need to check online status (see socket part)
+    // We'll mark them as online if they have active socket connection
+    const onlineUserIds = global.onlineUsers ? Array.from(global.onlineUsers.keys()) : [];
+    const result = recipients.map(r => ({
+      id: r._id,
+      name: r.name,
+      role: r.role,
+      isOnline: onlineUserIds.includes(r._id.toString())
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get recent conversations for a user
+exports.getRecentConversations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversations = await Conversation.find({
+      'participants.userId': userId
+    })
+      .sort({ updatedAt: -1 })
+      .limit(10);
+
+    const result = await Promise.all(conversations.map(async (conv) => {
+      const other = conv.participants.find(p => p.userId.toString() !== userId);
+      const lastMsg = await Message.findOne({ conversation: conv._id }).sort({ createdAt: -1 });
+      return {
+        id: conv._id,
+        recipientId: other.userId,
+        recipientName: other.name,
+        recipientRole: other.role,
+        lastMessage: lastMsg?.text || '',
+        updatedAt: conv.updatedAt
+      };
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Start a conversation (create or get existing)
 exports.startConversation = async (req, res) => {
   try {
-    const { visitorId, targetRole } = req.body; 
-    if (!visitorId || !targetRole) return res.status(400).json({ message: 'visitorId and targetRole required' });
+    const { userId, userRole, userName, recipientId, recipientRole, recipientName } = req.body;
 
-    let convo = await Conversation.findOne({ visitor: visitorId, targetRole });
-    if (!convo) convo = await Conversation.create({ visitor: visitorId, targetRole });
-    res.json(convo);
+    // Check if conversation already exists
+    let conversation = await Conversation.findOne({
+      'participants.userId': { $all: [userId, recipientId] }
+    });
+
+    if (!conversation) {
+      conversation = new Conversation({
+        participants: [
+          { userId, role: userRole, name: userName },
+          { userId: recipientId, role: recipientRole, name: recipientName }
+        ]
+      });
+      await conversation.save();
+    }
+
+    res.json(conversation);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-// Get all messages in a conversation
-exports.getHistory = async (req, res) => {
+// Get message history
+exports.getMessages = async (req, res) => {
   try {
-    const { id } = req.params; // conversationId
-    const msgs = await Message.find({ conversation: id }).sort({ createdAt: 1 });
-    res.json(msgs);
+    const { conversationId } = req.params;
+    const messages = await Message.find({ conversation: conversationId })
+      .sort({ createdAt: 1 })
+      .limit(100);
+    res.json(messages);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-// For staff dashboards
-exports.listConversationsByRole = async (req, res) => {
+// Mark messages as read
+exports.markAsRead = async (req, res) => {
   try {
-    const { role } = req.query; // 'dietician' or 'headchef'
-    if (!role) return res.status(400).json({ message: 'role required' });
-    const convos = await Conversation.find({ targetRole: role, status: 'open' })
-      .sort({ updatedAt: -1 })
-      .populate('visitor', 'name email');
-    res.json(convos);
+    const { conversationId } = req.params;
+    const userId = req.user.id;
+    await Message.updateMany(
+      { conversation: conversationId, senderId: { $ne: userId }, read: false },
+      { read: true }
+    );
+    res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 };

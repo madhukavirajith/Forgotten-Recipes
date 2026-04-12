@@ -1,28 +1,7 @@
-// server/controllers/adminController.js
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const Blog = require('../models/Blog');
 
-// Admin-only middleware function (inline)
-const adminOnly = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ msg: 'No token provided' });
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ msg: 'Access denied. Admins only.' });
-    }
-
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(401).json({ msg: 'Token is not valid' });
-  }
-};
-
+// Get all visitors (users with role 'visitor')
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({ role: 'visitor' }).select('-password');
@@ -33,6 +12,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// Delete a user by ID
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -44,19 +24,21 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get site statistics (total users, visitors, role counts)
 const getSiteStats = async (req, res) => {
   try {
     const totalVisitors = await User.countDocuments({ role: 'visitor' });
     const totalUsers = await User.countDocuments();
-
+    // For simplicity, we return static role counts; you can replace with dynamic aggregation if needed
+    const systemRoles = {
+      admin: await User.countDocuments({ role: 'admin' }),
+      headchef: await User.countDocuments({ role: 'headchef' }),
+      dietician: await User.countDocuments({ role: 'dietician' })
+    };
     res.json({
-      totalUsers: totalUsers,
-      totalVisitors: totalVisitors,
-      systemRoles: {
-        admin: 1,
-        headchef: 1,
-        dietician: 1
-      }
+      totalUsers,
+      totalVisitors,
+      systemRoles
     });
   } catch (err) {
     console.error('Site Stats Error:', err);
@@ -64,43 +46,21 @@ const getSiteStats = async (req, res) => {
   }
 };
 
-
-const getFeedback = async (req, res) => {
-  try {
-    res.json({ 
-      msg: 'Feedback feature coming soon',
-      feedbacks: []
-    });
-  } catch (err) {
-    console.error('Feedback Error:', err);
-    res.status(500).json({ msg: 'Server error while fetching feedback' });
-  }
-};
-
+// Post a new blog (admin only)
 const postBlog = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, image } = req.body;
     if (!title || !content) {
-      return res.status(400).json({ msg: 'Title and content required' });
+      return res.status(400).json({ msg: 'Title and content are required' });
     }
-
     const blog = new Blog({
       title,
       content,
+      image: image || '',
       author: req.user._id
     });
     await blog.save();
-
-    res.status(201).json({
-      msg: 'Blog posted successfully',
-      blog: {
-        _id: blog._id,
-        title: blog.title,
-        content: blog.content,
-        author: req.user.name,
-        timestamp: blog.timestamp
-      }
-    });
+    res.status(201).json(blog);
   } catch (err) {
     console.error('Post Blog Error:', err);
     res.status(500).json({ msg: 'Server error while posting blog' });
@@ -108,12 +68,8 @@ const postBlog = async (req, res) => {
 };
 
 module.exports = {
-  adminOnly, // Export the middleware for use in routes
   getAllUsers,
   deleteUser,
   getSiteStats,
-  getFeedback,
   postBlog
 };
-
-

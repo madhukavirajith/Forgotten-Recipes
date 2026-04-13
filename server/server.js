@@ -27,22 +27,19 @@ connectDB();
 
 const app = express();
 
-// Allowed origins (add your production frontend URL)
+// Allowed origins
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://forgotten-recipes.vercel.app',
-  'https://forgotten-recipes.vercel.app/'  // sometimes trailing slash matters
+  'https://forgotten-recipes.vercel.app'
 ];
 
-// CORS middleware – make sure it runs before any route
+// CORS middleware – this also handles OPTIONS preflight automatically
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`Blocked CORS request from ${origin}`);
+      console.warn(`Blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -51,18 +48,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Pre-flight OPTIONS request handling
-
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // -------------------- REST API routes --------------------
-// Add a catch-all error handler for each route group
-app.use('/api/users', (req, res, next) => {
-  console.log(`[${req.method}] /api/users${req.url}`);
-  next();
-}, userRoutes);
-
+app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/recipes', recipeRoutes);
@@ -78,8 +68,8 @@ app.get('/', (_req, res) => {
   res.json({ message: 'Forgotten Recipes API is running!' });
 });
 
-// 404 handler for unmatched routes
-app.use('*', (req, res) => {
+// Catch‑all 404 handler – no '*' wildcard, just a regular middleware
+app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.originalUrl} not found` });
 });
 
@@ -99,7 +89,7 @@ const io = new Server(server, {
     credentials: true,
     methods: ['GET', 'POST']
   },
-  transports: ['websocket', 'polling']   // allow fallback
+  transports: ['websocket', 'polling']
 });
 
 const onlineUsers = new Map();
@@ -110,7 +100,7 @@ io.on('connection', (socket) => {
   socket.on('join', ({ userId, userRole }) => {
     if (userId) {
       onlineUsers.set(userId.toString(), { socketId: socket.id, role: userRole });
-      socket.join(`user:${userId}`);   // private room for user notifications
+      socket.join(`user:${userId}`);
       io.emit('status', { userId, role: userRole, isOnline: true });
       console.log(`User ${userId} (${userRole}) is online`);
     }
@@ -198,7 +188,7 @@ io.on('connection', (socket) => {
 });
 
 global.onlineUsers = onlineUsers;
-global.io = io;   // make io accessible in other modules
+global.io = io;
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {

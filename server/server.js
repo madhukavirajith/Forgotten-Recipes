@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -28,30 +27,43 @@ connectDB();
 
 const app = express();
 
-// Allowed origins (update with your actual frontend URLs)
+// Allowed origins (add your production frontend URL)
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://forgotten-recipes.vercel.app'
+  'https://forgotten-recipes.vercel.app',
+  'https://forgotten-recipes.vercel.app/'  // sometimes trailing slash matters
 ];
 
-// CORS middleware
+// CORS middleware – make sure it runs before any route
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.warn(`Blocked request from origin: ${origin}`);
+      console.warn(`Blocked CORS request from ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Pre-flight OPTIONS request handling
+app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // -------------------- REST API routes --------------------
-app.use('/api/users', userRoutes);
+// Add a catch-all error handler for each route group
+app.use('/api/users', (req, res, next) => {
+  console.log(`[${req.method}] /api/users${req.url}`);
+  next();
+}, userRoutes);
+
 app.use('/api/admin', adminRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/recipes', recipeRoutes);
@@ -67,28 +79,39 @@ app.get('/', (_req, res) => {
   res.json({ message: 'Forgotten Recipes API is running!' });
 });
 
+// 404 handler for unmatched routes
+app.use('*', (req, res) => {
+  res.status(404).json({ error: `Route ${req.originalUrl} not found` });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 // -------------------- Create HTTP server --------------------
 const server = http.createServer(app);
 
-// -------------------- Socket.IO with online user tracking --------------------
+// -------------------- Socket.IO --------------------
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
-    credentials: true
-  }
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling']   // allow fallback
 });
 
-// Store online users: Map<userId, { socketId, role }>
 const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
-  // User joins with their ID and role
   socket.on('join', ({ userId, userRole }) => {
     if (userId) {
       onlineUsers.set(userId.toString(), { socketId: socket.id, role: userRole });
-      // Broadcast updated online status to all clients
+      socket.join(`user:${userId}`);   // private room for user notifications
       io.emit('status', { userId, role: userRole, isOnline: true });
       console.log(`User ${userId} (${userRole}) is online`);
     }
@@ -107,18 +130,15 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Typing indicator
   socket.on('typing', ({ conversationId, userId, userRole, isTyping }) => {
     socket.to(conversationId).emit('typing', { conversationId, senderId: userId, senderRole: userRole, isTyping });
   });
 
-  // New message
   socket.on('message', async (payload) => {
     try {
       const { conversationId, text, senderId, senderRole, senderName } = payload;
       if (!conversationId || !text || !senderRole) return;
 
-      // Save message to database
       const message = await Message.create({
         conversation: conversationId,
         text,
@@ -128,14 +148,12 @@ io.on('connection', (socket) => {
         read: false
       });
 
-      // Update conversation's last message time
       await Conversation.findByIdAndUpdate(conversationId, {
         lastMessage: text,
         lastMessageAt: new Date(),
         updatedAt: new Date()
       });
 
-      // Broadcast to all participants in the room
       io.to(conversationId).emit('message', {
         _id: message._id,
         conversation: conversationId,
@@ -151,7 +169,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Mark messages as read
   socket.on('read', async ({ conversationId, userId }) => {
     try {
       await Message.updateMany(
@@ -164,7 +181,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle disconnection
   socket.on('disconnect', () => {
     let disconnectedUserId = null;
     for (let [userId, data] of onlineUsers.entries()) {
@@ -182,10 +198,9 @@ io.on('connection', (socket) => {
   });
 });
 
-// Make onlineUsers available globally for controllers (optional)
 global.onlineUsers = onlineUsers;
+global.io = io;   // make io accessible in other modules
 
-// -------------------- Start server --------------------
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server + Socket.IO running on port ${PORT}`);

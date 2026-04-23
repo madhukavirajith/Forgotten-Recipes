@@ -193,25 +193,25 @@ Forgotten Recipes brings back long-lost family recipes and Sri Lankan culinary t
 ## Project Structure
 
 Forgotten-Recipes/
-├── client/ # React frontend
-│ ├── public/
-│ ├── src/
-│ │ ├── components/ # Reusable UI components
-│ │ ├── dashboards/ # Role-specific dashboards
-│ │ ├── context/ # NotificationContext, etc.
-│ │ ├── App.jsx
-│ │ └── index.js
-│ └── package.json
-├── server/ # Node.js backend
-│ ├── config/ # DB connection
-│ ├── controllers/ # Business logic
-│ ├── middleware/ # Auth, upload, etc.
-│ ├── models/ # Mongoose schemas
-│ ├── routes/ # Express routes
-│ ├── socket/ # Socket.IO handlers
-│ ├── utils/ # Helpers (notifications, etc.)
-│ ├── server.js
-│ └── package.json
+├── client/                 # React frontend
+│   ├── public/
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── dashboards/     # Role-specific dashboards
+│   │   ├── context/        # NotificationContext, etc.
+│   │   ├── App.jsx
+│   │   └── index.js
+│   └── package.json
+├── server/                 # Node.js backend
+│   ├── config/             # DB connection
+│   ├── controllers/        # Business logic
+│   ├── middleware/         # Auth, upload, etc.
+│   ├── models/             # Mongoose schemas
+│   ├── routes/             # Express routes
+│   ├── socket/             # Socket.IO handlers
+│   ├── utils/              # Helpers (notifications, etc.)
+│   ├── server.js
+│   └── package.json
 ├── .gitignore
 ├── LICENSE
 └── README.md

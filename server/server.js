@@ -1,6 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -27,13 +29,39 @@ connectDB();
 
 const app = express();
 
-// Allowed origins
+// -------------------- Security Middleware --------------------
+// Helmet – sets various HTTP headers for security
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable if you need inline scripts (adjust as needed)
+  crossOriginEmbedderPolicy: false,
+}));
+
+// Rate limiting – prevent brute force / DDoS
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // limit each IP to 200 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false,
+});
+// Apply to all API routes
+app.use('/api/', limiter);
+
+// Stricter limiter for auth endpoints (login/register)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts, please try again later.' },
+});
+app.use('/api/users/login', authLimiter);
+app.use('/api/users/register', authLimiter);
+
+// -------------------- CORS --------------------
 const allowedOrigins = [
   'http://localhost:3000',
   'https://forgotten-recipes.vercel.app'
 ];
 
-// CORS middleware – this also handles OPTIONS preflight automatically
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -48,6 +76,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
@@ -68,7 +97,7 @@ app.get('/', (_req, res) => {
   res.json({ message: 'Forgotten Recipes API is running!' });
 });
 
-// Catch‑all 404 handler – no '*' wildcard, just a regular middleware
+// Catch‑all 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.originalUrl} not found` });
 });

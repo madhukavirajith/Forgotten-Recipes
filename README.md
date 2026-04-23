@@ -1,4 +1,3 @@
-```markdown
 # Forgotten Recipes
 
 https://forgotten-recipes.vercel.app/
@@ -28,10 +27,21 @@ Forgotten Recipes brings back long-lost family recipes and Sri Lankan culinary t
 
 - **Agile Methodology** – The project was developed using Scrum, with 2‑week sprints, daily stand‑ups, sprint planning, and retrospectives.
 - **Task Tracking** – All user stories, tasks, and bugs were managed using GitHub Projects and Issues.
-- **Gantt Chart** – A detailed Gantt chart was created using Microsoft Project to visualize the timeline, dependencies, and milestones of each sprint.![alt text](image-1.png)
+- **Gantt Chart** – A detailed Gantt chart was created using Microsoft Project to visualize the timeline, dependencies, and milestones of each sprint.
 
 ---
+## Team Members & Roles
 
+| Name     | Role                                          |
+|----------|-----------------------------------------------|
+| Madhuka  | Product Owner / Scrum Master / Full Stack Developer |
+| Nethmi   | Backend Developer                             |
+| Yashadhi | Database Engineer                             |
+| Binara   | UI/UX Engineer / Frontend Dev                 |
+| Kasundi  | Frontend Developer                            |
+| Tharushi | QA Engineer                                   |
+
+---
 ## Tech Stack
 
 | Layer       | Technology                                                                 |
@@ -180,157 +190,30 @@ Forgotten Recipes brings back long-lost family recipes and Sri Lankan culinary t
 
 ---
 
-## Testing
-
-### Backend Tests
-```bash
-cd server
-npm test
-```
-
-### Frontend Tests
-```bash
-cd client
-npm test
-```
-
-### Manual Testing with Postman
-- A Postman collection is available in the `docs` folder. Import it to test all API endpoints.
-
-### Linting
-```bash
-# Check for linting errors
-npm run lint
-
-# Fix automatically fixable errors
-npm run lint:fix
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or later)
-- npm or yarn
-- MongoDB Atlas account (or local MongoDB)
-
-### Clone & Install
-
-```bash
-git clone https://github.com/madhukavirajith/Forgotten-Recipes.git
-cd Forgotten-Recipes
-```
-
-### Backend Setup
-
-```bash
-cd server
-npm install
-npm run dev           
-```
-
-### Frontend Setup
-
-```bash
-cd client
-npm install
-npm start             
-```
-
-
 ## Project Structure
 
-```
 Forgotten-Recipes/
-├── client/                 # React frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── dashboards/     # Role-specific dashboards
-│   │   ├── context/        # NotificationContext, etc.
-│   │   ├── App.jsx
-│   │   └── index.js
-│   └── package.json
-├── server/                 # Node.js backend
-│   ├── config/             # DB connection
-│   ├── controllers/        # Business logic
-│   ├── middleware/         # Auth, upload, etc.
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # Express routes
-│   ├── socket/             # Socket.IO handlers
-│   ├── utils/              # Helpers (notifications, etc.)
-│   ├── server.js
-│   └── package.json
+├── client/ # React frontend
+│ ├── public/
+│ ├── src/
+│ │ ├── components/ # Reusable UI components
+│ │ ├── dashboards/ # Role-specific dashboards
+│ │ ├── context/ # NotificationContext, etc.
+│ │ ├── App.jsx
+│ │ └── index.js
+│ └── package.json
+├── server/ # Node.js backend
+│ ├── config/ # DB connection
+│ ├── controllers/ # Business logic
+│ ├── middleware/ # Auth, upload, etc.
+│ ├── models/ # Mongoose schemas
+│ ├── routes/ # Express routes
+│ ├── socket/ # Socket.IO handlers
+│ ├── utils/ # Helpers (notifications, etc.)
+│ ├── server.js
+│ └── package.json
 ├── .gitignore
 ├── LICENSE
 └── README.md
-```
 
 ---
-
-## Deployment
-
-### Backend (Render)
-
-1. Push code to GitHub.
-2. On Render, create a new Web Service → connect repository.
-3. Set environment variables (`MONGOURI`, `JWT_SECRET`, `PORT`).
-4. Build command: `npm install`
-5. Start command: `node server.js`
-
-### Frontend (Vercel)
-
-1. Connect GitHub repository.
-2. Set environment variables (`REACT_APP_API_URL`, `REACT_APP_SOCKET_URL`).
-3. Deploy.
-
----
-
-## Team Members & Roles
-
-| Name     | Role                          |
-|----------|-------------------------------|
-| Madhuka  | Product Owner / Scrum Master / Full Stack Developer |
-| Nethmi   | Backend Developer             |
-| Yashadhi | Database Engineer             |
-| Binara   | UI/UX Engineer / Frontend Dev |
-| Kasundi  | Frontend Developer            |
-| Tharushi | QA Engineer                   |
-
----
-
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## Acknowledgments
-
-- [React](https://reactjs.org/)
-- [Node.js](https://nodejs.org/)
-- [Express](https://expressjs.com/)
-- [MongoDB](https://www.mongodb.com/)
-- [Socket.IO](https://socket.io/)
-- [Axios](https://axios-http.com/)
-- [bcryptjs](https://www.npmjs.com/package/bcryptjs)
-- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
-- [Express Rate Limit](https://www.npmjs.com/package/express-rate-limit)
-- [Helmet](https://helmetjs.github.io/)
-- Sri Lankan grandmothers who kept these recipes alive
-- All contributors who share their culinary heritage
-
----
-
-## Contact
-
-For questions, feedback, or collaboration inquiries, please open an issue on GitHub or contact the maintainer directly.
-
----
-
-Made with care in Sri Lanka  
-Bringing back traditional tastes with a modern twist
-```

@@ -188,7 +188,7 @@ const Home = () => {
       culture: "Sri Lankan",
       difficulty: "Medium",
       time: "60 min",
-      image: "/watalappan.jpg",
+      image: "/watalappan.JPG",
       rating: 4.7,
       reviews: 189,
       calories: "350 kcal",

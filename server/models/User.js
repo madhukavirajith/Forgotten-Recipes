@@ -15,7 +15,17 @@ const userSchema = new mongoose.Schema(
     dob: { type: Date },
     address: { type: String },
 
-    
+    // Notification preferences
+    notificationPreferences: {
+      emailNotifications: { type: Boolean, default: true },
+      darkMode: { type: Boolean, default: false },
+      language: { type: String, default: 'en' },
+      privacySettings: {
+        profileVisibility: { type: String, enum: ['public', 'friends', 'private'], default: 'public' },
+        showEmail: { type: Boolean, default: false }
+      }
+    },
+
     cookbook: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }],
     myRecipes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }],
   },

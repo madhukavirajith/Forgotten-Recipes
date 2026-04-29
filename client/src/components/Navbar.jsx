@@ -1,16 +1,25 @@
 // client/src/components/Navbar.jsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { io } from 'socket.io-client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
+const API_BASE = process.env.REACT_APP_API_URL || '';
+const API_ROOT = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || API_BASE || 'http://localhost:5000';
+
 // ===== Utility Functions =====
-function decodeRoleFromJWT(token) {
+function decodeJWT(token) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1] || ''));
-    return payload.role || payload.userRole || payload?.user?.role || null;
+    return JSON.parse(atob(token.split('.')[1] || '')) || {};
   } catch {
-    return null;
+    return {};
   }
+}
+
+function decodeRoleFromJWT(token) {
+  const payload = decodeJWT(token);
+  return payload.role || payload.userRole || payload?.user?.role || null;
 }
 
 function readAuth() {
@@ -59,13 +68,15 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState([
-    { id: 1, read: false, message: 'New recipe approved!', time: '5 min ago' },
-    { id: 2, read: false, message: 'Comment on your recipe', time: '1 hour ago' },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [testNotificationSending, setTestNotificationSending] = useState(false);
 
-  // ===== Effects =====
+  // Socket ref to maintain single connection
+  const socketRef = useRef(null);
+  // Refs to track current auth state
+  const currentTokenRef = useRef(null);
+  const currentRoleRef = useRef(null);
   // Close mobile menu on resize to desktop
   useEffect(() => {
     const handleResize = () => {
@@ -117,6 +128,108 @@ export default function Navbar() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [dropdownOpen, showNotifications]);
 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!auth.token) {
+        setNotifications([]);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_ROOT}/notifications`, {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        });
+        if (!res.ok) throw new Error('Failed to load notifications');
+        const data = await res.json();
+        setNotifications(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to load notifications:', err);
+      }
+    };
+
+    fetchNotifications();
+  }, [auth.token]);
+
+  // Socket connection management
+  useEffect(() => {
+    const token = auth.token;
+    const role = auth.role;
+
+    if (token && !socketRef.current) {
+      // Create socket connection only once
+      const tokenPayload = decodeJWT(token);
+      const userId = tokenPayload?.id || tokenPayload?._id;
+
+      if (userId) {
+        console.log('Creating notification socket for user:', userId);
+        const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+        socketRef.current = socket;
+
+        socket.on('connect', () => {
+          console.log('Notification socket connected');
+          socket.emit('join', { userId, userRole: role });
+        });
+
+        socket.on('connect_error', (err) => {
+          console.error('Notification socket error:', err.message);
+        });
+
+        socket.on('disconnect', (reason) => {
+          console.log('Notification socket disconnected:', reason);
+        });
+
+        socket.on('notification', (note) => {
+          console.log('Received notification:', note);
+          setNotifications((prev) => [note, ...(prev || [])]);
+        });
+      }
+    }
+
+    // Cleanup function - only runs on unmount
+    return () => {
+      // Intentionally empty - cleanup handled by separate effect
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Handle auth changes
+  useEffect(() => {
+    const token = auth.token;
+    const role = auth.role;
+
+    // Only update if token or role actually changed
+    if (currentTokenRef.current !== token || currentRoleRef.current !== role) {
+      currentTokenRef.current = token;
+      currentRoleRef.current = role;
+
+      if (!token && socketRef.current) {
+        // Disconnect when user logs out
+        console.log('Disconnecting notification socket due to logout');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      } else if (token && socketRef.current && socketRef.current.connected) {
+        // Update user info if socket is connected
+        const tokenPayload = decodeJWT(token);
+        const userId = tokenPayload?.id || tokenPayload?._id;
+        if (userId) {
+          socketRef.current.emit('join', { userId, userRole: role });
+        }
+      }
+    }
+  }, [auth.token, auth.role]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (socketRef.current) {
+        console.log('Cleaning up notification socket on unmount');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []);
+
   // ===== Handlers =====
   const logout = useCallback(() => {
     localStorage.removeItem('token');
@@ -125,6 +238,7 @@ export default function Navbar() {
     setAuth({ token: null, role: null });
     setMobileMenuOpen(false);
     setDropdownOpen(false);
+    // Socket will be disconnected by the auth change effect
     navigate('/');
   }, [navigate]);
 
@@ -150,13 +264,73 @@ export default function Navbar() {
     }
   }, [searchQuery, navigate, handleLinkClick]);
 
-  const markNotificationRead = useCallback((id) => {
-    setNotifications(prev => 
-      prev.map(notif => notif.id === id ? { ...notif, read: true } : notif)
-    );
-  }, []);
+  const markNotificationRead = useCallback(async (id) => {
+    try {
+      await fetch(`${API_ROOT}/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif._id === id || notif.id === id ? { ...notif, read: true } : notif
+        )
+      );
+    } catch (err) {
+      console.error('Failed to mark notification read:', err);
+    }
+  }, [auth.token]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const markAllRead = useCallback(async () => {
+    try {
+      await fetch(`${API_ROOT}/notifications/read-all`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+      setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
+    } catch (err) {
+      console.error('Failed to mark all notifications read:', err);
+    }
+  }, [auth.token]);
+
+  const sendTestNotification = useCallback(async () => {
+    if (!auth.token) return;
+
+    setTestNotificationSending(true);
+    try {
+      const res = await fetch(`${API_ROOT}/notifications/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({
+          title: 'Test Notification',
+          message: 'This is a live test notification from your Forgotten Recipes app.',
+          type: 'test',
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Unable to send test notification');
+      }
+
+      const notification = await res.json();
+      setNotifications((prev) => [notification, ...(prev || [])]);
+      setShowNotifications(true);
+    } catch (err) {
+      console.error('Test notification failed:', err);
+    } finally {
+      setTestNotificationSending(false);
+    }
+  }, [auth.token]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ===== Helpers =====
   const isActiveLink = (path, exact = false) => {
@@ -215,7 +389,6 @@ export default function Navbar() {
                 to={link.path}
                 className={`nav-link ${isActiveLink(link.path, link.exact) ? 'active' : ''}`}
               >
-                <span className="nav-icon">{link.icon}</span>
                 <span className="nav-label">{link.label}</span>
               </Link>
             </li>
@@ -249,20 +422,34 @@ export default function Navbar() {
                 <div className="notifications-dropdown">
                   <div className="notifications-header">
                     <h4>Notifications</h4>
-                    {unreadCount > 0 && (
-                      <button className="mark-all-read">Mark all read</button>
-                    )}
+                    <div className="notifications-header-actions">
+                      {process.env.NODE_ENV === 'development' && (
+                        <button
+                          className="notification-test"
+                          onClick={sendTestNotification}
+                          disabled={testNotificationSending}
+                        >
+                          {testNotificationSending ? 'Sending…' : 'Send test'}
+                        </button>
+                      )}
+                      {unreadCount > 0 && (
+                        <button className="mark-all-read" onClick={markAllRead}>Mark all read</button>
+                      )}
+                    </div>
                   </div>
                   <div className="notifications-list">
                     {notifications.length > 0 ? (
-                      notifications.map(notif => (
+                      notifications.map((notif) => (
                         <div 
-                          key={notif.id} 
+                          key={notif._id || notif.id}
                           className={`notification-item ${!notif.read ? 'unread' : ''}`}
-                          onClick={() => markNotificationRead(notif.id)}
+                          onClick={() => markNotificationRead(notif._id || notif.id)}
                         >
+                          {notif.title && <div className="notification-title">{notif.title}</div>}
                           <div className="notification-message">{notif.message}</div>
-                          <div className="notification-time">{notif.time}</div>
+                          <div className="notification-time">
+                            {new Date(notif.createdAt || notif.time || null).toLocaleString()}
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -286,9 +473,8 @@ export default function Navbar() {
                   {getUserInitial()}
                 </div>
                 <span className="user-name">{getUserName()}</span>
-                <span className="dropdown-arrow">▼</span>
               </button>
-              
+
               {dropdownOpen && (
                 <div className="user-dropdown">
                   <div className="dropdown-header">
@@ -304,23 +490,22 @@ export default function Navbar() {
                   {dashboardPath && (
                     <>
                       <Link to={dashboardPath} className="dropdown-item" onClick={handleLinkClick}>
-                        <span className="dropdown-icon">📊</span>
                         Dashboard
                       </Link>
                       <div className="dropdown-divider"></div>
                     </>
                   )}
                   <Link to="/profile" className="dropdown-item" onClick={handleLinkClick}>
-                    <span className="dropdown-icon">👤</span>
                     My Profile
                   </Link>
+                  <Link to="/notifications" className="dropdown-item" onClick={handleLinkClick}>
+                    Notifications
+                  </Link>
                   <Link to="/settings" className="dropdown-item" onClick={handleLinkClick}>
-                    <span className="dropdown-icon">⚙️</span>
                     Settings
                   </Link>
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item logout-item" onClick={logout}>
-                    <span className="dropdown-icon">🚪</span>
                     Logout
                   </button>
                 </div>
@@ -400,7 +585,6 @@ export default function Navbar() {
                 className={`mobile-nav-link ${isActiveLink(link.path, link.exact) ? 'active' : ''}`}
                 onClick={handleLinkClick}
               >
-                <span className="mobile-nav-icon">{link.icon}</span>
                 <span className="mobile-nav-label">{link.label}</span>
               </Link>
             </li>
@@ -409,7 +593,6 @@ export default function Navbar() {
           {auth.token && dashboardPath && (
             <li>
               <Link to={dashboardPath} className="mobile-nav-link" onClick={handleLinkClick}>
-                <span className="mobile-nav-icon">📊</span>
                 Dashboard
               </Link>
             </li>
@@ -419,13 +602,16 @@ export default function Navbar() {
             <>
               <li>
                 <Link to="/profile" className="mobile-nav-link" onClick={handleLinkClick}>
-                  <span className="mobile-nav-icon">👤</span>
                   Profile
                 </Link>
               </li>
               <li>
+                <Link to="/notifications" className="mobile-nav-link" onClick={handleLinkClick}>
+                  Notifications
+                </Link>
+              </li>
+              <li>
                 <Link to="/settings" className="mobile-nav-link" onClick={handleLinkClick}>
-                  <span className="mobile-nav-icon">⚙️</span>
                   Settings
                 </Link>
               </li>

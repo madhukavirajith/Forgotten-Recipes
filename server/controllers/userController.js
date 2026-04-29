@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const { createNotification } = require('./notificationController');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -36,12 +37,18 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
-      res.status(201).json({
+      const response = {
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         token: generateToken(user._id)
+      };
+
+      res.status(201).json(response);
+
+      createNotification(user._id, 'Welcome to Forgotten Recipes', 'Your account has been created successfully.').catch((err) => {
+        console.error('Failed to create welcome notification:', err);
       });
     } else {
       res.status(400).json({ msg: 'Invalid user data' });
@@ -87,13 +94,7 @@ const loginUser = async (req, res) => {
 // Get User Profile
 const getUserProfile = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ msg: 'No token provided' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
 
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
@@ -102,31 +103,33 @@ const getUserProfile = async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(401).json({ msg: 'Invalid token' });
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
 // Update User Profile
 const updateUserProfile = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ msg: 'No token provided' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(req.user._id);
 
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    const { name, phone, dob, address } = req.body;
+    const { name, phone, dob, address, notificationPreferences } = req.body;
 
     user.name = name || user.name;
     user.phone = phone || user.phone;
     user.dob = dob || user.dob;
     user.address = address || user.address;
+
+    // Update notification preferences if provided
+    if (notificationPreferences) {
+      user.notificationPreferences = {
+        ...user.notificationPreferences,
+        ...notificationPreferences
+      };
+    }
 
     const updatedUser = await user.save();
 
@@ -139,8 +142,81 @@ const updateUserProfile = async (req, res) => {
       dob: updatedUser.dob,
       address: updatedUser.address
     });
+
+    createNotification(updatedUser._id, 'Profile Updated', 'Your profile changes were saved successfully.').catch((err) => {
+      console.error('Failed to create profile update notification:', err);
+    });
   } catch (error) {
     console.error('Update profile error:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+// Change Password
+const changePassword = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ msg: 'Current password and new password are required' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ msg: 'Password changed successfully' });
+
+    createNotification(user._id, 'Password Changed', 'Your password has been changed successfully.').catch((err) => {
+      console.error('Failed to create password change notification:', err);
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+// Delete Account
+const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Prevent deletion of system users
+    if (['admin', 'headchef', 'dietician'].includes(user.role)) {
+      return res.status(403).json({ msg: 'System accounts cannot be deleted' });
+    }
+
+    // Delete user's comments
+    await require('../models/Comment').deleteMany({ user: user._id });
+    
+    // Delete user's ratings
+    await require('../models/Rating').deleteMany({ user: user._id });
+    
+    // Delete user's notifications
+    await require('../models/Notification').deleteMany({ user: user._id });
+
+    // Delete the user
+    await user.deleteOne();
+
+    res.json({ msg: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -149,7 +225,9 @@ module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
-  updateUserProfile
+  updateUserProfile,
+  changePassword,
+  deleteAccount
 };
 
 

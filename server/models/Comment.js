@@ -3,9 +3,13 @@ const mongoose = require('mongoose');
 const commentSchema = new mongoose.Schema(
   {
     recipe: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', required: true },
-    
     user:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false, default: null },
-    text:   { type: String, required: true, trim: true, maxlength: 2000 }
+    text:   { type: String, required: true, trim: true, maxlength: 2000 },
+    parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment', default: null }, // For nested replies
+    reactions: [{
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      type: { type: String, enum: ['like', 'love', 'laugh', 'angry', 'sad'], required: true }
+    }]
   },
   { timestamps: true }
 );

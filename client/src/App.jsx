@@ -30,6 +30,7 @@ import Accessibility from './components/Accessibility';
 import Sitemap from './components/Sitemap';
 import Profile from './components/Profile';
 import Settings from './components/Settings';
+import Notifications from './components/Notifications';
 
 function App() {
   return (
@@ -67,9 +68,7 @@ function App() {
             <Route path="/sitemap" element={<Sitemap />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
-            
-
-            
+            <Route path="/notifications" element={<Notifications />} />
           </Routes>
         </main>
 

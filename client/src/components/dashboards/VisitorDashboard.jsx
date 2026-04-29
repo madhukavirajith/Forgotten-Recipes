@@ -1,5 +1,5 @@
 // client/src/components/dashboards/VisitorDashboard.jsx
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './VisitorDashboard.css';
@@ -96,7 +96,10 @@ const VisitorDashboard = () => {
   });
 
   const token = localStorage.getItem('token');
-  const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+  const authHeader = useMemo(
+    () => (token ? { headers: { Authorization: `Bearer ${token}` } } : undefined),
+    [token]
+  );
   const fileInputRef = useRef(null);
 
   // Fetch user's submitted recipes

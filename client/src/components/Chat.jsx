@@ -3,16 +3,16 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { io } from 'socket.io-client';
 import './Chat.css';
 
-// Icons (keep your existing imports)
-import { 
+// Icons
+import {
   FaComment, FaUserMd, FaUtensils, FaPaperPlane, FaTimes,
   FaMinus, FaExpand, FaCompress, FaSmile, FaPaperclip,
   FaCheck, FaCheckDouble, FaSpinner, FaUserCircle,
   FaShieldAlt, FaUsers, FaHistory, FaInfoCircle,
-  FaArrowLeft
+  FaArrowLeft, FaEdit, FaTrash, FaReply, FaSearch
 } from 'react-icons/fa';
 
-// Helper functions (decodeJWT, formatTime, formatDate) – same as before
+// ---------- Helper functions ----------
 const decodeJWT = (token) => {
   try {
     const [, payload] = token.split('.');
@@ -40,12 +40,12 @@ const API_BASE = process.env.REACT_APP_API_URL || '';
 const API_ROOT = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || API_BASE || 'http://localhost:5000';
 
-// Role permissions (unchanged)
+// Role permissions
 const CHAT_PERMISSIONS = {
-  visitor: { allowedRoles: ['dietician', 'headchef'], label: 'Visitor', icon: <FaUserCircle />, color: '#10b981', description: 'Get help with recipes and nutrition' },
-  dietician: { allowedRoles: ['visitor', 'admin'], label: 'Dietician', icon: <FaUserMd />, color: '#10b981', description: 'Nutrition advice and dietary guidance' },
-  headchef: { allowedRoles: ['visitor', 'admin'], label: 'Head Chef', icon: <FaUtensils />, color: '#f59e0b', description: 'Recipe approvals and culinary expertise' },
-  admin: { allowedRoles: ['headchef', 'dietician'], label: 'Admin', icon: <FaShieldAlt />, color: '#8b5cf6', description: 'Platform management and support' }
+  visitor: { allowedRoles: ['dietician', 'headchef'], label: 'Visitor', color: '#10b981', description: 'Get help with recipes and nutrition' },
+  dietician: { allowedRoles: ['visitor', 'admin'], label: 'Dietician', color: '#10b981', description: 'Nutrition advice and dietary guidance' },
+  headchef: { allowedRoles: ['visitor', 'admin'], label: 'Head Chef', color: '#f59e0b', description: 'Recipe approvals and culinary expertise' },
+  admin: { allowedRoles: ['headchef', 'dietician'], label: 'Admin', color: '#8b5cf6', description: 'Platform management and support' }
 };
 
 const CHAT_SUGGESTIONS = {
@@ -69,7 +69,17 @@ const CHAT_SUGGESTIONS = {
   ]
 };
 
-// ----------------------- Main Component -----------------------
+const getRoleIcon = (role) => {
+  const iconMap = {
+    visitor: <FaUserCircle />,
+    dietician: <FaUserMd />,
+    headchef: <FaUtensils />,
+    admin: <FaShieldAlt />
+  };
+  return iconMap[role] || <FaUserCircle />;
+};
+
+// ---------- Main Component ----------
 const Chat = () => {
   const token = localStorage.getItem('token');
   const payload = useMemo(() => (token ? decodeJWT(token) : {}), [token]);
@@ -91,6 +101,9 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [recentConversations, setRecentConversations] = useState([]);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const socketRef = useRef(null);
   const scrollerRef = useRef(null);
@@ -116,12 +129,11 @@ const Chat = () => {
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      const enriched = data.map(r => ({ ...r, isOnline: onlineStatus[r.id] || false }));
-      setAvailableRecipients(enriched);
+      setAvailableRecipients(data);
     } catch (err) {
       console.error('Error fetching recipients:', err);
     }
-  }, [token, onlineStatus]);
+  }, [token]);
 
   const fetchRecentConversations = useCallback(async () => {
     try {
@@ -143,7 +155,7 @@ const Chat = () => {
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setMessages(data);
+      setMessages(Array.isArray(data) ? data : []);
       scrollToBottom();
     } catch (err) {
       console.error('Error loading history:', err);
@@ -170,7 +182,7 @@ const Chat = () => {
       const res = await fetch(`${API_ROOT}/chat/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ userId, userRole, userName, recipientId, recipientRole, recipientName })
+        body: JSON.stringify({ recipientId })
       });
       if (!res.ok) throw new Error();
       const convo = await res.json();
@@ -188,11 +200,26 @@ const Chat = () => {
     }
   };
 
-  // ---------- Back to recipient list ----------
+  const searchMessages = async (query) => {
+    if (!conversationId || !query.trim()) return;
+    try {
+      const res = await fetch(`${API_ROOT}/chat/${conversationId}/search?query=${encodeURIComponent(query)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setSearchResults(data.messages || []);
+    } catch (err) {
+      console.error('Error searching messages:', err);
+    }
+  };
+
   const goBack = () => {
     setSelectedRecipient(null);
     setConversationId(null);
     setMessages([]);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   // ---------- Socket handlers ----------
@@ -260,11 +287,10 @@ const Chat = () => {
     };
   }, [conversationId, socketConnected]);
 
-  // ---------- Send message (optimistic update) ----------
+  // ---------- Send message ----------
   const sendMessage = useCallback(() => {
     if (!text.trim() || !conversationId || !socketRef.current) return;
 
-    // Optimistically add message to UI
     const tempId = Date.now().toString();
     const optimisticMsg = {
       _id: tempId,
@@ -279,7 +305,6 @@ const Chat = () => {
     setMessages(prev => [...prev, optimisticMsg]);
     scrollToBottom();
 
-    // Send via socket
     socketRef.current.emit('message', {
       conversationId,
       text: text.trim(),
@@ -338,11 +363,21 @@ const Chat = () => {
     if (!isExpanded) setIsMinimized(false);
   };
 
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim()) {
+      searchMessages(query);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
   const getRecipientInfo = () => {
     if (!selectedRecipient) return null;
     const perm = CHAT_PERMISSIONS[selectedRecipient.role] || CHAT_PERMISSIONS.visitor;
     return {
-      icon: perm.icon,
+      icon: getRoleIcon(selectedRecipient.role),
       name: selectedRecipient.name || perm.label,
       color: perm.color,
       description: perm.description
@@ -382,10 +417,14 @@ const Chat = () => {
         </div>
         {isOpen && (
           <div className="chat-header-actions">
-            {/* Back button when a conversation is active */}
             {selectedRecipient && (
               <button onClick={goBack} className="chat-action-btn" title="Back to contacts">
                 <FaArrowLeft />
+              </button>
+            )}
+            {selectedRecipient && (
+              <button onClick={() => setIsSearching(!isSearching)} className="chat-action-btn" title="Search messages">
+                <FaSearch />
               </button>
             )}
             <button onClick={toggleMinimize} className="chat-action-btn">{isMinimized ? <FaExpand /> : <FaMinus />}</button>
@@ -395,11 +434,38 @@ const Chat = () => {
         )}
       </div>
 
+      {/* Search bar */}
+      {isOpen && !isMinimized && selectedRecipient && isSearching && (
+        <div className="chat-search">
+          <input
+            type="text"
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="search-input"
+          />
+          {searchResults.length > 0 && (
+            <div className="search-results">
+              {searchResults.map(msg => (
+                <div key={msg._id} className="search-result" onClick={() => {
+                  const element = document.getElementById(`message-${msg._id}`);
+                  element?.scrollIntoView({ behavior: 'smooth' });
+                  setIsSearching(false);
+                }}>
+                  <div className="search-result-text">{msg.text}</div>
+                  <div className="search-result-time">{formatTime(msg.createdAt)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Body */}
       {isOpen && !isMinimized && (
         <>
           {!selectedRecipient ? (
-            // Recipient selection UI (unchanged)
+            // Recipient selection UI
             <div className="recipient-selection">
               <div className="selection-header">
                 <h4>Choose who to chat with</h4>
@@ -411,7 +477,7 @@ const Chat = () => {
                   <div className="recipients-list">
                     {recentConversations.map(conv => (
                       <button key={conv.id} className="recipient-btn recent" onClick={() => startConversation(conv.recipientId, conv.recipientRole, conv.recipientName)}>
-                        <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[conv.recipientRole]?.color }}>{CHAT_PERMISSIONS[conv.recipientRole]?.icon}</div>
+                        <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[conv.recipientRole]?.color }}>{getRoleIcon(conv.recipientRole)}</div>
                         <div className="recipient-info">
                           <div className="recipient-name">{conv.recipientName}</div>
                           <div className="recipient-role">{CHAT_PERMISSIONS[conv.recipientRole]?.label}</div>
@@ -428,13 +494,13 @@ const Chat = () => {
                 <div className="recipients-list">
                   {availableRecipients.map(recipient => (
                     <button key={recipient.id} className="recipient-btn" onClick={() => startConversation(recipient.id, recipient.role, recipient.name)}>
-                      <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[recipient.role]?.color }}>{CHAT_PERMISSIONS[recipient.role]?.icon}</div>
+                      <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[recipient.role]?.color }}>{getRoleIcon(recipient.role)}</div>
                       <div className="recipient-info">
                         <div className="recipient-name">{recipient.name}</div>
                         <div className="recipient-role">{CHAT_PERMISSIONS[recipient.role]?.label}</div>
                         <div className="recipient-desc">{CHAT_PERMISSIONS[recipient.role]?.description}</div>
                       </div>
-                      {recipient.isOnline && <span className="online-indicator"></span>}
+                      {onlineStatus[recipient.id] && <span className="online-indicator"></span>}
                     </button>
                   ))}
                 </div>
@@ -464,7 +530,7 @@ const Chat = () => {
                     <React.Fragment key={msg._id || idx}>
                       {showDate && <div className="chat-date-divider"><span>{formatDate(msg.createdAt)}</span></div>}
                       <div className={`message ${isOwn ? 'outgoing' : 'incoming'}`}>
-                        {!isOwn && <div className="message-avatar" style={{ background: CHAT_PERMISSIONS[msg.senderRole]?.color }}>{CHAT_PERMISSIONS[msg.senderRole]?.icon}</div>}
+                        {!isOwn && <div className="message-avatar" style={{ background: CHAT_PERMISSIONS[msg.senderRole]?.color }}>{getRoleIcon(msg.senderRole)}</div>}
                         <div className="message-bubble">
                           {!isOwn && <div className="message-sender">{msg.senderName}</div>}
                           <div className="message-text">{msg.text}</div>
@@ -483,10 +549,21 @@ const Chat = () => {
                   </div>
                 )}
               </div>
+
               <div className="chat-input-container">
                 <div className="chat-input-wrapper">
-                  <input ref={inputRef} type="text" placeholder={`Message ${recipientInfo?.name}...`} value={text} onChange={handleInputChange} onKeyDown={handleKeyDown} className="chat-input" />
-                  <button className="chat-send-btn" onClick={sendMessage} disabled={!text.trim()}><FaPaperPlane /></button>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={`Message ${recipientInfo?.name}...`}
+                    value={text}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    className="chat-input"
+                  />
+                  <button className="chat-send-btn" onClick={sendMessage} disabled={!text.trim()}>
+                    <FaPaperPlane />
+                  </button>
                 </div>
               </div>
             </>

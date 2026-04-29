@@ -1,5 +1,7 @@
 
 const Recipe = require('../models/Recipe');
+const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 
 const getPendingRecipes = async (req, res) => {
@@ -48,9 +50,23 @@ const saveNutrition = async (req, res) => {
       id,
       { $set: { nutrition: { calories, protein, carbs, fat, vitamins, ratingFlag, benefits } } },
       { new: true }
-    ).select('title name nutrition tags');
+    ).select('title name nutrition tags submittedBy');
 
     if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+    // Notify the recipe submitter that nutrition info has been added
+    if (recipe.submittedBy) {
+      try {
+        await createNotification(
+          recipe.submittedBy,
+          'Nutrition Information Added',
+          `Nutrition details have been added to your recipe "${recipe.title}".`
+        );
+      } catch (notifyErr) {
+        console.error('Failed to notify recipe submitter:', notifyErr);
+      }
+    }
+
     res.json(recipe);
   } catch (err) {
     res.status(500).json({ message: err.message || 'Server error' });

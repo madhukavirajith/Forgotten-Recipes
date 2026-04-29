@@ -1,4 +1,5 @@
 const Recipe = require('../models/Recipe');
+const { createNotification } = require('./notificationController');
 
 
 function buildPendingFilter() {
@@ -34,6 +35,17 @@ exports.approveRecipe = async (req, res) => {
     recipe.status = 'approved';
     await recipe.save();
 
+    // Notify the recipe submitter
+    if (recipe.submittedBy) {
+      createNotification(
+        recipe.submittedBy,
+        'Recipe Approved',
+        `Your recipe "${recipe.title}" has been approved and is now live!`
+      ).catch((err) => {
+        console.error('Failed to create approval notification:', err);
+      });
+    }
+
     res.json({ message: 'Recipe approved and published', recipe });
   } catch (err) {
     res
@@ -51,6 +63,17 @@ exports.rejectRecipe = async (req, res) => {
     recipe.approved = false;
     recipe.status = 'rejected';
     await recipe.save();
+
+    // Notify the recipe submitter about rejection
+    if (recipe.submittedBy) {
+      createNotification(
+        recipe.submittedBy,
+        'Recipe Rejected',
+        `Your recipe "${recipe.title}" was not approved. Please review and resubmit.`
+      ).catch((err) => {
+        console.error('Failed to create rejection notification:', err);
+      });
+    }
 
     res.json({ message: 'Recipe rejected', recipe });
   } catch (err) {

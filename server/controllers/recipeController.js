@@ -4,6 +4,8 @@ const Recipe = require('../models/Recipe');
 const PDFDocument = require('pdfkit');
 const Comment = require('../models/Comment');
 const Rating  = require('../models/Rating');
+const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 
 exports.getRecipes = async (_req, res) => {
@@ -33,6 +35,25 @@ exports.createRecipe = async (req, res) => {
     payload.approved = payload.status === 'approved';
     const recipe = new Recipe(payload);
     await recipe.save();
+
+    // Notify head chefs if this is a visitor submission pending approval
+    if (recipe.submittedBy && recipe.status === 'pending' && !recipe.approved) {
+      try {
+        const headChefs = await User.find({ role: 'headchef' });
+        const submitter = await User.findById(recipe.submittedBy).select('name');
+
+        for (const chef of headChefs) {
+          await createNotification(
+            chef._id,
+            'New Recipe Submission',
+            `${submitter?.name || 'A user'} submitted a recipe "${recipe.title}" for approval.`
+          );
+        }
+      } catch (notifyErr) {
+        console.error('Failed to notify head chefs:', notifyErr);
+      }
+    }
+
     res.status(201).json(recipe);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -213,12 +234,46 @@ exports.getComments = async (req, res) => {
     const { id: recipeId } = req.params;
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
-    const comments = await Comment.find({ recipe: recipeId })
+    
+    // Get all comments for this recipe
+    const allComments = await Comment.find({ recipe: recipeId })
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .populate('user', 'name');
-    res.json(comments);
+      .populate('user', 'name')
+      .populate('reactions.user', 'name');
+
+    // Structure comments hierarchically
+    const commentMap = new Map();
+    const rootComments = [];
+
+    // First pass: create map of all comments
+    allComments.forEach(comment => {
+      commentMap.set(comment._id.toString(), { ...comment.toObject(), replies: [] });
+    });
+
+    // Second pass: build hierarchy
+    allComments.forEach(comment => {
+      const commentObj = commentMap.get(comment._id.toString());
+      if (comment.parentId) {
+        const parent = commentMap.get(comment.parentId.toString());
+        if (parent) {
+          parent.replies.push(commentObj);
+        }
+      } else {
+        rootComments.push(commentObj);
+      }
+    });
+
+    // Apply pagination to root comments only
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedComments = rootComments.slice(startIndex, endIndex);
+
+    res.json({
+      comments: paginatedComments,
+      total: rootComments.length,
+      page,
+      pages: Math.ceil(rootComments.length / limit)
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -229,13 +284,22 @@ exports.addComment = async (req, res) => {
     if (!req.user?._id) return res.status(401).json({ message: 'Login required' });
 
     const { id: recipeId } = req.params;
-    const { text } = req.body;
+    const { text, parentId } = req.body;
     if (!text?.trim()) return res.status(400).json({ message: 'Text required' });
+
+    // If parentId is provided, validate it exists and belongs to the same recipe
+    if (parentId) {
+      const parentComment = await Comment.findById(parentId);
+      if (!parentComment || parentComment.recipe.toString() !== recipeId) {
+        return res.status(400).json({ message: 'Invalid parent comment' });
+      }
+    }
 
     const comment = await Comment.create({
       recipe: recipeId,
       user: req.user._id,
       text: text.trim(),
+      parentId: parentId || null,
     });
 
     await Recipe.findByIdAndUpdate(recipeId, { $inc: { commentsCount: 1 } });
@@ -261,6 +325,77 @@ exports.deleteComment = async (req, res) => {
     await c.deleteOne();
     await Recipe.findByIdAndUpdate(recipeId, { $inc: { commentsCount: -1 } });
     res.sendStatus(204);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.editComment = async (req, res) => {
+  try {
+    if (!req.user?._id) return res.status(401).json({ message: 'Login required' });
+
+    const { id: recipeId, commentId } = req.params;
+    const { text } = req.body;
+    if (!text?.trim()) return res.status(400).json({ message: 'Text required' });
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    const isOwner = comment.user?.toString() === req.user._id.toString();
+    const isAdmin = req.user?.role === 'admin';
+    if (!isOwner && !isAdmin) return res.status(403).json({ message: 'Forbidden' });
+
+    comment.text = text.trim();
+    await comment.save();
+    const populated = await comment.populate('user', 'name');
+    res.json(populated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.addCommentReaction = async (req, res) => {
+  try {
+    if (!req.user?._id) return res.status(401).json({ message: 'Login required' });
+
+    const { id: recipeId, commentId } = req.params;
+    const { type } = req.body;
+    if (!['like', 'love', 'laugh', 'angry', 'sad'].includes(type)) {
+      return res.status(400).json({ message: 'Invalid reaction type' });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    // Remove existing reaction from this user
+    comment.reactions = comment.reactions.filter(r => r.user.toString() !== req.user._id.toString());
+    
+    // Add new reaction
+    comment.reactions.push({ user: req.user._id, type });
+    await comment.save();
+
+    const populated = await comment.populate('reactions.user', 'name');
+    res.json(populated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.removeCommentReaction = async (req, res) => {
+  try {
+    if (!req.user?._id) return res.status(401).json({ message: 'Login required' });
+
+    const { id: recipeId, commentId } = req.params;
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    // Remove reaction from this user
+    comment.reactions = comment.reactions.filter(r => r.user.toString() !== req.user._id.toString());
+    await comment.save();
+
+    const populated = await comment.populate('reactions.user', 'name');
+    res.json(populated);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

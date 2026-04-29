@@ -6,7 +6,7 @@ const { protect } = require('../middleware/auth');
 const {
   getRecipes, getAllRecipes, createRecipe, updateRecipe, deleteRecipe,
   getRecipeWithNutrition, downloadNutritionReport,
-  getComments, addComment, deleteComment,
+  getComments, addComment, deleteComment, editComment, addCommentReaction, removeCommentReaction,
   rateRecipe, getMyRating,
   downloadRecipePdf,
 } = require('../controllers/recipeController');
@@ -18,6 +18,9 @@ router.get('/all', getAllRecipes);
 // Comments
 router.get('/:id/comments', getComments);
 router.post('/:id/comments', protect, addComment);
+router.put('/:id/comments/:commentId', protect, editComment);
+router.post('/:id/comments/:commentId/react', protect, addCommentReaction);
+router.delete('/:id/comments/:commentId/react', protect, removeCommentReaction);
 router.delete('/:id/comments/:commentId', protect, deleteComment);
 
 // Ratings

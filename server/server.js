@@ -19,10 +19,13 @@ const visitorRoutes = require('./routes/visitorRoutes');
 const dieticianRoutes = require('./routes/dieticianRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Models used by Socket.IO
 const Message = require('./models/Message');
 const Conversation = require('./models/Conversation');
+const User = require('./models/User');
+const { createNotification } = require('./controllers/notificationController');
 
 dotenv.config();
 connectDB();
@@ -91,6 +94,7 @@ app.use('/api/visitor', visitorRoutes);
 app.use('/api/dietician', dieticianRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/', (_req, res) => {
@@ -121,17 +125,30 @@ const io = new Server(server, {
   transports: ['websocket', 'polling']
 });
 
-const onlineUsers = new Map();
+const onlineUsers = new Map(); // userId -> { sockets: Set, role: string }
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
   socket.on('join', ({ userId, userRole }) => {
     if (userId) {
-      onlineUsers.set(userId.toString(), { socketId: socket.id, role: userRole });
+      const userIdStr = userId.toString();
+      const existing = onlineUsers.get(userIdStr);
+
+      if (existing) {
+        // Add this socket to the existing user's socket set
+        existing.sockets.add(socket.id);
+      } else {
+        // Create new entry for this user
+        onlineUsers.set(userIdStr, {
+          sockets: new Set([socket.id]),
+          role: userRole
+        });
+        io.emit('status', { userId, role: userRole, isOnline: true });
+        console.log(`User ${userId} (${userRole}) is online`);
+      }
+
       socket.join(`user:${userId}`);
-      io.emit('status', { userId, role: userRole, isOnline: true });
-      console.log(`User ${userId} (${userRole}) is online`);
     }
   });
 
@@ -182,6 +199,31 @@ io.on('connection', (socket) => {
         read: message.read,
         createdAt: message.createdAt
       });
+
+      // Notify offline recipients about new message
+      try {
+        const conversation = await Conversation.findById(conversationId);
+        if (conversation) {
+          const onlineUserIds = Array.from(onlineUsers.keys());
+
+          for (const participant of conversation.participants) {
+            // Don't notify the sender
+            if (participant.userId.toString() === senderId?.toString()) continue;
+
+            // Check if user is offline
+            const isOnline = onlineUserIds.includes(participant.userId.toString());
+            if (!isOnline) {
+              await createNotification(
+                participant.userId,
+                'New Message',
+                `${senderName} sent you a message: "${text.length > 50 ? text.substring(0, 50) + '...' : text}"`
+              );
+            }
+          }
+        }
+      } catch (notifyErr) {
+        console.error('Failed to notify offline users:', notifyErr);
+      }
     } catch (err) {
       console.error('Socket message error:', err.message);
     }
@@ -202,15 +244,18 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     let disconnectedUserId = null;
     for (let [userId, data] of onlineUsers.entries()) {
-      if (data.socketId === socket.id) {
+      if (data.sockets.has(socket.id)) {
+        data.sockets.delete(socket.id);
         disconnectedUserId = userId;
-        onlineUsers.delete(userId);
+
+        // If no more sockets for this user, mark as offline
+        if (data.sockets.size === 0) {
+          onlineUsers.delete(userId);
+          io.emit('status', { userId, isOnline: false });
+          console.log(`User ${userId} went offline`);
+        }
         break;
       }
-    }
-    if (disconnectedUserId) {
-      io.emit('status', { userId: disconnectedUserId, isOnline: false });
-      console.log(`User ${disconnectedUserId} went offline`);
     }
     console.log('Client disconnected:', socket.id);
   });

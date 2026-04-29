@@ -136,6 +136,7 @@ Forgotten Recipes brings back long-lost family recipes and Sri Lankan culinary t
 - Helmet sets secure HTTP headers
 - CORS restricted to allowed origins (localhost + Vercel)
 - Environment variables never committed (`.env` ignored)
+- Create `server/.env` from `server/.env.example` before starting the API server
 - Exposed credentials rotated after accidental commit (MongoDB password, JWT secret)
 - Frontend source maps disabled in production
 - Input validation and sanitization on all API endpoints

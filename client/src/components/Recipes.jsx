@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import './Recipes.css';
+
 
 // Import icons
 import { 
@@ -24,7 +24,9 @@ import {
   FaChevronUp,
   FaRegClock,
   FaChartLine,
-  FaTags
+  FaTags,
+  FaLeaf,
+  FaCheckCircle
 } from 'react-icons/fa';
 
 const API = process.env.REACT_APP_API_URL || '';
@@ -42,19 +44,19 @@ const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
   const flag = n.ratingFlag || 'neutral';
   
   const flagConfig = {
-    'weight-loss': { color: '#10b981', icon: '🌱', label: 'Weight Loss Friendly' },
-    'weight-gain': { color: '#ef4444', icon: '💪', label: 'Weight Gain' },
-    'neutral': { color: '#f59e0b', icon: '⚖️', label: 'Balanced' }
+    'weight-loss': { color: '#10b981', icon: <FaLeaf />, label: 'Weight Loss Friendly' },
+    'weight-gain': { color: '#ef4444', icon: <FaChartLine />, label: 'Weight Gain' },
+    'neutral': { color: '#f59e0b', icon: <FaUtensils />, label: 'Balanced' }
   };
   
   const currentFlag = flagConfig[flag] || flagConfig.neutral;
   
   const getDifficultyColor = (level) => {
     switch(level?.toLowerCase()) {
-      case 'easy': return { bg: '#10b98120', color: '#10b981', icon: '😊' };
-      case 'medium': return { bg: '#f59e0b20', color: '#f59e0b', icon: '🌶️' };
-      case 'hard': return { bg: '#ef444420', color: '#ef4444', icon: '🔥' };
-      default: return { bg: '#6b728020', color: '#6b7280', icon: '🍽️' };
+      case 'easy': return { bg: '#10b98120', color: '#10b981', icon: <FaCheckCircle /> };
+      case 'medium': return { bg: '#f59e0b20', color: '#f59e0b', icon: <FaFire /> };
+      case 'hard': return { bg: '#ef444420', color: '#ef4444', icon: <FaStar /> };
+      default: return { bg: '#6b728020', color: '#6b7280', icon: <FaUtensils /> };
     }
   };
   
@@ -121,9 +123,9 @@ const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
             
             <div className="recipe-card-badges">
               {recipe.isNew && <span className="badge new">New</span>}
-              {recipe.isPopular && <span className="badge popular">🔥 Popular</span>}
-              {recipe.dietType === 'Vegetarian' && <span className="badge veg">🌱 Veg</span>}
-              {recipe.dietType === 'Vegan' && <span className="badge vegan">🌿 Vegan</span>}
+              {recipe.isPopular && <span className="badge popular"><FaFire /> Popular</span>}
+              {recipe.dietType === 'Vegetarian' && <span className="badge veg"><FaLeaf /> Veg</span>}
+              {recipe.dietType === 'Vegan' && <span className="badge vegan"><FaLeaf /> Vegan</span>}
             </div>
             
             <div className={`recipe-card-overlay ${isHovered ? 'visible' : ''}`}>
@@ -174,7 +176,7 @@ const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
                   <span className="stat-count">({recipe.ratingsCount || 0})</span>
                 </div>
                 <div className="stat-item">
-                  <FaFire className="spice-icon" style={{ color: difficulty.color }} />
+                  <span className="spice-icon" style={{ color: difficulty.color }}>{difficulty.icon}</span>
                   <span>{recipe.spiceLevel || 'Medium'}</span>
                 </div>
                 <div className="stat-item">
@@ -184,8 +186,8 @@ const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
               </div>
               
               <div className="recipe-card-flag" style={{ background: currentFlag.color + '20', color: currentFlag.color }}>
-                <span>{currentFlag.icon}</span>
-                <span>{currentFlag.label}</span>
+                <span className="flag-icon">{currentFlag.icon}</span>
+                <span className="flag-label">{currentFlag.label}</span>
               </div>
             </div>
             
@@ -478,7 +480,7 @@ const Recipes = () => {
       {/* Hero Section */}
       <div className="recipes-hero">
         <h1 className="recipes-hero-title">
-          <span className="hero-icon">🍛</span>
+          <span className="hero-icon"><FaUtensils /></span>
           Explore Traditional Recipes
         </h1>
         <p className="recipes-hero-subtitle">
@@ -563,7 +565,7 @@ const Recipes = () => {
             <select value={selectedSpice} onChange={(e) => setSelectedSpice(e.target.value)}>
               {spiceLevels.map(s => (
                 <option key={s} value={s}>
-                  {s === 'All' ? s : `${s} ${s === 'Mild' ? '🌶️' : s === 'Medium' ? '🌶️🌶️' : '🌶️🌶️🌶️'}`}
+                  {s === 'All' ? s : `${s}`}
                 </option>
               ))}
             </select>
@@ -600,7 +602,7 @@ const Recipes = () => {
       {/* Recipe Grid/List */}
       {filtered.length === 0 ? (
         <div className="no-results">
-          <div className="no-results-icon">🔍</div>
+          <div className="no-results-icon"><FaSearch /></div>
           <h3>No recipes found</h3>
           <p>Try adjusting your search or filter criteria</p>
           <button onClick={clearFilters} className="reset-btn">

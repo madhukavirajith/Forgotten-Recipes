@@ -1,6 +1,6 @@
 // client/src/components/dashboards/DieticianDashboard.jsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import './DieticianDashboard.css';
+
 import Chat from '../Chat';   // ✅ global chat component
 
 // Icons

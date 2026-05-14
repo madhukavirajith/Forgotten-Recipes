@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import './Blog.css';
+
 
 // Import icons
 import { 
@@ -231,7 +231,7 @@ const Blog = () => {
     return (
       <div className="blog-container">
         <div className="blog-error">
-          <div className="error-icon">📝</div>
+          <div className="error-icon"><FaNewspaper /></div>
           <h2>Unable to Load Articles</h2>
           <p>{error}</p>
           <button onClick={fetchBlogs} className="retry-btn">
@@ -248,7 +248,7 @@ const Blog = () => {
       <div className="blog-hero">
         <div className="blog-hero-content">
           <h1 className="blog-hero-title">
-            <span className="hero-icon">📝</span>
+            <span className="hero-icon"><FaNewspaper /></span>
             Food Blog
           </h1>
           <p className="blog-hero-subtitle">
@@ -344,7 +344,7 @@ const Blog = () => {
       {/* Blog Grid/List */}
       {filteredBlogs.length === 0 ? (
         <div className="no-results">
-          <div className="no-results-icon">🔍</div>
+          <div className="no-results-icon"><FaSearch /></div>
           <h3>No articles found</h3>
           <p>Try adjusting your search or filter criteria</p>
           <button onClick={clearFilters} className="reset-btn">

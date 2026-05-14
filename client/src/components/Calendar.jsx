@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import './CalendarPage.css';
+import { FaStar, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
+
 
 // Expanded festive events data for 2026 with more details
 const festiveEvents = {
@@ -156,10 +157,10 @@ const CalendarPage = () => {
     const dateStr = formatDate(date);
     const event = festiveEvents[dateStr];
     if (event) {
-      return <div className="festive-emoji">{event.emoji}</div>;
+      return <div className="festive-indicator"><FaStar /></div>;
     }
     if (poyaDays2026.includes(dateStr)) {
-      return <div className="poya-indicator">🌕</div>;
+      return <div className="poya-indicator"><FaInfoCircle /></div>;
     }
     return null;
   };
@@ -169,7 +170,7 @@ const CalendarPage = () => {
       {/* Header Section */}
       <div className="calendar-header">
         <h1>
-          <span className="calendar-icon">📅</span>
+          <i className="fas fa-calendar-alt calendar-icon"></i>
           Sri Lankan Festive Recipe Calendar 2026
         </h1>
         <p className="calendar-subtitle">
@@ -208,13 +209,13 @@ const CalendarPage = () => {
               className={`toggle-btn ${viewMode === 'festival' ? 'active' : ''}`}
               onClick={() => setViewMode('festival')}
             >
-              🎊 Festival Details
+              Festival Details
             </button>
             <button 
               className={`toggle-btn ${viewMode === 'recipes' ? 'active' : ''}`}
               onClick={() => setViewMode('recipes')}
             >
-              🍳 Traditional Recipes
+              Traditional Recipes
             </button>
           </div>
         </div>
@@ -223,12 +224,12 @@ const CalendarPage = () => {
         <div className="calendar-right">
           <div className="selected-date-header">
             <h2>
-              <span className="date-icon">📆</span>
+              <i className="fas fa-calendar-check date-icon"></i>
               {selectedDate.toDateString()}
             </h2>
             {isPoyaDay && !event && (
               <div className="poya-badge">
-                🌕 Poya Day
+                Poya Day
               </div>
             )}
           </div>
@@ -236,7 +237,6 @@ const CalendarPage = () => {
           {event ? (
             <div className="event-details-card">
               <div className="event-header">
-                <div className="event-emoji">{event.emoji}</div>
                 <div className="event-title">
                   <h3>{event.festival}</h3>
                   <span className="event-category">{event.category}</span>
@@ -251,13 +251,13 @@ const CalendarPage = () => {
                 <>
                   <div className="event-section">
                     <h4>
-                      <span className="section-icon">📖</span>
+                      <i className="fas fa-book-open section-icon"></i>
                       Traditions & Customs
                     </h4>
                     <ul className="event-list">
                       {event.traditions.map((tradition, i) => (
                         <li key={i}>
-                          <span className="list-icon">✨</span>
+                          <span className="list-icon"><FaCheckCircle /></span>
                           {tradition}
                         </li>
                       ))}
@@ -266,7 +266,7 @@ const CalendarPage = () => {
 
                   <div className="event-section">
                     <h4>
-                      <span className="section-icon">🍽️</span>
+                      <i className="fas fa-utensils section-icon"></i>
                       Traditional Foods
                     </h4>
                     <div className="recipe-tags">
@@ -279,13 +279,13 @@ const CalendarPage = () => {
               ) : (
                 <div className="event-section">
                   <h4>
-                    <span className="section-icon">👩‍🍳</span>
+                    <i className="fas fa-hat-chef section-icon"></i>
                     Recipes to Try
                   </h4>
                   <div className="recipes-grid">
                     {event.recipes.map((recipe, i) => (
                       <div key={i} className="recipe-card-mini">
-                        <div className="recipe-icon">🍲</div>
+                        <div className="recipe-icon"><i className="fas fa-soup"></i></div>
                         <div className="recipe-name">{recipe}</div>
                         <button className="view-recipe-btn">View Recipe →</button>
                       </div>
@@ -297,7 +297,7 @@ const CalendarPage = () => {
           ) : isPoyaDay ? (
             <div className="poya-details-card">
               <div className="poya-header">
-                <div className="poya-emoji">🌕</div>
+                <div className="poya-emoji"><i className="fas fa-moon"></i></div>
                 <h3>Poya Day</h3>
               </div>
               <p>
@@ -316,14 +316,14 @@ const CalendarPage = () => {
             </div>
           ) : (
             <div className="no-event-card">
-              <div className="no-event-emoji">📅</div>
+              <div className="no-event-emoji"><i className="fas fa-calendar-times"></i></div>
               <h3>No Festival on This Date</h3>
               <p>
                 This date doesn't have any major Sri Lankan festivals.
                 Check the calendar for highlighted dates to explore our rich cultural celebrations!
               </p>
               <div className="suggestion-box">
-                <h4>💡 Nearby Festivals</h4>
+                <h4><i className="fas fa-lightbulb"></i> Nearby Festivals</h4>
                 {monthEvents.length > 0 ? (
                   <ul>
                     {monthEvents.slice(0, 3).map((ev, i) => (
@@ -344,7 +344,7 @@ const CalendarPage = () => {
       {/* Upcoming Festivals Section */}
       <div className="upcoming-section">
         <h3>
-          <span className="section-icon">⭐</span>
+          <i className="fas fa-star section-icon"></i>
           Upcoming Festivals This Month
         </h3>
         <div className="upcoming-grid">
@@ -374,7 +374,7 @@ const CalendarPage = () => {
       {/* Fun Fact Section */}
       <div className="fun-fact-section">
         <div className="fun-fact-content">
-          <span className="fun-fact-icon">📖</span>
+          <i className="fas fa-info-circle fun-fact-icon"></i>
           <div>
             <h4>Did You Know?</h4>
             <p>

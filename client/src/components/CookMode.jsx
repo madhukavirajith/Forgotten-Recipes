@@ -1,7 +1,7 @@
 // client/src/components/CookMode.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './cookmode.css';
+
 import { 
   FaClock, FaPlay, FaPause, FaSyncAlt, FaChevronLeft, FaChevronRight, 
   FaCheckCircle, FaRegCircle, FaTimes, FaUtensils, FaListUl 
@@ -213,7 +213,7 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
       <div className="cookmode">
         <div className="cm-header">
           <div className="cm-header-left">
-            <button className="cm-back-btn" onClick={confirmExit} aria-label="Exit Cook Mode">←</button>
+            <button className="cm-back-btn" onClick={confirmExit} aria-label="Exit Cook Mode"><FaChevronLeft /></button>
             <div className="cm-title">
               <h1>{recipe.name}</h1>
               <div className="cm-meta">
@@ -226,7 +226,7 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
             </div>
           </div>
           <div className="cm-header-right">
-            <button className="btn-exit" onClick={confirmExit}>✕</button>
+            <button className="btn-exit" onClick={confirmExit}><FaTimes /></button>
           </div>
         </div>
 
@@ -237,8 +237,8 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
               <div className="aside-stats">{checkedCount}/{totalIngredients} checked</div>
             </div>
             <div className="aside-tools">
-              <button className="btn-pill" onClick={checkAll}>✓ Check All</button>
-              <button className="btn-pill" onClick={clearAll}>✗ Clear</button>
+              <button className="btn-pill" onClick={checkAll}><FaCheckCircle /> All</button>
+              <button className="btn-pill" onClick={clearAll}><FaTimes /> Clear</button>
             </div>
             <div className="ingredients-list">
               {ingredients.length === 0 ? (

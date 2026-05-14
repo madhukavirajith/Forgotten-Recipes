@@ -1,6 +1,6 @@
 // client/src/components/CookiePolicy.jsx
 import React, { useState, useEffect } from 'react';
-import './LegalPages.css';
+
 
 const CookiePolicy = () => {
   const [cookieSettings, setCookieSettings] = useState({

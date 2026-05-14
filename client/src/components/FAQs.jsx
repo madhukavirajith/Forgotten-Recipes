@@ -1,7 +1,7 @@
 // client/src/components/FAQs.jsx
 import React, { useState } from 'react';
 import { FaChevronDown, FaChevronUp, FaSearch } from 'react-icons/fa';
-import './FAQs.css';
+
 
 const FAQs = () => {
   const [openIndex, setOpenIndex] = useState(null);

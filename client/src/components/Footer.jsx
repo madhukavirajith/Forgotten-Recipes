@@ -20,7 +20,7 @@ import {
   FaInfoCircle,
   FaScroll
 } from 'react-icons/fa';
-import './Footer.css';
+
 
 const Footer = () => {
   const location = useLocation();
@@ -85,6 +85,13 @@ const Footer = () => {
 
   return (
     <footer className="site-footer">
+      {/* Decorative Wave Divider */}
+      <div className="footer-wave">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="shape-fill"></path>
+        </svg>
+      </div>
+
       {/* Scroll to Top Button */}
       <button 
         className={`scroll-to-top ${showScrollTop ? 'visible' : ''}`}
@@ -130,7 +137,7 @@ const Footer = () => {
           {/* Column 2 - Quick Links */}
           <div className="footer-column">
             <h3 className="footer-column-title">Quick Links</h3>
-            <ul className="footer-links">
+            <ul className="footer-links-list">
               {quickLinks.map((link) => (
                 <li key={link.path}>
                   <Link to={link.path} className="footer-link">
@@ -145,7 +152,7 @@ const Footer = () => {
           {/* Column 3 - Support */}
           <div className="footer-column">
             <h3 className="footer-column-title">Support</h3>
-            <ul className="footer-links">
+            <ul className="footer-links-list">
               {supportLinks.map((link) => (
                 <li key={link.path}>
                   <Link to={link.path} className="footer-link">
@@ -179,7 +186,7 @@ const Footer = () => {
             </form>
             {emailSubmitted && (
               <div className="newsletter-success">
-                ✅ Thank you for subscribing!
+                Thank you for subscribing!
               </div>
             )}
             <p className="newsletter-note">
@@ -208,11 +215,6 @@ const Footer = () => {
                 </a>
               ))}
             </div>
-            <div className="footer-credit">
-              <p>
-                Made with <FaHeart className="heart-icon" /> in Sri Lanka
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -235,13 +237,6 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Decorative Elements */}
-      <div className="footer-decoration">
-        <div className="decoration-spice spice-1">🌶️</div>
-        <div className="decoration-spice spice-2">🌿</div>
-        <div className="decoration-spice spice-3">🍛</div>
-        <div className="decoration-spice spice-4">🥥</div>
-      </div>
     </footer>
   );
 };

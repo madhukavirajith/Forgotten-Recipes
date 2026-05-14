@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import './Navbar.css';
+
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
 const API_ROOT = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
@@ -47,12 +47,12 @@ function readAuth() {
 
 // ===== Navigation Links Configuration =====
 const NAV_LINKS = [
-  { path: '/', label: 'Home', icon: '🏠', exact: true },
-  { path: '/blog', label: 'Blog', icon: '📝' },
-  { path: '/calendar', label: 'Calendar', icon: '📅' },
-  { path: '/recipes', label: 'Recipes', icon: '🍛' },
-  { path: '/about', label: 'About', icon: '📖' },
-  { path: '/stories', label: 'Cultural Stories', icon: '📚' },
+  { path: '/', label: 'Home', exact: true },
+  { path: '/blog', label: 'Blog' },
+  { path: '/calendar', label: 'Calendar' },
+  { path: '/recipes', label: 'Recipes' },
+  { path: '/about', label: 'About' },
+  { path: '/stories', label: 'Cultural Stories' },
 ];
 
 // ===== Main Navbar Component =====
@@ -403,7 +403,7 @@ export default function Navbar() {
             onClick={() => setSearchOpen(!searchOpen)}
             aria-label="Search"
           >
-            🔍
+            <i className="fas fa-search"></i>
           </button>
 
           {/* Notifications (only for logged in users) */}
@@ -414,7 +414,7 @@ export default function Navbar() {
                 onClick={() => setShowNotifications(!showNotifications)}
                 aria-label="Notifications"
               >
-                🔔
+                <i className="fas fa-bell"></i>
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
               
@@ -439,7 +439,7 @@ export default function Navbar() {
                   </div>
                   <div className="notifications-list">
                     {notifications.length > 0 ? (
-                      notifications.map((notif) => (
+                      notifications.slice(0, 5).map((notif) => (
                         <div 
                           key={notif._id || notif.id}
                           className={`notification-item ${!notif.read ? 'unread' : ''}`}
@@ -455,6 +455,11 @@ export default function Navbar() {
                     ) : (
                       <div className="no-notifications">No notifications</div>
                     )}
+                  </div>
+                  <div className="notifications-footer">
+                    <Link to="/notifications" className="view-all-link" onClick={() => setShowNotifications(false)}>
+                      View All Notifications
+                    </Link>
                   </div>
                 </div>
               )}
@@ -490,23 +495,23 @@ export default function Navbar() {
                   {dashboardPath && (
                     <>
                       <Link to={dashboardPath} className="dropdown-item" onClick={handleLinkClick}>
-                        Dashboard
+                        <i className="fas fa-th-large"></i> Dashboard
                       </Link>
                       <div className="dropdown-divider"></div>
                     </>
                   )}
                   <Link to="/profile" className="dropdown-item" onClick={handleLinkClick}>
-                    My Profile
+                    <i className="fas fa-user-circle"></i> My Profile
                   </Link>
                   <Link to="/notifications" className="dropdown-item" onClick={handleLinkClick}>
-                    Notifications
+                    <i className="fas fa-bell"></i> Notifications {unreadCount > 0 && <span className="mobile-badge">{unreadCount}</span>}
                   </Link>
                   <Link to="/settings" className="dropdown-item" onClick={handleLinkClick}>
-                    Settings
+                    <i className="fas fa-cog"></i> Settings
                   </Link>
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item logout-item" onClick={logout}>
-                    Logout
+                    <i className="fas fa-sign-out-alt"></i> Logout
                   </button>
                 </div>
               )}
@@ -573,7 +578,7 @@ export default function Navbar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button type="submit">🔍</button>
+            <button type="submit"><i className="fas fa-search"></i></button>
           </form>
         </div>
 
@@ -602,17 +607,17 @@ export default function Navbar() {
             <>
               <li>
                 <Link to="/profile" className="mobile-nav-link" onClick={handleLinkClick}>
-                  Profile
+                  <i className="fas fa-user-circle"></i> Profile
                 </Link>
               </li>
               <li>
                 <Link to="/notifications" className="mobile-nav-link" onClick={handleLinkClick}>
-                  Notifications
+                  <i className="fas fa-bell"></i> Notifications {unreadCount > 0 && <span className="mobile-badge">{unreadCount}</span>}
                 </Link>
               </li>
               <li>
                 <Link to="/settings" className="mobile-nav-link" onClick={handleLinkClick}>
-                  Settings
+                  <i className="fas fa-cog"></i> Settings
                 </Link>
               </li>
             </>

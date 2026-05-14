@@ -1,7 +1,7 @@
 // client/src/components/dashboards/HeadChefDashboard.jsx
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
-import './HeadChefDashboard.css';
+
 import Chat from '../Chat';
 
 // Import icons

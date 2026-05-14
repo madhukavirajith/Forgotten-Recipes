@@ -1,193 +1,155 @@
-# Forgotten Recipes
+# 🏺 Forgotten Recipes
 
-https://forgotten-recipes.vercel.app/
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4ea94b?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-Preserving Sri Lanka's ancient flavors with a modern twist
+> **Preserving Sri Lanka's ancient flavors with a modern twist.**
 
-Forgotten Recipes is a full-stack web application that revives traditional Sri Lankan cuisine through community-driven recipe sharing, cultural storytelling, and modern cooking tools. Users can submit recipes, analyze nutrition, create Western-inspired twists, chat with dieticians and head chefs, and explore a festive food calendar.
+Forgotten Recipes is a premium full-stack platform dedicated to reviving traditional Sri Lankan cuisine. By merging ancestral culinary wisdom with state-of-the-art technology, we've created a digital sanctuary for heritage recipes, cultural storytelling, and innovative cooking tools.
 
----
-
-## Project Vision
-
-Forgotten Recipes brings back long-lost family recipes and Sri Lankan culinary traditions by combining ancestral knowledge with modern technology. The platform empowers users to:
-
-- Explore authentic Sri Lankan recipes
-- Analyze nutrition data and health labels
-- Westernize dishes with smart ingredient swaps
-- Customize spice levels and portion sizes
-- Save favorite recipes to personal cookbooks
-- Learn the cultural stories behind each meal
-- Chat in real time with dieticians and head chefs
-- Receive notifications about recipe approvals and replies
+[**Explore the App**](https://forgotten-recipes.vercel.app/)
 
 ---
 
-## Project Management
+## ✨ Key Features
 
-- **Agile Methodology** – The project was developed using Scrum, with 2‑week sprints, daily stand‑ups, sprint planning, and retrospectives.
-- **Task Tracking** – All user stories, tasks, and bugs were managed using GitHub Projects and Issues.
-- **Gantt Chart** – A detailed Gantt chart was created using Microsoft Project to visualize the timeline, dependencies, and milestones of each sprint.
+### 🍛 Culinary Archive
+* **Authentic Collection**: Browse hundreds of traditional recipes passed down through generations.
+* **Smart Search & Filters**: Find dishes by region, spice level, dietary needs, or festival.
+* **Dynamic Portioning**: Scale ingredients instantly for any number of servings.
+* **Cook Mode**: An immersive, step-by-step interface with built-in timers and ingredient checklists.
 
----
-## Team Members & Roles
+### 🧪 Modern Innovation
+* **Western Twist Tool**: Reimagining heritage dishes with western alternatives for global accessibility.
+* **Nutrition Visualizer**: Advanced macro and micro-nutrient analysis with interactive radar charts.
+* **Spice Simulator**: Adjust heat levels in real-time to suit your palate while maintaining authenticity.
 
-| Name     | Role                                          |
-|----------|-----------------------------------------------|
-| Madhuka  | Product Owner / Scrum Master / Full Stack Developer |
-| Nethmi   | Backend Developer                             |
-| Yashadhi | Database Engineer                             |
-| Binara   | UI/UX Engineer / Frontend Dev                 |
-| Kasundi  | Frontend Developer                            |
-| Tharushi | QA Engineer                                   |
+### 🏛️ Cultural Heritage
+* **Interactive Festive Calendar**: Explore the connection between Sri Lankan festivals (Avurudu, Thai Pongal, Poya) and their traditional foods.
+* **Cultural Storytelling**: In-depth articles exploring the history and myths behind our island's flavors.
+* **Premium Blog**: Weekly insights into the world of Sri Lankan gastronomy.
 
----
-## Tech Stack
-
-| Layer       | Technology                                                                 |
-|-------------|----------------------------------------------------------------------------|
-| Frontend    | React 18, React Router DOM, Axios, Socket.IO Client, React Icons           |
-| Backend     | Node.js, Express, Socket.IO, JWT, Bcryptjs, Helmet, Express Rate Limit     |
-| Database    | MongoDB + Mongoose ODM                                                     |
-| Styling     | Custom CSS (brand colors #5A2E17 and #D2691E)                              |
-| Deployment  | Frontend: Vercel, Backend: Render, Database: MongoDB Atlas                 |
+### 💬 Professional Connectivity
+* **Real-time Expert Chat**: Connect instantly with Head Chefs and Professional Dieticians.
+* **Live Notifications**: Stay updated on recipe approvals, community feedback, and direct replies.
+* **User Ecosystem**: A multi-role system (Visitor, Head Chef, Dietician, Admin) ensuring quality and authenticity.
 
 ---
 
-## Implemented Features
+## 🛠️ Technology Stack
 
-### User Roles & Dashboards
-
-- **Visitor** – Submit recipes, save to cookbook, use Western Twist Tool, chat with staff
-- **Head Chef** – Approve/reject recipes and twists, manage cultural stories
-- **Dietician** – Add nutrition info, health labels, ingredient benefits
-- **Admin** – Manage users, feedback, blog posts, site analytics, view role distribution
-
-### Recipe Management
-
-- Browse recipes with search, filters (category, spice, diet), sort (newest, popular, name)
-- Recipe detail page includes:
-  - Star rating and average rating
-  - Advanced nutrition chart (macros, vitamins, radar score)
-  - Spice and portion simulator (scale ingredients dynamically)
-  - Save to cookbook, download PDF, print, share on social media
-  - Comments with nested replies, reactions, edit/delete
-
-### Western Twist Tool
-
-- Visitors select a traditional recipe and substitute Western ingredients
-- Live preview of twisted ingredients
-- Submit twist for head chef approval; dietician adds nutrition later
-
-### Cultural Stories
-
-- Admins and head chefs can create, edit, delete stories
-- Visitors can read stories with rich formatting
-
-### Blog
-
-- Admin posts blog articles with images
-- Public blog listing page
-
-### Festive Food Calendar
-
-- Interactive calendar showing Sri Lankan festivals and Poya days
-- Click a date to see festival details, traditions, and related recipes
-
-### Real-time Chat
-
-- Role-based chat permissions (visitor ↔ dietician/head chef; admin ↔ staff)
-- Online/offline status, typing indicators, read receipts
-- Persistent conversation history
-- Floating chat widget with expand/minimize/fullscreen
-
-### Notifications
-
-- Real-time notifications for recipe approvals, comment replies, feedback updates
-- Unread count badge on bell icon
-- Mark as read / mark all read
-
-### Cook Mode
-
-- Step-by-step cooking mode with ingredient checklist
-- Built-in timer per step (auto-detects time from instructions)
-- Progress bar, local storage persistence
-
-### User Profile & Settings
-
-- Edit personal information (name, email, phone, address, date of birth)
-- Change password
-- Notification preferences (email, dark mode, language, privacy)
-- Delete account (danger zone)
-
-### Admin Analytics
-
-- User role distribution bar chart
-- Feedback summary (open, in-progress, closed)
-- Total users, visitors, feedback count
+| Component | Technology |
+| :--- | :--- |
+| **Frontend** | React 18, React Router 6, Axios, Socket.IO Client, FontAwesome 6 |
+| **Backend** | Node.js, Express, Socket.IO, JWT Authentication |
+| **Database** | MongoDB Atlas, Mongoose ODM |
+| **Security** | Bcryptjs (Hashing), Helmet (Security Headers), Express Rate Limit |
+| **Styling** | Premium Vanilla CSS3 (Heritage Brown & Orange Palette) |
+| **Deployment** | Vercel (Frontend), Render (Backend), MongoDB Atlas |
 
 ---
 
-## Security & Performance
+## 🚀 Getting Started
 
-- JWT authentication with role-based middleware
-- Passwords hashed with bcrypt
-- Rate limiting – 200 requests per 15 minutes per IP; 10 for auth endpoints
-- Helmet sets secure HTTP headers
-- CORS restricted to allowed origins (localhost + Vercel)
-- Environment variables never committed (`.env` ignored)
-- Create `server/.env` from `server/.env.example` before starting the API server
-- Exposed credentials rotated after accidental commit (MongoDB password, JWT secret)
-- Frontend source maps disabled in production
-- Input validation and sanitization on all API endpoints
+### Prerequisites
+* Node.js (v16.x or higher)
+* MongoDB Atlas Account or Local MongoDB Instance
+* npm or yarn
 
----
+### Installation
 
-## API Documentation
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-username/ForgottenRecipes.git
+   cd ForgottenRecipes
+   ```
 
-### Authentication Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/users/register` | Register a new user | No |
-| POST | `/api/users/login` | Login user | No |
-| GET | `/api/users/profile` | Get user profile | Yes |
-| PUT | `/api/users/profile` | Update user profile | Yes |
-| POST | `/api/users/change-password` | Change password | Yes |
-| DELETE | `/api/users/account` | Delete account | Yes |
+2. **Backend Setup**
+   ```bash
+   cd server
+   npm install
+   ```
+   * Create a `.env` file in the `server` directory (see [Environment Variables](#environment-variables)).
+   * Start the server:
+   ```bash
+   npm run dev
+   ```
 
-### Recipe Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/recipes` | Get all approved recipes | No |
-| GET | `/api/recipes/:id` | Get single recipe by ID | No |
-| POST | `/api/recipes` | Create new recipe (Admin/Head Chef) | Yes |
-| PUT | `/api/recipes/:id` | Update recipe | Yes |
-| DELETE | `/api/recipes/:id` | Delete recipe | Yes |
-| POST | `/api/recipes/:id/ratings` | Rate a recipe | Yes |
-
-### Chat Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/chat/available-recipients` | Get users available for chat | Yes |
-| POST | `/api/chat/start` | Start or retrieve a conversation | Yes |
-| GET | `/api/chat/history/:conversationId` | Get conversation history | Yes |
-| POST | `/api/chat/:conversationId/read` | Mark messages as read | Yes |
-
-### Feedback Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/feedback` | Get all feedback (Admin only) | Yes |
-| POST | `/api/feedback` | Submit feedback | Yes |
-| PATCH | `/api/feedback/:id/status` | Update feedback status (Admin only) | Yes |
-| DELETE | `/api/feedback/:id` | Delete feedback (Admin only) | Yes |
-
-### Admin Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/admin/users` | Get all users (Admin only) | Yes |
-| DELETE | `/api/admin/users/:id` | Delete user (Admin only) | Yes |
-| GET | `/api/admin/stats` | Get site statistics (Admin only) | Yes |
-| POST | `/api/admin/blog` | Post a blog (Admin only) | Yes |
+3. **Frontend Setup**
+   ```bash
+   cd ../client
+   npm install
+   ```
+   * Start the React application:
+   ```bash
+   npm start
+   ```
 
 ---
 
+## 🔐 Environment Variables
+
+The server requires the following environment variables to be set in `server/.env`:
+
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_super_secret_jwt_key
+CLIENT_URL=http://localhost:3000
+```
+
+---
+
+## 📁 Project Structure
+
+```
+ForgottenRecipes/
+├── client/                 # React Frontend
+│   ├── public/             # Static assets
+│   └── src/
+│       ├── components/     # Functional React components
+│       ├── styles/         # Modular CSS files
+│       └── utils/          # API helpers and logic
+├── server/                 # Express Backend
+│   ├── config/             # Database & Security configs
+│   ├── models/             # Mongoose schemas
+│   ├── routes/             # API endpoints
+│   └── middleware/         # Auth & validation logic
+└── README.md
+```
+
+---
+
+## 🤝 The Team
+
+| Name | Role |
+| :--- | :--- |
+| **Madhuka** | Product Owner / Scrum Master / Full Stack Developer |
+| **Nethmi** | Backend Developer |
+| **Yashadhi** | Database Engineer |
+| **Binara** | UI/UX Engineer / Frontend Developer |
+| **Kasundi** | Frontend Developer |
+| **Tharushi** | QA Engineer |
+
+---
+
+## 🛡️ Security & Performance
+
+* **JWT Auth**: Robust role-based access control for all sensitive endpoints.
+* **Rate Limiting**: Protection against brute-force attacks on auth and heavy endpoints.
+* **Input Sanitization**: All user inputs are validated and sanitized server-side.
+* **Optimized Rendering**: Lazy-loading of images and code splitting for fast initial page loads.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<p align="center">
+  <b>Forgotten Recipes</b> • Preserving Heritage, One Recipe at a Time.
+</p>

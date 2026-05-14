@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Carousel } from 'react-responsive-carousel';
 import { Link, useNavigate } from 'react-router-dom';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
-import './Home.css';
+
 
 // Import icons
 import { 
@@ -293,8 +293,7 @@ const Home = () => {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <div className="hero-badge animate-badge">
-            <span className="badge-icon">🇱🇰</span>
-            <span className="badge-text">Sri Lankan Cuisine</span>
+            <span className="badge-text">Preserving Sri Lankan Heritage</span>
           </div>
           <h1 className="hero-title">
             <span className="title-line">Welcome to</span>
@@ -336,7 +335,7 @@ const Home = () => {
       <section className="converter-section reveal-on-scroll">
         <div className="converter-card">
           <div className="converter-icon-wrapper">
-            <div className="converter-icon">🔄</div>
+            <div className="converter-icon"><i className="fas fa-sync-alt"></i></div>
           </div>
           <div className="converter-content">
             <h3>Need to convert measurements?</h3>
@@ -596,7 +595,7 @@ const Home = () => {
           ))}
         </div>
         <div className="cta-content">
-          <div className="cta-icon">🍛</div>
+          <div className="cta-icon"><i className="fas fa-utensils"></i></div>
           <h2>Ready to Start Your Culinary Journey?</h2>
           <p>Join our community and discover the rich heritage of Sri Lankan cuisine</p>
           <div className="cta-buttons">

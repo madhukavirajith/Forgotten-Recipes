@@ -1,7 +1,7 @@
 // client/src/components/dashboards/AdminDashboard.jsx
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import './AdminDashboard.css';
+
 import Chat from '../Chat';   // ✅ Add the global Chat component
 
 // Icons (install react-icons if not already)

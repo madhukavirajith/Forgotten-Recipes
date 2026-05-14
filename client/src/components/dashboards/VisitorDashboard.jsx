@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import './VisitorDashboard.css';
+
 import Chat from '../Chat';
 import CookbookPanel from '../CookbookPanel';
 

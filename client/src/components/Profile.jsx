@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './Profile.css';
+import '../styles/profile.css';
+
 
 // Icons
 import { 
@@ -109,7 +110,7 @@ const Profile = () => {
 
       <div className="profile-header">
         <h1 className="profile-title">
-          <span className="title-icon">👤</span>
+          <span className="title-icon"><FaUserCircle /></span>
           My Profile
         </h1>
         <p className="profile-subtitle">Manage your personal information</p>
@@ -240,7 +241,7 @@ const Profile = () => {
           <div className="stat-label">Account Type</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{new Date(user?.createdAt).getFullYear() || '—'}</div>
+          <div className="stat-value">{user?.createdAt ? new Date(user.createdAt).getFullYear() : '—'}</div>
           <div className="stat-label">Member Since</div>
         </div>
       </div>

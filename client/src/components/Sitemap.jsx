@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaUtensils, FaBook, FaCalendarAlt, FaNewspaper, FaInfoCircle, FaScroll, FaEnvelope, FaQuestionCircle, FaShieldAlt, FaCookie, FaUniversalAccess, FaSitemap } from 'react-icons/fa';
-import './Sitemap.css';
+
 
 const Sitemap = () => {
   const sections = [

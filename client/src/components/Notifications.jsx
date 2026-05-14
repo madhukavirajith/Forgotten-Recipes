@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './Notifications.css';
+import '../styles/notifications.css';
+import { FaSyncAlt, FaCheckCircle } from 'react-icons/fa';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
 const API_ROOT = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
@@ -119,7 +120,7 @@ export default function Notifications() {
               onClick={fetchNotifications}
               type="button"
             >
-              Refresh
+              <FaSyncAlt /> Refresh
             </button>
             <button
               className="notifications-action primary"
@@ -127,7 +128,7 @@ export default function Notifications() {
               disabled={saving || unreadCount === 0}
               type="button"
             >
-              {saving ? 'Saving…' : 'Mark all read'}
+              <FaCheckCircle /> {saving ? 'Saving…' : 'Mark all read'}
             </button>
           </div>
         </div>

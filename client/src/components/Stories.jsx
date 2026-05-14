@@ -1,7 +1,18 @@
-// client/src/components/Stories.jsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
-import './Stories.css';
+import { 
+  FaBookOpen, 
+  FaSearch, 
+  FaTimes, 
+  FaRegClock, 
+  FaMapMarkerAlt, 
+  FaCalendarAlt, 
+  FaShareAlt, 
+  FaHistory,
+  FaChevronRight,
+  FaChevronLeft
+} from 'react-icons/fa';
+
 
 // API Configuration
 const API_BASE = process.env.REACT_APP_API_URL || '';
@@ -192,7 +203,7 @@ const Stories = () => {
       <div className="stories-hero">
         <div className="stories-hero-content">
           <h1 className="stories-hero-title">
-            <span className="hero-icon">📖</span>
+            <span className="hero-icon"><FaBookOpen /></span>
             Cultural Stories
           </h1>
           <p className="stories-hero-subtitle">
@@ -200,7 +211,8 @@ const Stories = () => {
           </p>
           {usingFallback && (
             <div className="demo-banner">
-              <span>📚 Demo Mode</span>
+              <span className="banner-icon"><FaHistory /></span>
+              <span> Demo Mode</span>
               <p>Showing sample stories. Connect to backend for full experience.</p>
             </div>
           )}
@@ -210,7 +222,7 @@ const Stories = () => {
       {/* Search and Filter Section */}
       <div className="stories-controls">
         <div className="search-bar">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><FaSearch /></span>
           <input
             type="text"
             placeholder="Search stories by title, content, or tags..."
@@ -220,7 +232,7 @@ const Stories = () => {
           />
           {searchQuery && (
             <button className="clear-search" onClick={() => setSearchQuery('')}>
-              ✕
+              <FaTimes />
             </button>
           )}
         </div>
@@ -250,7 +262,7 @@ const Stories = () => {
       {/* Stories Grid */}
       {filteredStories.length === 0 ? (
         <div className="no-results">
-          <div className="no-results-icon">📚</div>
+          <div className="no-results-icon"><FaHistory /></div>
           <h3>No Stories Found</h3>
           <p>Try adjusting your search or filter criteria</p>
           <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="reset-btn">
@@ -282,7 +294,7 @@ const Stories = () => {
                 <div className="story-card-content">
                   <div className="story-meta">
                     {story.category && <span className="story-category">{story.category}</span>}
-                    {story.readTime && <span className="story-read-time">⏱️ {story.readTime} min read</span>}
+                    {story.readTime && <span className="story-read-time"><FaRegClock /> {story.readTime} min read</span>}
                   </div>
                   <h3 className="story-card-title">{story.title}</h3>
                   <p className="story-card-excerpt">
@@ -309,7 +321,7 @@ const Stories = () => {
                 disabled={currentPage === 1}
                 className="page-btn"
               >
-                ← Previous
+                <FaChevronLeft /> Previous
               </button>
               <div className="page-numbers">
                 {[...Array(totalPages)].map((_, i) => (
@@ -327,7 +339,7 @@ const Stories = () => {
                 disabled={currentPage === totalPages}
                 className="page-btn"
               >
-                Next →
+                Next <FaChevronRight />
               </button>
             </div>
           )}
@@ -338,7 +350,7 @@ const Stories = () => {
       {selectedStory && (
         <div className="story-modal" onClick={closeStoryModal}>
           <div className="story-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeStoryModal}>✕</button>
+            <button className="modal-close" onClick={closeStoryModal}><FaTimes /></button>
             
             {selectedStory.image && (
               <div className="modal-image">
@@ -349,9 +361,9 @@ const Stories = () => {
             <div className="modal-body">
               <div className="modal-meta">
                 {selectedStory.category && <span className="modal-category">{selectedStory.category}</span>}
-                {selectedStory.region && <span className="modal-region">📍 {selectedStory.region}</span>}
-                {selectedStory.readTime && <span className="modal-read-time">⏱️ {selectedStory.readTime} min read</span>}
-                {selectedStory.date && <span className="modal-date">📅 {formatDate(selectedStory.date)}</span>}
+                {selectedStory.region && <span className="modal-region"><FaMapMarkerAlt /> {selectedStory.region}</span>}
+                {selectedStory.readTime && <span className="modal-read-time"><FaRegClock /> {selectedStory.readTime} min read</span>}
+                {selectedStory.date && <span className="modal-date"><FaCalendarAlt /> {formatDate(selectedStory.date)}</span>}
               </div>
               
               <h2 className="modal-title">{selectedStory.title}</h2>
@@ -376,7 +388,7 @@ const Stories = () => {
             
             <div className="modal-footer">
               <button className="share-btn" onClick={() => navigator.share?.({ title: selectedStory.title, text: selectedStory.content.substring(0, 100) })}>
-                📤 Share this story
+                <FaShareAlt /> Share this story
               </button>
             </div>
           </div>

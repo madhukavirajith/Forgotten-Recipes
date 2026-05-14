@@ -1,6 +1,6 @@
 // client/src/components/Accessibility.jsx
 import React from 'react';
-import './LegalPages.css';
+
 
 const Accessibility = () => {
   return (

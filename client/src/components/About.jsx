@@ -1,7 +1,7 @@
 // client/src/components/About.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import './About.css';
+
 
 // Import icons
 import { 
@@ -30,7 +30,9 @@ import {
   FaFacebook,
   FaTwitter,
   FaInstagram,
-  FaYoutube
+  FaYoutube,
+  FaSyncAlt,
+  FaEdit
 } from 'react-icons/fa';
 
 const About = () => {
@@ -174,8 +176,7 @@ const About = () => {
         <div className="about-hero-overlay"></div>
         <div className="about-hero-content">
           <div className="hero-badge">
-            <span className="badge-icon">🇱🇰</span>
-            <span className="badge-text">Est. 2020</span>
+            <span className="badge-text">Our Story & Mission</span>
           </div>
           <h1 className="about-hero-title">
             About Forgotten Recipes
@@ -255,17 +256,17 @@ const About = () => {
             </p>
             <div className="mission-cards">
               <div className="mission-card">
-                <div className="mission-icon">📚</div>
+                <div className="mission-icon"><FaBookOpen /></div>
                 <h3>Archive</h3>
                 <p>Collecting and preserving traditional recipes from across Sri Lanka</p>
               </div>
               <div className="mission-card">
-                <div className="mission-icon">🌍</div>
+                <div className="mission-icon"><FaGlobe /></div>
                 <h3>Share</h3>
                 <p>Making Sri Lankan cuisine accessible to the world</p>
               </div>
               <div className="mission-card">
-                <div className="mission-icon">💡</div>
+                <div className="mission-icon"><FaLightbulb /></div>
                 <h3>Innovate</h3>
                 <p>Modernizing traditional recipes for contemporary kitchens</p>
               </div>
@@ -333,7 +334,7 @@ const About = () => {
             </p>
             <div className="contribute-grid">
               <div className="contribute-card">
-                <div className="contribute-icon">📝</div>
+                <div className="contribute-icon"><FaEdit /></div>
                 <h3>Submit Recipes</h3>
                 <p>Share long-lost family recipes to our growing archive</p>
                 <Link to="/login" className="contribute-link">
@@ -341,7 +342,7 @@ const About = () => {
                 </Link>
               </div>
               <div className="contribute-card">
-                <div className="contribute-icon">🔄</div>
+                <div className="contribute-icon"><FaSyncAlt /></div>
                 <h3>Western Twist Tool</h3>
                 <p>Try our innovative tool and share your creations</p>
                 <Link to="/twist-tool" className="contribute-link">
@@ -349,7 +350,7 @@ const About = () => {
                 </Link>
               </div>
               <div className="contribute-card">
-                <div className="contribute-icon">📖</div>
+                <div className="contribute-icon"><FaBookOpen /></div>
                 <h3>Engage & Learn</h3>
                 <p>Read our blog, explore the food calendar, and share stories</p>
                 <Link to="/blog" className="contribute-link">
@@ -357,7 +358,7 @@ const About = () => {
                 </Link>
               </div>
               <div className="contribute-card">
-                <div className="contribute-icon">💬</div>
+                <div className="contribute-icon"><FaComments /></div>
                 <h3>Chat with Experts</h3>
                 <p>Connect with our dieticians and learn healthier options</p>
                 <Link to="/chat" className="contribute-link">
@@ -418,8 +419,8 @@ const About = () => {
                   <div className="team-image">
                     <img src={member.image} alt={member.name} />
                     <div className="team-social">
-                      <a href={member.social.twitter} target="_blank" rel="noopener noreferrer">🐦</a>
-                      <a href={member.social.linkedin} target="_blank" rel="noopener noreferrer">🔗</a>
+                      <a href={member.social.twitter} target="_blank" rel="noopener noreferrer"><FaTwitter /></a>
+                      <a href={member.social.linkedin} target="_blank" rel="noopener noreferrer"><FaGlobe /></a>
                     </div>
                   </div>
                   <div className="team-info">

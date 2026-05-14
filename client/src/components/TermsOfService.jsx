@@ -1,6 +1,6 @@
 // client/src/components/TermsOfService.jsx
 import React from 'react';
-import './LegalPages.css';
+
 
 const TermsOfService = () => {
   return (

@@ -1,7 +1,7 @@
 // client/src/components/RecipeDetail.jsx
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import './RecipeDetail.css';
+
 
 // Import icons
 import { 
@@ -308,10 +308,10 @@ const FRACTIONS = {
 const SPICY_RE = /\b(chil+?i|chili|chilli|green chilli|red chilli|chilli powder|cayenne|paprika|pepper|black pepper|peppercorns?)\b/i;
 const SPICE_FACTORS = { Mild: 0.6, Medium: 1.0, Spicy: 1.4 };
 const PORTION_PRESETS = [
-  { key: "single", label: "Single", factor: 1, icon: "👤" },
-  { key: "couple", label: "Couple", factor: 2, icon: "👥" },
-  { key: "family", label: "Family (4)", factor: 4, icon: "👨‍👩‍👧‍👦" },
-  { key: "event", label: "Event (10)", factor: 10, icon: "🎉" },
+  { key: "single", label: "Single", factor: 1, icon: <i className="fas fa-user"></i> },
+  { key: "couple", label: "Couple", factor: 2, icon: <i className="fas fa-users"></i> },
+  { key: "family", label: "Family (4)", factor: 4, icon: <i className="fas fa-home"></i> },
+  { key: "event", label: "Event (10)", factor: 10, icon: <i className="fas fa-glass-cheers"></i> },
 ];
 
 const parseAmountToken = (token) => {
@@ -393,7 +393,7 @@ const SpicePortionSimulator = ({ ingredients, baseSpice = "Medium" }) => {
         <>
           <div className="sim-row">
             <div className="sim-col">
-              <div className="label">🌶️ Spice Level</div>
+              <div className="label"><i className="fas fa-pepper-hot"></i> Spice Level</div>
               <div className="segmented">
                 {['Mild','Medium','Spicy'].map(lvl => (
                   <button
@@ -654,7 +654,7 @@ const Comments = ({ recipeId, token }) => {
                 </button>
               ))}
               <div className="reaction-picker-container">
-                <button className="comment-action-btn" onClick={() => setShowReactions(showReactions === comment._id ? null : comment._id)}>😊</button>
+                <button className="comment-action-btn" onClick={() => setShowReactions(showReactions === comment._id ? null : comment._id)}><i className="far fa-smile"></i></button>
                 {showReactions === comment._id && (
                   <div className="reaction-picker">
                     {reactions.map(react => (
@@ -726,7 +726,7 @@ const Comments = ({ recipeId, token }) => {
         {loading ? (
           <div className="comments-loading"><FaSpinner className="spinning" /> Loading comments...</div>
         ) : comments.length === 0 ? (
-          <div className="no-comments"><div className="no-comments-icon">💬</div><p>No comments yet</p><p className="no-comments-sub">Be the first to share your thoughts!</p></div>
+          <div className="no-comments"><div className="no-comments-icon"><i className="far fa-comment-dots"></i></div><p>No comments yet</p><p className="no-comments-sub">Be the first to share your thoughts!</p></div>
         ) : (
           comments.map(comment => renderComment(comment))
         )}

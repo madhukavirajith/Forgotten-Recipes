@@ -1,7 +1,7 @@
 // client/src/components/Chat.jsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
-import './Chat.css';
+
 
 // Icons
 import {
@@ -50,22 +50,22 @@ const CHAT_PERMISSIONS = {
 
 const CHAT_SUGGESTIONS = {
   visitor: [
-    { text: "I need help with a recipe", icon: "🍳" },
-    { text: "Can you suggest healthy alternatives?", icon: "🥗" },
-    { text: "How do I reduce spice in a curry?", icon: "🌶️" },
-    { text: "What are authentic Sri Lankan ingredients?", icon: "🇱🇰" }
+    { text: "I need help with a recipe", icon: <FaUtensils /> },
+    { text: "Can you suggest healthy alternatives?", icon: <FaInfoCircle /> },
+    { text: "How do I reduce spice in a curry?", icon: <FaInfoCircle /> },
+    { text: "What are authentic Sri Lankan ingredients?", icon: <FaInfoCircle /> }
   ],
   dietician: [
-    { text: "Review a recipe for nutritional value", icon: "📊" },
-    { text: "Suggest healthy modifications", icon: "🥬" }
+    { text: "Review a recipe for nutritional value", icon: <FaInfoCircle /> },
+    { text: "Suggest healthy modifications", icon: <FaInfoCircle /> }
   ],
   headchef: [
-    { text: "Review pending recipe submission", icon: "📝" },
-    { text: "Discuss recipe authenticity", icon: "✨" }
+    { text: "Review pending recipe submission", icon: <FaEdit /> },
+    { text: "Discuss recipe authenticity", icon: <FaInfoCircle /> }
   ],
   admin: [
-    { text: "User reported issue", icon: "⚠️" },
-    { text: "Platform feedback", icon: "💬" }
+    { text: "User reported issue", icon: <FaInfoCircle /> },
+    { text: "Platform feedback", icon: <FaComment /> }
   ]
 };
 
@@ -512,12 +512,14 @@ const Chat = () => {
               <div className="chat-body" ref={scrollerRef}>
                 {messages.length === 0 && !isLoading && (
                   <div className="chat-empty">
-                    <div className="chat-empty-icon">💬</div>
+                    <div className="chat-empty-icon"><FaComment /></div>
                     <h4>Start a conversation!</h4>
                     <p>Ask {recipientInfo?.name} about {recipientInfo?.description?.toLowerCase()}</p>
                     <div className="suggested-questions">
                       {suggestions.map((s, idx) => (
-                        <button key={idx} onClick={() => setText(s.text)}>{s.icon} {s.text}</button>
+                        <button key={idx} onClick={() => setText(s.text)}>
+                          <span className="suggestion-icon">{s.icon}</span> {s.text}
+                        </button>
                       ))}
                     </div>
                   </div>

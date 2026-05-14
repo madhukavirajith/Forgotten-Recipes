@@ -1,6 +1,6 @@
 // client/src/components/TwistTool.jsx
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import './TwistTool.css';
+
 
 // Icons (install react-icons if not already)
 import { 
@@ -227,7 +227,7 @@ export default function TwistTool() {
       {/* Header */}
       <div className="twist-header">
         <h1 className="twist-title">
-          <span className="title-icon">🔄</span>
+          <span className="title-icon"><FaMagic /></span>
           Western Twist Tool
         </h1>
         <p className="twist-subtitle">
@@ -260,7 +260,7 @@ export default function TwistTool() {
           />
           {searchTerm && (
             <button className="clear-search" onClick={() => setSearchTerm('')}>
-              ✕
+              <FaTimes />
             </button>
           )}
         </div>
@@ -295,7 +295,7 @@ export default function TwistTool() {
       {/* Selected Recipe */}
       {!selected ? (
         <div className="empty-state">
-          <div className="empty-icon">✨</div>
+          <div className="empty-icon"><FaMagic /></div>
           <h3>Select a recipe to start twisting</h3>
           <p>Search above and click on any traditional recipe to begin creating your western twist version.</p>
         </div>

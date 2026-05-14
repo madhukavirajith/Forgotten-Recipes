@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Cookbook.css';
+import { FaDownload, FaEye, FaTrash, FaTimes } from 'react-icons/fa';
+
 
 const API = process.env.REACT_APP_API_URL || '';
 
@@ -260,8 +261,8 @@ export default function CookbookPanel() {
                 <span className="chip">C {totals.carbs}g</span>
                 <span className="chip">F {totals.fat}g</span>
               </div>
-              <button className="btn small outline" onClick={() => setSelectedIds([])}>
-                Clear
+              <button className="btn small outline" onClick={() => setSelectedIds([])} title="Clear selection">
+                <FaTimes /> Clear
               </button>
             </div>
           )}
@@ -298,14 +299,14 @@ export default function CookbookPanel() {
                   )}
 
                   <div className="cb-actions">
-                    <button className="btn" onClick={() => downloadRecipePdf(r._id, token)}>
-                      PDF
+                    <button className="btn" onClick={() => downloadRecipePdf(r._id, token)} title="Download PDF">
+                      <FaDownload /> PDF
                     </button>
-                    <Link className="btn outline" to={`/recipes/${r._id}`}>
-                      View
+                    <Link className="btn outline" to={`/recipes/${r._id}`} title="View Recipe">
+                      <FaEye /> View
                     </Link>
-                    <button className="btn danger" onClick={() => removeItem(item)}>
-                      Remove
+                    <button className="btn danger" onClick={() => removeItem(item)} title="Remove from Cookbook">
+                      <FaTrash />
                     </button>
                   </div>
 

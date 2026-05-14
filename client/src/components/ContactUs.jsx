@@ -1,7 +1,7 @@
 // client/src/components/ContactUs.jsx
 import React, { useState } from 'react';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaPaperPlane, FaCheckCircle } from 'react-icons/fa';
-import './ContactUs.css';
+
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({

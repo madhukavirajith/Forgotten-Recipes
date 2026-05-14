@@ -1,7 +1,8 @@
 // client/src/components/Settings.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Settings.css';
+import '../styles/settings.css';
+
 
 // Icons
 import { 
@@ -120,7 +121,7 @@ const Settings = () => {
 
       <div className="settings-header">
         <h1 className="settings-title">
-          <span className="title-icon">⚙️</span>
+          <span className="title-icon"><FaPalette /></span>
           Settings
         </h1>
         <p className="settings-subtitle">Customize your experience</p>

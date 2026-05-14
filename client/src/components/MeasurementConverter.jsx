@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import './MeasurementConverter.css';
+
 
 /** Mass -> grams */
 const MASS_TO_G = {
@@ -157,7 +157,9 @@ export default function MeasurementConverter() {
         </div>
 
         <div className="conv__swap">
-          <button className="btn btn--ghost" onClick={swap}>⇅ Swap</button>
+          <button className="btn btn--ghost" onClick={swap} title="Swap units">
+            <FaSearch style={{ transform: 'rotate(90deg)' }} />
+          </button>
         </div>
 
         <div className="conv__block">

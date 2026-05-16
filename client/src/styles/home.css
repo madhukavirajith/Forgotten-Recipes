@@ -67,9 +67,9 @@
 .badge-text { font-weight: 700; letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase; }
 
 .hero-title {
-  font-size: clamp(3rem, 10vw, 6rem);
+  font-size: clamp(2.5rem, 8vw, 6rem);
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.1;
   margin-bottom: 1.5rem;
 }
 
@@ -130,8 +130,18 @@
 .stat-divider { width: 1px; height: 50px; background: rgba(255, 255, 255, 0.2); }
 
 @media (max-width: 768px) {
-  .hero-stats { flex-wrap: wrap; gap: 2rem; }
+  .hero-stats { 
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem 1rem;
+  }
   .stat-divider { display: none; }
+}
+
+@media (max-width: 480px) {
+  .hero-stats { grid-template-columns: 1fr; }
+  .stat-number { font-size: 1.75rem; }
 }
 
 .hero-wave {
@@ -424,8 +434,12 @@
   margin: 0 auto;
   padding: 0 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 480px) {
+  .tools-grid { grid-template-columns: 1fr; padding: 0 1rem; }
 }
 
 .tool-card {
@@ -476,8 +490,12 @@
   margin: 0 auto;
   padding: 0 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 480px) {
+  .recipes-grid { grid-template-columns: 1fr; padding: 0 1rem; }
 }
 
 .recipe-card {
@@ -614,8 +632,12 @@
   margin: 0 auto;
   padding: 0 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 480px) {
+  .testimonials-grid { grid-template-columns: 1fr; padding: 0 1rem; }
 }
 
 .testimonial-card {

@@ -812,6 +812,20 @@ export default function RecipeDetail() {
   const [error, setError] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [stickyVisible, setStickyVisible] = useState(false);
+  const [checkedIngredients, setCheckedIngredients] = useState({});
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setStickyVisible(window.scrollY > 600);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleIngredient = (idx) => {
+    setCheckedIngredients(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -877,50 +891,133 @@ export default function RecipeDetail() {
 
   return (
     <div className="page-wrap">
-      <div className="recipe-detail-container">
-        <button onClick={() => navigate('/recipes')} className="back-button"><FaArrowLeft /> Back to Recipes</button>
-
-        <div className="recipe-header">
-          {recipe.image && <div className="recipe-image"><img src={recipe.image} alt={recipe.name} /></div>}
-          <div className="recipe-info">
-            <h1>{recipe.name}</h1>
-            <div className="recipe-meta-tags">
-              {recipe.category && <span className="meta-tag category">{recipe.category}</span>}
-              {recipe.spiceLevel && <span className="meta-tag spice">{recipe.spiceLevel} 🌶️</span>}
-              {recipe.dietType && <span className="meta-tag diet">{recipe.dietType}</span>}
-              {recipe.culture && <span className="meta-tag culture">{recipe.culture}</span>}
+      {/* Premium Hero Section */}
+      <div className="rd-hero">
+        <div className="rd-hero-image">
+          <img src={recipe.image || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop'} alt={recipe.name} />
+        </div>
+        <div className="rd-hero-overlay"></div>
+        <div className="rd-hero-content">
+          <button onClick={() => navigate('/recipes')} className="back-button" style={{ color: 'white' }}>
+            <FaArrowLeft /> Back to Recipes
+          </button>
+          <h1 className="rd-hero-title">{recipe.name}</h1>
+          <div className="recipe-meta-tags">
+            {recipe.category && <span className="meta-tag category">{recipe.category}</span>}
+            {recipe.spiceLevel && <span className="meta-tag spice">{recipe.spiceLevel} 🌶️</span>}
+            {recipe.dietType && <span className="meta-tag diet">{recipe.dietType}</span>}
+            {recipe.culture && <span className="meta-tag culture">{recipe.culture}</span>}
+          </div>
+          <div className="rd-stats-grid">
+            <div className="rd-stat-box">
+              <span className="rd-stat-label">Prep Time</span>
+              <span className="rd-stat-value"><FaClock /> {recipe.prepTime || '20m'}</span>
             </div>
-            <div className="recipe-ratings">
-              <StarRating recipeId={recipe._id} token={token} initialAvg={recipe.averageRating || 0} initialCount={recipe.ratingsCount || 0} />
-              <span className="nutrition-flag" data-flag={flag}>{flagText}</span>
+            <div className="rd-stat-box">
+              <span className="rd-stat-label">Calories</span>
+              <span className="rd-stat-value"><FaFire /> {n.calories || '450'} kcal</span>
+            </div>
+            <div className="rd-stat-box">
+              <span className="rd-stat-label">Rating</span>
+              <span className="rd-stat-value"><FaStar /> {recipe.averageRating?.toFixed(1) || '0.0'}</span>
             </div>
           </div>
         </div>
-
-        <Section title="Nutrition Information" icon={<FaChartPie />}>
-          <AdvancedNutritionChart nutrition={n} />
-          {recipe.tags && recipe.tags.length > 0 && <div className="recipe-tags"><strong>Tags:</strong>{recipe.tags.map(tag => <span key={tag} className="recipe-tag">#{tag}</span>)}</div>}
-          <div className="nutrition-actions"><button onClick={downloadNutritionPdf} className="btn-outline"><FaDownload /> Download Nutrition Report</button></div>
-        </Section>
-
-        <SpicePortionSimulator ingredients={recipe.ingredients} baseSpice={recipe.spiceLevel} />
-
-        <Section title="Ingredients" icon={<FaUtensils />}><div className="ingredients-content"><p>{recipe.ingredients || '—'}</p></div></Section>
-        <Section title="Instructions" icon={<FaClock />}><div className="instructions-content"><p style={{ whiteSpace: 'pre-wrap' }}>{recipe.instructions || '—'}</p></div></Section>
-        <Section title="Story & Culture" icon={<FaInfoCircle />}><div className="story-content"><p>{recipe.story || recipe.cultureStory || recipe.culture || 'No story available for this recipe.'}</p></div></Section>
-
-        <Section title="Actions" icon={<FaHeart />} right={<ShareBar url={pageUrl} title={recipe.name} />}>
-          <div className="action-buttons">
-            <button onClick={saveToCookbook} className={`btn-primary ${saved ? 'saved' : ''}`}><FaBookmark /> {saved ? 'Saved!' : 'Save to Cookbook'}</button>
-            <button onClick={() => navigate(`/recipes/${id}/cook`)} className="btn-secondary"><FaUtensils /> Start Cook Mode</button>
-            {token && <button onClick={downloadRecipePdf} className="btn-outline"><FaDownload /> Download PDF</button>}
-            <button onClick={printRecipe} className="btn-outline"><FaPrint /> Print</button>
-            <button onClick={() => setShowFeedback(true)} className="btn-outline"><FaFlag /> Send Feedback</button>
-          </div>
-        </Section>
-
-        <Section title="Comments" icon={<FaComment />}><Comments recipeId={recipe._id} token={token} /></Section>
       </div>
+
+      <div className="recipe-detail-container">
+        {/* Action Center - High Visibility */}
+        <div className="rd-action-center">
+          <div className="action-main-btns">
+            <button onClick={() => navigate(`/recipes/${id}/cook`)} className="btn-hero primary">
+              <FaUtensils /> Start Cook Mode
+            </button>
+            <button onClick={saveToCookbook} className={`btn-hero secondary ${saved ? 'saved' : ''}`}>
+              <FaBookmark /> {saved ? 'Saved in Cookbook' : 'Save to Cookbook'}
+            </button>
+          </div>
+          <div className="action-tool-btns">
+            <button onClick={printRecipe} className="btn-tool"><FaPrint /> Print</button>
+            <button onClick={() => setShowFeedback(true)} className="btn-tool"><FaFlag /> Feedback</button>
+            <button onClick={downloadRecipePdf} className="btn-tool"><FaDownload /> Recipe PDF</button>
+            <button onClick={downloadNutritionPdf} className="btn-tool"><FaChartPie /> Nutrition PDF</button>
+          </div>
+        </div>
+
+        <div className="rd-grid-container">
+          <div className="rd-main-content">
+            <div className="ingredients-box">
+              <h2 className="rd-section-title"><FaUtensils /> Ingredients</h2>
+              <ul className="check-list">
+                {recipe.ingredients?.split('\n').map((ing, idx) => (
+                  <li 
+                    key={idx} 
+                    className={`check-item ${checkedIngredients[idx] ? 'checked' : ''}`}
+                    onClick={() => toggleIngredient(idx)}
+                  >
+                    <div className="check-box">{checkedIngredients[idx] && <FaCheck />}</div>
+                    <span className="check-text">{ing}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="instructions-box">
+              <h2 className="rd-section-title"><FaClock /> Instructions</h2>
+              <div className="instructions-list">
+                {recipe.instructions?.split('\n').filter(s => s.trim()).map((step, idx) => (
+                  <div key={idx} className="instruction-step">
+                    <div className="step-num">{idx + 1}</div>
+                    <div className="step-content">{step}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Section title="Story & Culture" icon={<FaInfoCircle />}>
+              <div className="story-content">
+                <p>{recipe.story || recipe.cultureStory || recipe.culture || 'No story available for this recipe.'}</p>
+              </div>
+            </Section>
+          </div>
+
+          <div className="rd-sidebar">
+            <Section title="Nutrition" icon={<FaChartPie />}>
+              <AdvancedNutritionChart nutrition={n} />
+              <div className="nutrition-flag" data-flag={flag} style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                {flagText}
+              </div>
+            </Section>
+
+            <SpicePortionSimulator ingredients={recipe.ingredients} baseSpice={recipe.spiceLevel} />
+
+            <Section title="Share" icon={<FaShare />}>
+              <ShareBar url={pageUrl} title={recipe.name} />
+            </Section>
+          </div>
+        </div>
+
+        <Section title="Community Comments" icon={<FaComment />}>
+          <Comments recipeId={recipe._id} token={token} />
+        </Section>
+      </div>
+
+      {/* Sticky Action Bar */}
+      <div className={`rd-sticky-bar ${stickyVisible ? 'visible' : ''}`}>
+        <div className="sticky-recipe-info">
+          <img src={recipe.image} alt={recipe.name} />
+          <h4>{recipe.name}</h4>
+        </div>
+        <div className="sticky-actions">
+          <button onClick={() => navigate(`/recipes/${id}/cook`)} className="sticky-btn primary">
+            <FaUtensils /> Cook
+          </button>
+          <button onClick={saveToCookbook} className={`sticky-btn secondary ${saved ? 'saved' : ''}`}>
+            <FaBookmark /> {saved ? 'Saved' : 'Save'}
+          </button>
+        </div>
+      </div>
+
       {showFeedback && <FeedbackModal recipeId={recipe._id} token={token} onClose={() => setShowFeedback(false)} />}
     </div>
   );

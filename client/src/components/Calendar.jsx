@@ -224,12 +224,12 @@ const CalendarPage = () => {
         <div className="calendar-right">
           <div className="selected-date-header">
             <h2>
-              <i className="fas fa-calendar-check date-icon"></i>
-              {selectedDate.toDateString()}
+              <i className="fas fa-calendar-day date-icon"></i>
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </h2>
-            {isPoyaDay && !event && (
+            {isPoyaDay && (
               <div className="poya-badge">
-                Poya Day
+                <i className="fas fa-moon"></i> Poya Day
               </div>
             )}
           </div>
@@ -237,6 +237,7 @@ const CalendarPage = () => {
           {event ? (
             <div className="event-details-card">
               <div className="event-header">
+                <div className="event-emoji">{event.emoji}</div>
                 <div className="event-title">
                   <h3>{event.festival}</h3>
                   <span className="event-category">{event.category}</span>
@@ -257,7 +258,7 @@ const CalendarPage = () => {
                     <ul className="event-list">
                       {event.traditions.map((tradition, i) => (
                         <li key={i}>
-                          <span className="list-icon"><FaCheckCircle /></span>
+                          <span className="list-icon"><i className="fas fa-om"></i></span>
                           {tradition}
                         </li>
                       ))}
@@ -285,9 +286,9 @@ const CalendarPage = () => {
                   <div className="recipes-grid">
                     {event.recipes.map((recipe, i) => (
                       <div key={i} className="recipe-card-mini">
-                        <div className="recipe-icon"><i className="fas fa-soup"></i></div>
+                        <div className="recipe-icon"><i className="fas fa-utensils"></i></div>
                         <div className="recipe-name">{recipe}</div>
-                        <button className="view-recipe-btn">View Recipe →</button>
+                        <button className="view-recipe-btn">Explore Recipe <i className="fas fa-arrow-right"></i></button>
                       </div>
                     ))}
                   </div>

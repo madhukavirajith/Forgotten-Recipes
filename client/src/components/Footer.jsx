@@ -109,10 +109,10 @@ const Footer = () => {
           <div className="footer-column brand-column">
             <div className="footer-logo">
               <img src="/logo.jpg" alt="Forgotten Recipes" className="footer-logo-img" />
-              <h2 className="footer-brand">
+              <div className="footer-brand">
                 <span className="brand-main">FORGOTTEN</span>
                 <span className="brand-sub">RECIPES</span>
-              </h2>
+              </div>
             </div>
             <p className="footer-description">
               Bringing back traditional Sri Lankan tastes with a modern twist. 
@@ -164,23 +164,23 @@ const Footer = () => {
           </div>
 
           {/* Column 4 - Newsletter */}
-          <div className="footer-column newsletter-column">
+          <div className="footer-column footer-newsletter-column">
             <h3 className="footer-column-title">Newsletter</h3>
-            <p className="newsletter-text">
+            <p className="footer-newsletter-text">
               Subscribe to get weekly traditional recipes and cultural stories delivered to your inbox.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-              <div className="newsletter-input-group">
+            <form onSubmit={handleNewsletterSubmit} className="footer-newsletter-form">
+              <div className="footer-newsletter-input-group">
                 <input
                   type="email"
-                  placeholder="Your email address"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="newsletter-input"
+                  className="footer-newsletter-input"
                 />
-                <button type="submit" className="newsletter-btn">
-                  Subscribe
+                <button type="submit" className="footer-newsletter-btn">
+                  Join the Heritage
                 </button>
               </div>
             </form>
@@ -221,7 +221,7 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="footer-bottom">
-        <div className="footer-container">
+        <div className="container">
           <div className="bottom-wrapper">
             <p className="copyright">
               © {currentYear} Forgotten Recipes. All rights reserved.

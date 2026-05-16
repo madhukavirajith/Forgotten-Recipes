@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { FaExchangeAlt } from 'react-icons/fa';
 
 
 /** Mass -> grams */
@@ -158,7 +159,7 @@ export default function MeasurementConverter() {
 
         <div className="conv__swap">
           <button className="btn btn--ghost" onClick={swap} title="Swap units">
-            <FaSearch style={{ transform: 'rotate(90deg)' }} />
+            <FaExchangeAlt />
           </button>
         </div>
 

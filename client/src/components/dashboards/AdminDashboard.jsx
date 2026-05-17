@@ -30,6 +30,8 @@ const AdminDashboard = () => {
 
   const [blog, setBlog] = useState({ title: '', content: '', image: '' });
   const [blogSubmitting, setBlogSubmitting] = useState(false);
+  const [blogs, setBlogs] = useState([]);
+  const [editingBlogId, setEditingBlogId] = useState(null);
 
   const token = localStorage.getItem('token');
   const authHeader = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
@@ -68,6 +70,15 @@ const AdminDashboard = () => {
     }
   }, [authHeader]);
 
+  const fetchBlogs = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/blogs`);
+      setBlogs(res.data || []);
+    } catch (err) {
+      console.error('Error loading blogs:', err.response?.data || err.message);
+    }
+  }, []);
+
   useEffect(() => {
     if (!token) {
       setError('No authentication token found. Please log in.');
@@ -77,14 +88,14 @@ const AdminDashboard = () => {
     (async () => {
       try {
         setLoading(true);
-        await Promise.all([fetchUsers(), fetchFeedbacks(), fetchStats()]);
+        await Promise.all([fetchUsers(), fetchFeedbacks(), fetchStats(), fetchBlogs()]);
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     })();
-  }, [token, fetchUsers, fetchFeedbacks, fetchStats]);
+  }, [token, fetchUsers, fetchFeedbacks, fetchStats, fetchBlogs]);
 
   // ---------- User actions ----------
   const handleDeleteUser = async (userId) => {
@@ -141,13 +152,41 @@ const AdminDashboard = () => {
     }
     setBlogSubmitting(true);
     try {
-      await axios.post(`${API_BASE}/api/blogs`, blog, authHeader);
-      showNotification('Blog posted successfully!', 'success');
+      if (editingBlogId) {
+        await axios.put(`${API_BASE}/api/blogs/${editingBlogId}`, blog, authHeader);
+        showNotification('Blog updated successfully!', 'success');
+        setEditingBlogId(null);
+      } else {
+        await axios.post(`${API_BASE}/api/blogs`, blog, authHeader);
+        showNotification('Blog posted successfully!', 'success');
+      }
       setBlog({ title: '', content: '', image: '' });
+      fetchBlogs();
     } catch (err) {
-      showNotification('Failed to post blog', 'error');
+      showNotification(editingBlogId ? 'Failed to update blog' : 'Failed to post blog', 'error');
     } finally {
       setBlogSubmitting(false);
+    }
+  };
+
+  const handleEditBlog = (post) => {
+    setBlog({ title: post.title, content: post.content, image: post.image || '' });
+    setEditingBlogId(post._id);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const handleDeleteBlog = async (blogId) => {
+    if (!window.confirm('Delete this blog post? This action cannot be undone.')) return;
+    try {
+      await axios.delete(`${API_BASE}/api/blogs/${blogId}`, authHeader);
+      showNotification('Blog post deleted successfully', 'success');
+      fetchBlogs();
+      if (editingBlogId === blogId) {
+        setBlog({ title: '', content: '', image: '' });
+        setEditingBlogId(null);
+      }
+    } catch (err) {
+      showNotification('Failed to delete blog post', 'error');
     }
   };
 
@@ -170,7 +209,7 @@ const AdminDashboard = () => {
     { title: 'Total Users', value: stats.totalUsers, icon: <FaUsers />, color: '#3b82f6' },
     { title: 'Total Visitors', value: stats.totalVisitors, icon: <FaUserCheck />, color: '#10b981' },
     { title: 'Feedbacks', value: feedbacks.length, icon: <FaComments />, color: '#f59e0b' },
-    { title: 'Blogs', value: '—', icon: <FaBlog />, color: '#8b5cf6' }
+    { title: 'Blogs', value: blogs.length, icon: <FaBlog />, color: '#8b5cf6' }
   ];
 
   const roleColors = {
@@ -356,9 +395,9 @@ const AdminDashboard = () => {
 
       {/* Blog Tab */}
       {activeTab === 'blog' && (
-        <div className="blog-tab">
-          <div className="blog-form-card">
-            <h3>Post a New Blog</h3>
+        <div className="blog-tab-grid">
+          <div className="blog-form-card" style={{ margin: 0 }}>
+            <h3>{editingBlogId ? 'Edit Blog Post' : 'Post a New Blog'}</h3>
             <form onSubmit={handleBlogSubmit} className="blog-form">
               <div className="form-group">
                 <label>Blog Title *</label>
@@ -396,11 +435,55 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
-              <button type="submit" className="submit-btn" disabled={blogSubmitting}>
-                {blogSubmitting ? <FaSpinner className="spinning" /> : <FaBlog />}
-                {blogSubmitting ? 'Posting...' : 'Publish Blog'}
-              </button>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="submit" className="submit-btn" disabled={blogSubmitting} style={{ flex: 1 }}>
+                  {blogSubmitting ? <FaSpinner className="spinning" /> : <FaBlog />}
+                  {blogSubmitting ? 'Processing...' : editingBlogId ? 'Update Blog' : 'Publish Blog'}
+                </button>
+                {editingBlogId && (
+                  <button
+                    type="button"
+                    className="action-btn"
+                    onClick={() => {
+                      setBlog({ title: '', content: '', image: '' });
+                      setEditingBlogId(null);
+                    }}
+                    style={{ flex: 0.3 }}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
+          </div>
+
+          <div className="blog-list-card">
+            <h3>Manage Existing Blogs</h3>
+            {blogs.length === 0 ? (
+              <div className="empty-state">
+                <FaBlog />
+                <p>No blog posts found</p>
+              </div>
+            ) : (
+              <div className="admin-blog-list">
+                {blogs.map(b => (
+                  <div key={b._id} className="admin-blog-item">
+                    <div className="blog-item-details">
+                      <h4>{b.title}</h4>
+                      <p>Posted on {new Date(b.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="blog-item-actions">
+                      <button onClick={() => handleEditBlog(b)} className="action-btn edit" title="Edit Blog" style={{ flex: 'none' }}>
+                        <FaEdit /> Edit
+                      </button>
+                      <button onClick={() => handleDeleteBlog(b._id)} className="action-btn delete" title="Delete Blog" style={{ flex: 'none' }}>
+                        <FaTrash /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

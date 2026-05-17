@@ -220,9 +220,9 @@ const Stories = () => {
       </div>
 
       {/* Search and Filter Section */}
-      <div className="stories-controls">
-        <div className="search-bar">
-          <span className="search-icon"><FaSearch /></span>
+      <div className="blog-controls">
+        <div className="blog-search">
+          <FaSearch className="search-icon" />
           <input
             type="text"
             placeholder="Search stories by title, content, or tags..."
@@ -237,25 +237,27 @@ const Stories = () => {
           )}
         </div>
 
-        <div className="category-filters">
-          {categories.map(category => (
-            <button
-              key={category}
-              className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category === 'all' ? 'All Stories' : category}
-            </button>
-          ))}
+        <div className="controls-right">
+          <div className="category-filters">
+            {categories.map(category => (
+              <button
+                key={category}
+                className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category === 'all' ? 'All Stories' : category}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Results Count */}
-      <div className="results-count">
+      <div className="blog-results" style={{ marginBottom: '2rem', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
         <p>
           {filteredStories.length === 0 
             ? 'No stories found' 
-            : `Found ${filteredStories.length} cultural ${filteredStories.length === 1 ? 'story' : 'stories'}`}
+            : `Showing ${filteredStories.length} ${filteredStories.length === 1 ? 'story' : 'stories'}`}
         </p>
       </div>
 
@@ -271,45 +273,58 @@ const Stories = () => {
         </div>
       ) : (
         <>
-          <div className="story-grid">
+          <div className="article-grid">
             {currentStories.map((story, index) => (
-              <div 
+              <article 
                 key={story._id} 
-                className="story-card"
+                className="article-card"
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => openStoryModal(story)}
               >
-                {story.image ? (
-                  <div className="story-card-image">
+                <div className="article-card-image">
+                  {story.image ? (
                     <img src={story.image} alt={story.title} loading="lazy" />
-                    <div className="story-card-overlay">
-                      <span className="read-more-hint">Click to read →</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="story-card-image-placeholder">
-                    <span>📖</span>
-                  </div>
-                )}
-                <div className="story-card-content">
-                  <div className="story-meta">
-                    {story.category && <span className="story-category">{story.category}</span>}
-                    {story.readTime && <span className="story-read-time"><FaRegClock /> {story.readTime} min read</span>}
-                  </div>
-                  <h3 className="story-card-title">{story.title}</h3>
-                  <p className="story-card-excerpt">
-                    {story.content.substring(0, 120)}...
-                  </p>
-                  <div className="story-footer">
-                    <div className="story-tags">
-                      {story.tags?.slice(0, 2).map((tag, i) => (
-                        <span key={i} className="story-tag">#{tag}</span>
-                      ))}
-                    </div>
-                    <button className="story-read-more">Read Full Story →</button>
+                  ) : (
+                    <div className="image-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', fontSize: '3rem' }}>📖</div>
+                  )}
+                  <div className="article-card-overlay">
+                    <button className="quick-view-btn" onClick={(e) => { e.stopPropagation(); openStoryModal(story); }}>
+                      Quick Read
+                    </button>
                   </div>
                 </div>
-              </div>
+                
+                <div className="article-card-content">
+                  <div className="article-meta">
+                    <span className="article-date">
+                      <FaCalendarAlt /> {formatDate(story.createdAt || story.date)}
+                    </span>
+                    {story.category && <span className="article-category">{story.category}</span>}
+                    {story.readTime && (
+                      <span className="article-read-time">
+                        <FaRegClock /> {story.readTime} min read
+                      </span>
+                    )}
+                  </div>
+                  
+                  <h3 className="article-title">{story.title}</h3>
+                  
+                  <p className="article-excerpt">
+                    {story.content.substring(0, 150)}...
+                  </p>
+                  
+                  <div className="article-footer">
+                    <div className="story-tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {story.tags?.slice(0, 2).map((tag, i) => (
+                        <span key={i} className="story-tag" style={{ background: 'var(--bg-secondary)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>#{tag}</span>
+                      ))}
+                    </div>
+                    <button className="article-read-more" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, color: 'var(--brand-brown)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      Read Full Story →
+                    </button>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
 

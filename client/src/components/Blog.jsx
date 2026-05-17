@@ -277,7 +277,7 @@ const Blog = () => {
           )}
         </div>
 
-        <div className="blog-actions">
+        <div className="controls-right">
           <button 
             className={`filter-toggle ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
@@ -352,73 +352,54 @@ const Blog = () => {
           </button>
         </div>
       ) : (
-        <div className={`blog-${viewMode}`}>
+        <div className={`article-grid blog-${viewMode}`}>
           {currentBlogs.map((blog, index) => (
             <article 
               key={blog._id} 
-              className={`blog-card ${viewMode === 'list' ? 'list-view' : ''}`}
+              className={`article-card ${viewMode === 'list' ? 'list-view' : ''}`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              {blog.image && (
-                <div className="blog-card-image">
+              <div className="article-card-image">
+                {blog.image ? (
                   <img src={blog.image} alt={blog.title} loading="lazy" />
-                  <div className="blog-card-overlay">
-                    <button className="quick-view-btn" onClick={() => openBlogModal(blog)}>
-                      Quick Read
-                    </button>
-                  </div>
+                ) : (
+                  <div className="image-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', fontSize: '3rem' }}>🍳</div>
+                )}
+                <div className="article-card-overlay">
+                  <button className="quick-view-btn" onClick={() => openBlogModal(blog)}>
+                    Quick Read
+                  </button>
                 </div>
-              )}
+              </div>
               
-              <div className="blog-card-content">
-                <div className="blog-meta">
-                  <span className="blog-date">
+              <div className="article-card-content">
+                <div className="article-meta">
+                  <span className="article-date">
                     <FaCalendar /> {formatDate(blog.createdAt)}
                   </span>
                   {blog.category && (
-                    <span className="blog-category">{blog.category}</span>
+                    <span className="article-category">{blog.category}</span>
                   )}
-                  <span className="blog-read-time">
+                  <span className="article-read-time">
                     <FaClock /> {Math.ceil(blog.content?.length / 1000)} min read
                   </span>
                 </div>
                 
-                <h3 className="blog-title">{blog.title}</h3>
+                <h3 className="article-title">{blog.title}</h3>
                 
-                <p className="blog-excerpt">
+                <p className="article-excerpt">
                   {truncateText(blog.content || 'No content available', 150)}
                 </p>
                 
-                <div className="blog-footer">
-                  <div className="blog-stats">
-                    <button 
-                      className={`stat-btn ${likedPosts[blog._id] ? 'liked' : ''}`}
-                      onClick={() => handleLike(blog._id)}
-                    >
-                      <FaHeart /> {blog.likes || 0}
-                    </button>
-                    <button className="stat-btn">
-                      <FaComment /> {blog.comments || 0}
-                    </button>
-                    <button className="stat-btn">
-                      <FaEye /> {blog.views || 0}
-                    </button>
+                <div className="article-footer">
+                  <div className="story-tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {blog.tags?.slice(0, 2).map((tag, i) => (
+                      <span key={i} className="story-tag" style={{ background: 'var(--bg-secondary)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>#{tag}</span>
+                    ))}
                   </div>
-                  
-                  <div className="blog-actions-footer">
-                    <button 
-                      className={`bookmark-btn ${bookmarkedPosts[blog._id] ? 'bookmarked' : ''}`}
-                      onClick={() => handleBookmark(blog._id)}
-                    >
-                      <FaBookmark />
-                    </button>
-                    <button className="share-btn" onClick={() => handleShare(blog)}>
-                      <FaShare />
-                    </button>
-                    <Link to={`/blog/${blog._id}`} className="read-more-btn">
-                      Read More <FaArrowRight />
-                    </Link>
-                  </div>
+                  <button className="article-read-more" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, color: 'var(--brand-brown)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} onClick={() => openBlogModal(blog)}>
+                    Read More <FaArrowRight />
+                  </button>
                 </div>
               </div>
             </article>
@@ -428,7 +409,7 @@ const Blog = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="blog-pagination">
+        <div className="pagination">
           <button 
             onClick={() => paginate(currentPage - 1)} 
             disabled={currentPage === 1}

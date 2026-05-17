@@ -22,3 +22,47 @@ exports.getBlogs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getBlogById = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+    res.json(blog);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateBlog = async (req, res) => {
+  try {
+    const { title, content, image } = req.body;
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+    
+    if (title !== undefined) blog.title = title;
+    if (content !== undefined) blog.content = content;
+    if (image !== undefined) blog.image = image;
+    
+    await blog.save();
+    res.json(blog);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteBlog = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+    await blog.deleteOne();
+    res.json({ message: 'Blog post deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

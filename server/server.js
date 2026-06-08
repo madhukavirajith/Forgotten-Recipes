@@ -20,6 +20,7 @@ const dieticianRoutes = require('./routes/dieticianRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const sanitize = require('./middleware/sanitize');
 
 // Models used by Socket.IO
 const Message = require('./models/Message');
@@ -29,6 +30,11 @@ const { createNotification } = require('./controllers/notificationController');
 
 dotenv.config();
 connectDB();
+
+// Production warning for weak JWT secret
+if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET === 'your_jwt_secret') {
+  console.error('\n======================================================================\n[CRITICAL SECURITY WARNING] The default weak JWT_SECRET is being used in a production environment! Please configure a strong, unique secret key via environment variables.\n======================================================================\n');
+}
 
 const app = express();
 
@@ -83,6 +89,7 @@ app.use('/api/users/register', authLimiter);
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(sanitize);
 
 // -------------------- REST API routes --------------------
 app.use('/api/users', userRoutes);

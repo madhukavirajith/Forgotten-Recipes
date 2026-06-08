@@ -1,5 +1,6 @@
 
 const express = require('express');
+const { protect, allowRoles } = require('../middleware/auth');
 const {
   getPendingRecipes,
   getOneRecipe,
@@ -9,6 +10,9 @@ const {
 } = require('../controllers/dieticianController');
 
 const router = express.Router();
+
+// Apply auth middleware to all dietician routes
+router.use(protect, allowRoles('admin', 'dietician'));
 
 
 router.get('/pending', getPendingRecipes);

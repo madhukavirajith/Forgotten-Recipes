@@ -1,6 +1,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/auth');
 
 const {
   getCookbook,
@@ -14,16 +15,16 @@ const {
 } = require('../controllers/visitorController');
 
 // -------------------- Cookbook --------------------
-router.get('/cookbook', getCookbook);
-router.post('/cookbook/:recipeId', addToCookbook);
-router.delete('/cookbook/:recipeId', removeFromCookbook);
+router.get('/cookbook', protect, getCookbook);
+router.post('/cookbook/:recipeId', protect, addToCookbook);
+router.delete('/cookbook/:recipeId', protect, removeFromCookbook);
 
 // -------------------- My Recipes --------------------
-router.get('/my-recipes', getMyRecipes);
-router.post('/submit-recipe', submitRecipe);
+router.get('/my-recipes', protect, getMyRecipes);
+router.post('/submit-recipe', protect, submitRecipe);
 
 // -------------------- Western Twist --------------------
-router.get('/twist-suggestions', twistSuggestions);
-router.post('/twist/:recipeId', createTwist);
+router.get('/twist-suggestions', twistSuggestions); // Public
+router.post('/twist/:recipeId', protect, createTwist);
 
 module.exports = router;

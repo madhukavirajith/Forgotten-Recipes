@@ -1,7 +1,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { protect, allowRoles } = require('../middleware/auth');
 
 const {
   getRecipes, getAllRecipes, createRecipe, updateRecipe, deleteRecipe,
@@ -13,7 +13,7 @@ const {
 
 // Lists
 router.get('/', getRecipes);
-router.get('/all', getAllRecipes);
+router.get('/all', protect, allowRoles('admin', 'headchef'), getAllRecipes);
 
 // Comments
 router.get('/:id/comments', getComments);
@@ -35,8 +35,8 @@ router.get('/:id/nutrition-report', protect, downloadNutritionReport);
 router.get('/:id', getRecipeWithNutrition);
 
 // CRUD
-router.post('/', createRecipe);
-router.put('/:id', updateRecipe);
-router.delete('/:id', deleteRecipe);
+router.post('/', protect, allowRoles('admin', 'headchef'), createRecipe);
+router.put('/:id', protect, allowRoles('admin', 'headchef'), updateRecipe);
+router.delete('/:id', protect, allowRoles('admin', 'headchef'), deleteRecipe);
 
 module.exports = router;

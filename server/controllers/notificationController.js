@@ -1,6 +1,6 @@
 const Notification = require('../models/Notification');
 
-const createNotification = async (userId, title, message, type = 'general') => {
+const createNotification = async (userId, title, message, type = 'general', actionUrl = '', metadata = null) => {
   if (!userId || !message) {
     throw new Error('Notification must include userId and message');
   }
@@ -10,6 +10,8 @@ const createNotification = async (userId, title, message, type = 'general') => {
     title: title || 'Notification',
     message,
     type,
+    actionUrl,
+    metadata,
   });
 
   const payload = {
@@ -18,6 +20,8 @@ const createNotification = async (userId, title, message, type = 'general') => {
     message: notification.message,
     type: notification.type,
     read: notification.read,
+    actionUrl: notification.actionUrl,
+    metadata: notification.metadata,
     createdAt: notification.createdAt,
     updatedAt: notification.updatedAt,
   };
@@ -25,6 +29,37 @@ const createNotification = async (userId, title, message, type = 'general') => {
   if (global.io) {
     global.io.to(`user:${userId}`).emit('notification', payload);
   }
+
+  // Handle background email delivery
+  const User = require('../models/User');
+  User.findById(userId).then(user => {
+    if (user && user.notificationPreferences?.emailNotifications !== false) {
+      const emailService = require('../services/emailService');
+      const textToScan = message || '';
+      
+      // Match double quotes, fall back to matching single quotes
+      let recipeName = 'Your recipe';
+      const quoteMatch = textToScan.match(/"([^"]+)"/) || textToScan.match(/'([^']+)'/);
+      if (quoteMatch) {
+        recipeName = quoteMatch[1];
+      }
+
+      if (title === 'Welcome to Forgotten Recipes') {
+        emailService.sendWelcomeEmail(user.email, user.name).catch(console.error);
+      } else if (title === 'Recipe Approved') {
+        emailService.sendRecipeStatusEmail(user.email, user.name, recipeName, true).catch(console.error);
+      } else if (title === 'Recipe Rejected') {
+        emailService.sendRecipeStatusEmail(user.email, user.name, recipeName, false).catch(console.error);
+      } else if (title === 'Nutrition Information Added') {
+        emailService.sendNutritionAddedEmail(user.email, user.name, recipeName).catch(console.error);
+      } else if (title === 'Feedback Update') {
+        const isClosed = textToScan.toLowerCase().includes('resolved') || textToScan.toLowerCase().includes('closed');
+        emailService.sendFeedbackUpdateEmail(user.email, user.name, textToScan, isClosed ? 'closed' : 'in-progress').catch(console.error);
+      }
+    }
+  }).catch(err => {
+    console.error('Error fetching user for notification email:', err);
+  });
 
   return payload;
 };
@@ -73,31 +108,9 @@ const markAllRead = async (req, res) => {
   }
 };
 
-const sendTestNotification = async (req, res) => {
-  try {
-    const { title, message, type } = req.body;
-    if (!message) {
-      return res.status(400).json({ msg: 'Notification message required' });
-    }
-
-    const notification = await createNotification(
-      req.user.id,
-      title || 'Test Notification',
-      message,
-      type || 'general'
-    );
-
-    res.status(201).json(notification);
-  } catch (error) {
-    console.error('Send test notification error:', error);
-    res.status(500).json({ msg: 'Unable to send notification' });
-  }
-};
-
 module.exports = {
   createNotification,
   getNotifications,
   markNotificationRead,
   markAllRead,
-  sendTestNotification,
 };

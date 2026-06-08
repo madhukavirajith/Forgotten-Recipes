@@ -3,10 +3,10 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 
 
 // Icons (install react-icons if not already)
-import { 
-  FaSearch, FaUtensils, FaMagic, FaSpinner, FaCheckCircle, 
-  FaExclamationTriangle, FaInfoCircle, FaArrowRight, 
-  FaChartPie, FaTags, FaBookmark, FaShare, FaStar
+import {
+  FaSearch, FaUtensils, FaMagic, FaSpinner, FaCheckCircle,
+  FaExclamationTriangle, FaInfoCircle, FaArrowRight,
+  FaChartPie, FaTags, FaBookmark, FaShare, FaStar, FaTimes
 } from 'react-icons/fa';
 
 const API = process.env.REACT_APP_API_URL || '';
@@ -66,7 +66,7 @@ export default function TwistTool() {
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
-  
+
   const searchInputRef = useRef(null);
   const debounceRef = useRef(null);
 
@@ -158,7 +158,7 @@ export default function TwistTool() {
   const submitTwist = async () => {
     if (!selected) return;
 
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       showNotification('Please log in to submit a twist', 'error');
       return;
@@ -231,7 +231,7 @@ export default function TwistTool() {
           Western Twist Tool
         </h1>
         <p className="twist-subtitle">
-          Transform traditional Sri Lankan recipes with western ingredients. 
+          Transform traditional Sri Lankan recipes with western ingredients.
           Submit your creation for head chef approval!
         </p>
       </div>
@@ -352,7 +352,7 @@ export default function TwistTool() {
                         onChange={e => setSelections(prev => ({ ...prev, [hit.key]: e.target.value }))}
                         className="substitution-select"
                       >
-                        <option value="">— Skip —</option>
+                        <option value="">- Skip -</option>
                         {hit.options.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
@@ -395,9 +395,9 @@ export default function TwistTool() {
 
           {/* Submit Button */}
           <div className="submit-section">
-            <button 
-              className="submit-btn" 
-              onClick={submitTwist} 
+            <button
+              className="submit-btn"
+              onClick={submitTwist}
               disabled={submitting}
             >
               {submitting ? <FaSpinner className="spinning" /> : <FaCheckCircle />}

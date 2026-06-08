@@ -459,7 +459,7 @@ const Comments = ({ recipeId, token }) => {
   const [sortBy, setSortBy] = useState('newest');
   const [showReactions, setShowReactions] = useState(null);
 
-  const currentUser = token ? JSON.parse(localStorage.getItem('user') || '{}') : null;
+  const currentUser = token ? JSON.parse(sessionStorage.getItem('user') || '{}') : null;
   const textareaRef = useRef(null);
 
   const loadComments = useCallback(async () => {
@@ -804,7 +804,7 @@ const ShareBar = ({ url, title }) => {
 export default function RecipeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const headers = useMemo(() => token ? { Authorization: `Bearer ${token}` } : undefined, [token]);
 
   const [recipe, setRecipe] = useState(null);

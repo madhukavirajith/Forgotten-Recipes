@@ -32,6 +32,26 @@ connectDB();
 
 const app = express();
 
+// -------------------- CORS --------------------
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://forgotten-recipes.vercel.app'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`Blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // -------------------- Security Middleware --------------------
 // Helmet – sets various HTTP headers for security
 app.use(helmet({
@@ -53,31 +73,12 @@ app.use('/api/', limiter);
 // Stricter limiter for auth endpoints (login/register)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'production' ? 10 : 100,
   message: { error: 'Too many login attempts, please try again later.' },
 });
 app.use('/api/users/login', authLimiter);
 app.use('/api/users/register', authLimiter);
 
-// -------------------- CORS --------------------
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://forgotten-recipes.vercel.app'
-];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`Blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
@@ -216,7 +217,10 @@ io.on('connection', (socket) => {
               await createNotification(
                 participant.userId,
                 'New Message',
-                `${senderName} sent you a message: "${text.length > 50 ? text.substring(0, 50) + '...' : text}"`
+                `${senderName} sent you a message: "${text.length > 50 ? text.substring(0, 50) + '...' : text}"`,
+                'chat_message',
+                '/chat',
+                { referenceId: conversationId.toString(), senderName }
               );
             }
           }

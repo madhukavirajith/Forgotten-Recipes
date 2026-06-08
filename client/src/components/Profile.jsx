@@ -6,8 +6,8 @@ import '../styles/profile.css';
 
 
 // Icons
-import { 
-  FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, 
+import {
+  FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt,
   FaEdit, FaSave, FaTimes, FaCamera, FaSpinner,
   FaCheckCircle, FaExclamationTriangle, FaUserCircle
 } from 'react-icons/fa';
@@ -29,7 +29,7 @@ const Profile = () => {
     address: ''
   });
 
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   useEffect(() => {
@@ -140,7 +140,7 @@ const Profile = () => {
                 className="info-input"
               />
             ) : (
-              <div className="info-value">{user?.name || '—'}</div>
+              <div className="info-value">{user?.name || '-'}</div>
             )}
           </div>
 
@@ -157,7 +157,7 @@ const Profile = () => {
                 className="info-input"
               />
             ) : (
-              <div className="info-value">{user?.email || '—'}</div>
+              <div className="info-value">{user?.email || '-'}</div>
             )}
           </div>
 
@@ -174,7 +174,7 @@ const Profile = () => {
                 className="info-input"
               />
             ) : (
-              <div className="info-value">{user?.phone || '—'}</div>
+              <div className="info-value">{user?.phone || '-'}</div>
             )}
           </div>
 
@@ -192,7 +192,7 @@ const Profile = () => {
               />
             ) : (
               <div className="info-value">
-                {user?.dob ? new Date(user.dob).toLocaleDateString() : '—'}
+                {user?.dob ? new Date(user.dob).toLocaleDateString() : '-'}
               </div>
             )}
           </div>
@@ -210,7 +210,7 @@ const Profile = () => {
                 rows="3"
               />
             ) : (
-              <div className="info-value">{user?.address || '—'}</div>
+              <div className="info-value">{user?.address || '-'}</div>
             )}
           </div>
 
@@ -241,7 +241,7 @@ const Profile = () => {
           <div className="stat-label">Account Type</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{user?.createdAt ? new Date(user.createdAt).getFullYear() : '—'}</div>
+          <div className="stat-value">{user?.createdAt ? new Date(user.createdAt).getFullYear() : '-'}</div>
           <div className="stat-label">Member Since</div>
         </div>
       </div>

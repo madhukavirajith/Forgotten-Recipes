@@ -5,8 +5,8 @@ import axios from 'axios';
 import Chat from '../Chat';   // ✅ Add the global Chat component
 
 // Icons (install react-icons if not already)
-import { 
-  FaUsers, FaUserCheck, FaComments, FaBlog, FaChartLine, 
+import {
+  FaUsers, FaUserCheck, FaComments, FaBlog, FaChartLine,
   FaTrash, FaEdit, FaSearch, FaFilter, FaTimes, FaSpinner,
   FaCheckCircle, FaExclamationTriangle, FaInfoCircle,
   FaEnvelope, FaUserTag, FaClock, FaEye, FaBan
@@ -33,7 +33,7 @@ const AdminDashboard = () => {
   const [blogs, setBlogs] = useState([]);
   const [editingBlogId, setEditingBlogId] = useState(null);
 
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const authHeader = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
 
   const showNotification = (msg, type = 'success') => {
@@ -255,7 +255,6 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="dashboard-header">
         <h1 className="dashboard-title">
-          <span className="title-icon">👑</span>
           Admin Dashboard
         </h1>
         <p className="dashboard-subtitle">Manage users, feedback, blog posts, and site analytics</p>

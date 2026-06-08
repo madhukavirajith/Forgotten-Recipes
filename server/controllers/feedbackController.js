@@ -25,7 +25,10 @@ exports.createFeedback = async (req, res) => {
         await createNotification(
           admin._id,
           'New Feedback Received',
-          `${submitter?.name || 'A user'} submitted ${type || 'general'} feedback.`
+          `${submitter?.name || 'A user'} submitted ${type || 'general'} feedback.`,
+          'feedback_update',
+          `/admin`,
+          { referenceId: fb._id }
         );
       }
     } catch (notifyErr) {
@@ -90,7 +93,10 @@ exports.updateFeedbackStatus = async (req, res) => {
           await createNotification(
             updated.user._id,
             'Feedback Update',
-            `Your feedback ${statusMessages[status]}.`
+            `Your feedback ${statusMessages[status]}.`,
+            'feedback_update',
+            `/visitor`,
+            { referenceId: updated._id }
           );
         }
       } catch (notifyErr) {

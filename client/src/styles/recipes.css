@@ -1948,6 +1948,33 @@
 .timer-btn.outline { background: white; border: 2px solid var(--brand-brown); color: var(--brand-brown); }
 .timer-btn:hover { transform: translateY(-5px); box-shadow: var(--shadow-xl); }
 
+.timer-adjustments {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.timer-adjust-btn {
+  padding: 0.6rem 1.2rem;
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--brand-brown);
+  cursor: pointer;
+  transition: var(--transition-bounce);
+  box-shadow: var(--shadow-sm);
+}
+
+.timer-adjust-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-orange);
+  color: var(--brand-orange);
+  box-shadow: var(--shadow-md);
+}
+
 .step-nav {
   display: flex;
   width: 100%;

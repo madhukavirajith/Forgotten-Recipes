@@ -193,8 +193,8 @@ const LoginRegisterForm = () => {
         
         const { _id, name, email, role, token } = res.data;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify({ 
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', JSON.stringify({ 
           id: _id, 
           name, 
           email, 
@@ -215,7 +215,7 @@ const LoginRegisterForm = () => {
       console.error('Auth error:', err);
       
       if (err.response) {
-        setError(err.response.data?.msg || 'Authentication failed');
+        setError(err.response.data?.msg || err.response.data?.error || 'Authentication failed');
       } else if (err.request) {
         setError('Unable to connect to server. Please check your connection.');
       } else {

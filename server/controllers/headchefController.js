@@ -4,10 +4,8 @@ const { createNotification } = require('./notificationController');
 
 function buildPendingFilter() {
   return {
-    $and: [
-      { $or: [{ approved: { $eq: false } }, { status: 'pending' }] },
-      { submittedBy: { $exists: true, $ne: null } }, // must be a visitor submission
-    ],
+    status: 'pending',
+    submittedBy: { $exists: true, $ne: null }, // must be a visitor submission
   };
 }
 
@@ -40,7 +38,10 @@ exports.approveRecipe = async (req, res) => {
       createNotification(
         recipe.submittedBy,
         'Recipe Approved',
-        `Your recipe "${recipe.title}" has been approved and is now live!`
+        `Your recipe "${recipe.name}" has been approved and is now live!`,
+        'recipe_approval',
+        `/recipes/${recipe._id}`,
+        { referenceId: recipe._id }
       ).catch((err) => {
         console.error('Failed to create approval notification:', err);
       });
@@ -69,7 +70,10 @@ exports.rejectRecipe = async (req, res) => {
       createNotification(
         recipe.submittedBy,
         'Recipe Rejected',
-        `Your recipe "${recipe.title}" was not approved. Please review and resubmit.`
+        `Your recipe "${recipe.name}" was not approved. Please review and resubmit.`,
+        'recipe_rejection',
+        `/visitor`,
+        { referenceId: recipe._id }
       ).catch((err) => {
         console.error('Failed to create rejection notification:', err);
       });

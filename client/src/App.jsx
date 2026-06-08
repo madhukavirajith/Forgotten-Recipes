@@ -31,12 +31,14 @@ import Sitemap from './components/Sitemap';
 import Profile from './components/Profile';
 import Settings from './components/Settings';
 import Notifications from './components/Notifications';
+import NotificationToast from './components/NotificationToast';
 
 function App() {
   return (
     <Router>
       <div className="app">
         <Navbar />
+        <NotificationToast />
 
         <main className="main">
           <Routes>

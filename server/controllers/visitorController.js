@@ -2,6 +2,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Recipe = require('../models/Recipe');
+const { createNotification } = require('./notificationController');
+
 
 /* ------------------------------- helpers ------------------------------- */
 const getUserIdFromToken = (req) => {
@@ -138,6 +140,23 @@ exports.submitRecipe = async (req, res) => {
     user.myRecipes.push(newRecipe._id);
     await user.save();
 
+    // Notify all head chefs about new visitor recipe submission
+    try {
+      const headChefs = await User.find({ role: 'headchef' });
+      for (const chef of headChefs) {
+        await createNotification(
+          chef._id,
+          'New Recipe Submission',
+          `${user.name || 'A visitor'} submitted a recipe "${newRecipe.name}" for approval.`,
+          'recipe_approval',
+          '/headchef',
+          { referenceId: newRecipe._id }
+        );
+      }
+    } catch (notifyErr) {
+      console.error('Failed to notify head chefs about visitor submission:', notifyErr);
+    }
+
     res.status(201).json({ message: 'Recipe submitted for approval' });
   } catch (err) {
     const status = err.code || (err.name === 'JsonWebTokenError' ? 401 : 400);
@@ -204,9 +223,9 @@ exports.createTwist = async (req, res) => {
       return out;
     });
 
-    
+
     const twist = await Recipe.create({
-      name: `${base.name} — Twisted`,
+      name: `${base.name} - Twisted`,
       ingredients: newLines.join('\n'),
       instructions: base.instructions,
       culture: base.culture,
@@ -219,7 +238,7 @@ exports.createTwist = async (req, res) => {
       parentRecipe: base._id,
       substitutions: choices.map(c => ({ from: c.from, to: c.to })),
 
-      
+
 
       tags: Array.from(new Set([...(base.tags || []), 'Twisted'])),
       status: 'pending',

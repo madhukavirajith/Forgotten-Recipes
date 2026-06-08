@@ -23,13 +23,13 @@ function decodeRoleFromJWT(token) {
 }
 
 function readAuth() {
-  const token = localStorage.getItem('token') || null;
+  const token = sessionStorage.getItem('token') || null;
 
   const storedRole =
-    localStorage.getItem('role') ||
+    sessionStorage.getItem('role') ||
     (() => {
       try {
-        const u = JSON.parse(localStorage.getItem('user') || 'null');
+        const u = JSON.parse(sessionStorage.getItem('user') || 'null');
         return u?.role || null;
       } catch {
         return null;
@@ -70,7 +70,6 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [testNotificationSending, setTestNotificationSending] = useState(false);
 
   // Socket ref to maintain single connection
   const socketRef = useRef(null);
@@ -182,7 +181,12 @@ export default function Navbar() {
 
         socket.on('notification', (note) => {
           console.log('Received notification:', note);
-          setNotifications((prev) => [note, ...(prev || [])]);
+          setNotifications((prev) => {
+            const exists = (prev || []).some((n) => (n._id || n.id) === (note._id || note.id));
+            if (exists) return prev;
+            return [note, ...(prev || [])];
+          });
+          window.dispatchEvent(new CustomEvent('live-notification', { detail: note }));
         });
       }
     }
@@ -232,9 +236,9 @@ export default function Navbar() {
 
   // ===== Handlers =====
   const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('role');
     setAuth({ token: null, role: null });
     setMobileMenuOpen(false);
     setDropdownOpen(false);
@@ -298,38 +302,6 @@ export default function Navbar() {
     }
   }, [auth.token]);
 
-  const sendTestNotification = useCallback(async () => {
-    if (!auth.token) return;
-
-    setTestNotificationSending(true);
-    try {
-      const res = await fetch(`${API_ROOT}/notifications/test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-        },
-        body: JSON.stringify({
-          title: 'Test Notification',
-          message: 'This is a live test notification from your Forgotten Recipes app.',
-          type: 'test',
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Unable to send test notification');
-      }
-
-      const notification = await res.json();
-      setNotifications((prev) => [notification, ...(prev || [])]);
-      setShowNotifications(true);
-    } catch (err) {
-      console.error('Test notification failed:', err);
-    } finally {
-      setTestNotificationSending(false);
-    }
-  }, [auth.token]);
-
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ===== Helpers =====
@@ -353,7 +325,7 @@ export default function Navbar() {
   // Get user display name
   const getUserName = () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
       return user.name || user.email?.split('@')[0] || 'User';
     } catch {
       return 'User';
@@ -423,15 +395,6 @@ export default function Navbar() {
                   <div className="notifications-header">
                     <h4>Notifications</h4>
                     <div className="notifications-header-actions">
-                      {process.env.NODE_ENV === 'development' && (
-                        <button
-                          className="notification-test"
-                          onClick={sendTestNotification}
-                          disabled={testNotificationSending}
-                        >
-                          {testNotificationSending ? 'Sending…' : 'Send test'}
-                        </button>
-                      )}
                       {unreadCount > 0 && (
                         <button className="mark-all-read" onClick={markAllRead}>Mark all read</button>
                       )}

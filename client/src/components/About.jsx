@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 
 
 // Import icons
-import { 
-  FaHeart, 
-  FaLeaf, 
-  FaUsers, 
-  FaUtensils, 
+import {
+  FaHeart,
+  FaLeaf,
+  FaUsers,
+  FaUtensils,
   FaLightbulb,
   FaChartLine,
   FaCalendarAlt,
@@ -182,7 +182,7 @@ const About = () => {
             About Forgotten Recipes
           </h1>
           <p className="about-hero-subtitle">
-            A digital gateway to Sri Lanka's ancient culinary heritage — reborn through culture, community, and creativity.
+            A digital gateway to Sri Lanka's ancient culinary heritage - reborn through culture, community, and creativity.
           </p>
           <div className="hero-stats" ref={statsRef}>
             <div className="hero-stat">
@@ -208,7 +208,7 @@ const About = () => {
         </div>
         <div className="about-hero-wave">
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 64L60 69.3C120 75 240 85 360 80C480 75 600 53 720 48C840 43 960 53 1080 58.7C1200 64 1320 64 1380 64L1440 64L1440 120L1380 120C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120L0 120Z" fill="#FFF9F2"/>
+            <path d="M0 64L60 69.3C120 75 240 85 360 80C480 75 600 53 720 48C840 43 960 53 1080 58.7C1200 64 1320 64 1380 64L1440 64L1440 120L1380 120C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120L0 120Z" fill="#FFF9F2" />
           </svg>
         </div>
       </section>
@@ -216,25 +216,25 @@ const About = () => {
       {/* Navigation Tabs */}
       <div className="about-nav">
         <div className="about-nav-container">
-          <button 
+          <button
             className={`nav-tab ${activeSection === 'mission' ? 'active' : ''}`}
             onClick={() => scrollToSection('mission')}
           >
             <FaHeart /> Mission
           </button>
-          <button 
+          <button
             className={`nav-tab ${activeSection === 'why' ? 'active' : ''}`}
             onClick={() => scrollToSection('why')}
           >
             <FaLeaf /> Why It Matters
           </button>
-          <button 
+          <button
             className={`nav-tab ${activeSection === 'contribute' ? 'active' : ''}`}
             onClick={() => scrollToSection('contribute')}
           >
             <FaHandsHelping /> Contribute
           </button>
-          <button 
+          <button
             className={`nav-tab ${activeSection === 'vision' ? 'active' : ''}`}
             onClick={() => scrollToSection('vision')}
           >
@@ -250,8 +250,8 @@ const About = () => {
             <div className="section-badge">Our Mission</div>
             <h2>Preserving Sri Lanka's<br />Culinary Heritage</h2>
             <p>
-              Forgotten Recipes is dedicated to conserving and celebrating Sri Lanka's rich food traditions — 
-              from generation-old family dishes to seasonal festival meals — by combining ancestral knowledge 
+              Forgotten Recipes is dedicated to conserving and celebrating Sri Lanka's rich food traditions -
+              from generation-old family dishes to seasonal festival meals - by combining ancestral knowledge
               with modern technology.
             </p>
             <div className="mission-cards">
@@ -287,8 +287,8 @@ const About = () => {
             <div className="section-badge">Why It Matters</div>
             <h2>Fading Flavors,<br />Lost Traditions</h2>
             <p>
-              With rapid modernization, many of our island's most flavorful, healthy, and meaningful recipes 
-              are fading into history. By capturing these culinary gems in a digital format, we not only 
+              With rapid modernization, many of our island's most flavorful, healthy, and meaningful recipes
+              are fading into history. By capturing these culinary gems in a digital format, we not only
               preserve them but also make them accessible to the world.
             </p>
             <div className="impact-stats">
@@ -308,7 +308,7 @@ const About = () => {
           </div>
           <div className="section-image">
             <div className="video-container">
-              <video 
+              <video
                 ref={videoRef}
                 poster="/about-video-poster.jpg"
                 className="about-video"
@@ -377,14 +377,14 @@ const About = () => {
             <div className="section-badge">Our Vision</div>
             <h2>A Future Where<br />Tradition Thrives</h2>
             <p>
-              We envision a world where every Sri Lankan recipe, no matter how old or obscure, 
-              is preserved, celebrated, and passed down to future generations. A world where 
-              technology serves heritage, and where every kitchen becomes a gateway to our 
+              We envision a world where every Sri Lankan recipe, no matter how old or obscure,
+              is preserved, celebrated, and passed down to future generations. A world where
+              technology serves heritage, and where every kitchen becomes a gateway to our
               island's rich culinary past.
             </p>
             <div className="vision-quote">
               <FaQuoteLeft className="quote-icon" />
-              <p>"Let's rediscover, reimagine, and relive Sri Lanka's food legacy — one recipe at a time."</p>
+              <p>"Let's rediscover, reimagine, and relive Sri Lanka's food legacy - one recipe at a time."</p>
             </div>
           </div>
           <div className="section-image">

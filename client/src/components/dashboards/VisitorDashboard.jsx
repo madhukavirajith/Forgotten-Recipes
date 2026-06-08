@@ -7,15 +7,15 @@ import Chat from '../Chat';
 import CookbookPanel from '../CookbookPanel';
 
 // Import icons
-import { 
-  FaUtensils, 
-  FaBook, 
-  FaMagic, 
-  FaHeart, 
-  FaStar, 
-  FaClock, 
-  FaFire, 
-  FaLeaf, 
+import {
+  FaUtensils,
+  FaBook,
+  FaMagic,
+  FaHeart,
+  FaStar,
+  FaClock,
+  FaFire,
+  FaLeaf,
   FaSpinner,
   FaCheckCircle,
   FaExclamationCircle,
@@ -58,9 +58,9 @@ const StatusBadge = ({ status }) => {
         return { label: 'Pending', className: 'status-pending', icon: <FaClock /> };
     }
   };
-  
+
   const { label, className, icon } = getStatusConfig();
-  
+
   return (
     <span className={`status-badge ${className}`} title={`Status: ${label}`}>
       {icon} {label}
@@ -95,7 +95,11 @@ const VisitorDashboard = () => {
     servings: ''
   });
 
-  const token = localStorage.getItem('token');
+  const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [feedbackType, setFeedbackType] = useState('other');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+
+  const token = sessionStorage.getItem('token');
   const authHeader = useMemo(
     () => (token ? { headers: { Authorization: `Bearer ${token}` } } : undefined),
     [token]
@@ -113,12 +117,12 @@ const VisitorDashboard = () => {
       const res = await axios.get(`${API_BASE}/api/visitor/my-recipes`, authHeader);
       const recipes = Array.isArray(res.data) ? res.data : [];
       setMyRecipes(recipes);
-      
+
       // Calculate stats
       const approved = recipes.filter(r => r.status === 'approved' || r.approved === true).length;
       const pending = recipes.filter(r => r.status === 'pending' || (!r.status && r.approved !== true)).length;
       const rejected = recipes.filter(r => r.status === 'rejected').length;
-      
+
       setStats({
         totalSubmitted: recipes.length,
         approved,
@@ -143,12 +147,12 @@ const VisitorDashboard = () => {
   const handleRecipeImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
       showNotification('Image size should be less than 5MB', 'error');
       return;
     }
-    
+
     const reader = new FileReader();
     reader.onloadend = () => setNewRecipe((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
@@ -157,23 +161,23 @@ const VisitorDashboard = () => {
   // Submit new recipe
   const submitRecipe = async (e) => {
     e.preventDefault();
-    
+
     if (!token) {
       showNotification('Please log in to submit a recipe', 'error');
       return;
     }
-    
+
     if (!newRecipe.category || !newRecipe.spiceLevel || !newRecipe.dietType) {
       showNotification('Please select Category, Spice Level, and Diet Type', 'error');
       return;
     }
-    
+
     try {
       setSubmitting(true);
       await axios.post(`${API_BASE}/api/visitor/submit-recipe`, newRecipe, authHeader);
-      
+
       showNotification('Recipe submitted for approval!', 'success');
-      
+
       setNewRecipe({
         name: '',
         ingredients: '',
@@ -187,7 +191,7 @@ const VisitorDashboard = () => {
         cookTime: '',
         servings: ''
       });
-      
+
       fetchMyRecipes();
       setActiveTab('myrecipes');
     } catch (err) {
@@ -216,6 +220,34 @@ const VisitorDashboard = () => {
     }
   };
 
+  // Submit feedback
+  const submitFeedback = useCallback(async (e) => {
+    e.preventDefault();
+    if (!token) {
+      showNotification('Please log in to submit feedback', 'error');
+      return;
+    }
+    if (!feedbackMsg.trim()) {
+      showNotification('Please enter your feedback message', 'error');
+      return;
+    }
+    try {
+      setFeedbackSubmitting(true);
+      await axios.post(`${API_BASE}/api/feedback`, {
+        type: feedbackType,
+        message: feedbackMsg.trim()
+      }, authHeader);
+      showNotification('Thank you! Your feedback has been sent to the admins.', 'success');
+      setFeedbackMsg('');
+      setFeedbackType('other');
+    } catch (err) {
+      console.error('Failed to submit feedback:', err?.response?.data || err.message);
+      showNotification('Failed to send feedback. Please try again.', 'error');
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  }, [token, feedbackMsg, feedbackType, authHeader]);
+
   useEffect(() => {
     fetchMyRecipes();
   }, [fetchMyRecipes]);
@@ -242,7 +274,6 @@ const VisitorDashboard = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <h1 className="dashboard-title">
-            <span className="title-icon">👋</span>
             Welcome, Visitor
           </h1>
           <p className="dashboard-subtitle">
@@ -266,24 +297,30 @@ const VisitorDashboard = () => {
 
       {/* Tab Navigation */}
       <div className="dashboard-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'submit' ? 'active' : ''}`}
           onClick={() => setActiveTab('submit')}
         >
           <FaPlus /> Submit Recipe
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'myrecipes' ? 'active' : ''}`}
           onClick={() => setActiveTab('myrecipes')}
         >
           <FaBook /> My Recipes
           {myRecipes.length > 0 && <span className="tab-badge">{myRecipes.length}</span>}
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'cookbook' ? 'active' : ''}`}
           onClick={() => setActiveTab('cookbook')}
         >
           <FaBookmark /> My Cookbook
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'feedback' ? 'active' : ''}`}
+          onClick={() => setActiveTab('feedback')}
+        >
+          <FaEnvelope /> Support & Feedback
         </button>
       </div>
 
@@ -300,7 +337,7 @@ const VisitorDashboard = () => {
                 Share your culinary creations with our community. Your recipe will be reviewed by our head chef.
               </p>
             </div>
-            
+
             <form onSubmit={submitRecipe} className="recipe-form">
               <div className="form-row two-col">
                 <div className="form-group">
@@ -509,9 +546,9 @@ const VisitorDashboard = () => {
             ) : (
               <div className="recipes-list">
                 {myRecipes.map((recipe, index) => {
-                  const status = recipe.status || 
+                  const status = recipe.status ||
                     (typeof recipe.approved === 'boolean' ? (recipe.approved ? 'approved' : 'pending') : 'pending');
-                  
+
                   return (
                     <div key={recipe._id} className="recipe-item" style={{ animationDelay: `${index * 0.05}s` }}>
                       <div className="recipe-item-image">
@@ -528,14 +565,14 @@ const VisitorDashboard = () => {
                           </Link>
                           <StatusBadge status={status} />
                         </div>
-                        
+
                         <div className="recipe-item-meta">
                           {recipe.category && <span className="meta-badge">{recipe.category}</span>}
                           {recipe.spiceLevel && <span className="meta-badge spice">{recipe.spiceLevel}</span>}
                           {recipe.dietType && <span className="meta-badge diet">{recipe.dietType}</span>}
                           {recipe.culture && <span className="meta-badge culture">{recipe.culture}</span>}
                         </div>
-                        
+
                         <div className="recipe-item-actions">
                           <Link to={`/recipes/${recipe._id}`} className="action-link view">
                             <FaEye /> View Recipe
@@ -568,6 +605,57 @@ const VisitorDashboard = () => {
               </p>
             </div>
             <CookbookPanel />
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Tab */}
+      {activeTab === 'feedback' && (
+        <div className="feedback-tab">
+          <div className="section-card">
+            <div className="section-header">
+              <h3>
+                <FaEnvelope className="section-icon" />
+                Support & Feedback
+              </h3>
+              <p className="section-description">
+                Have a question, found a bug, or want to report abuse? Submit a ticket and our administrators will look into it.
+              </p>
+            </div>
+
+            <form onSubmit={submitFeedback} className="recipe-form" style={{ marginTop: '1.5rem' }}>
+              <div className="form-group">
+                <label>Feedback Category <span className="required">*</span></label>
+                <select
+                  value={feedbackType}
+                  onChange={(e) => setFeedbackType(e.target.value)}
+                  required
+                >
+                  <option value="other">General Feedback / Support</option>
+                  <option value="bug">Software Bug</option>
+                  <option value="content">Content Correction</option>
+                  <option value="abuse">Report Abuse</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ marginTop: '1.25rem' }}>
+                <label>Message <span className="required">*</span></label>
+                <textarea
+                  placeholder="Please describe your feedback, query, or bug report in detail..."
+                  value={feedbackMsg}
+                  onChange={(e) => setFeedbackMsg(e.target.value)}
+                  required
+                  rows={6}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div className="form-actions" style={{ marginTop: '1.5rem' }}>
+                <button type="submit" className="btn-primary" disabled={feedbackSubmitting}>
+                  {feedbackSubmitting ? <FaSpinner className="spinning" /> : <FaEnvelope />} Submit Ticket
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,17 +1,18 @@
 // client/src/components/dashboards/DieticianDashboard.jsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 
-import Chat from '../Chat';   // ✅ global chat component
+import Chat from '../Chat';
 
 // Icons
-import { 
-  FaAppleAlt, FaChartPie, FaTags, FaSave, FaPlus, FaTrash,
-  FaUtensils, FaClock, FaFire, FaLeaf, FaHeartbeat,
+import {
+  FaAppleAlt, FaChartPie, FaSave, FaPlus, FaTrash,
+  FaUtensils, FaClock, FaFire, FaLeaf,
   FaWeightHanging, FaBolt, FaDatabase, FaListUl,
   FaCheckCircle, FaExclamationTriangle, FaInfoCircle
 } from 'react-icons/fa';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || '';
+const API = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
 
 const emptyNut = {
   calories: 0,
@@ -82,9 +83,7 @@ export default function DieticianDashboard() {
   const [queue, setQueue] = useState([]);
   const [selected, setSelected] = useState(null);
   const [nut, setNut] = useState(emptyNut);
-  const [newTags, setNewTags] = useState('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('nutrition');
   const [notification, setNotification] = useState(null);
 
   const showNotification = (msg, type = 'success') => {
@@ -112,9 +111,9 @@ export default function DieticianDashboard() {
       setSelected(r);
       setNut({
         calories: r?.nutrition?.calories || 0,
-        protein:  r?.nutrition?.protein  || 0,
-        carbs:    r?.nutrition?.carbs    || 0,
-        fat:      r?.nutrition?.fat      || 0,
+        protein: r?.nutrition?.protein || 0,
+        carbs: r?.nutrition?.carbs || 0,
+        fat: r?.nutrition?.fat || 0,
         vitamins: r?.nutrition?.vitamins || [],
         ratingFlag: r?.nutrition?.ratingFlag || 'neutral',
         benefits: r?.nutrition?.benefits || []
@@ -128,15 +127,14 @@ export default function DieticianDashboard() {
     setSelected(r);
     setNut({
       calories: r?.nutrition?.calories || 0,
-      protein:  r?.nutrition?.protein  || 0,
-      carbs:    r?.nutrition?.carbs    || 0,
-      fat:      r?.nutrition?.fat      || 0,
+      protein: r?.nutrition?.protein || 0,
+      carbs: r?.nutrition?.carbs || 0,
+      fat: r?.nutrition?.fat || 0,
       vitamins: r?.nutrition?.vitamins || [],
       ratingFlag: r?.nutrition?.ratingFlag || 'neutral',
       benefits: r?.nutrition?.benefits || []
     });
     loadRecipe(r._id);
-    setActiveTab('nutrition');
   };
 
   useEffect(() => { loadQueue(); }, [loadQueue]);
@@ -159,41 +157,7 @@ export default function DieticianDashboard() {
     }
   };
 
-  const addTags = async () => {
-    if (!selected) return;
-    const tags = newTags.split(',').map(t => t.trim()).filter(Boolean);
-    if (!tags.length) return;
-    try {
-      const res = await fetch(`${API}/dietician/recipes/${selected._id}/tags`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tags })
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setSelected(prev => ({ ...prev, tags: data.tags }));
-      setNewTags('');
-      showNotification('Tags added successfully!', 'success');
-    } catch (e) {
-      showNotification('Failed to add tags', 'error');
-    }
-  };
 
-  const removeTag = async (tag) => {
-    if (!selected) return;
-    try {
-      const res = await fetch(`${API}/dietician/recipes/${selected._id}/tags`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tag })
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setSelected(prev => ({ ...prev, tags: data.tags }));
-    } catch (e) {
-      showNotification('Failed to remove tag', 'error');
-    }
-  };
 
   const chartData = useMemo(() => ({
     protein: Number(nut.protein) || 0,
@@ -209,8 +173,7 @@ export default function DieticianDashboard() {
 
   const stats = [
     { title: 'Pending Reviews', value: queue.length, icon: <FaClock />, color: '#f59e0b' },
-    { title: 'Total Recipes', value: queue.length + (selected ? 1 : 0), icon: <FaDatabase />, color: '#D2691E' },
-    { title: 'Tags Added', value: selected?.tags?.length || 0, icon: <FaTags />, color: '#8b5cf6' }
+    { title: 'Total Recipes', value: queue.length + (selected ? 1 : 0), icon: <FaDatabase />, color: '#D2691E' }
   ];
 
   return (
@@ -224,7 +187,7 @@ export default function DieticianDashboard() {
 
       <div className="dashboard-header">
         <h1 className="dashboard-title">
-          <span className="title-icon">🥗</span>
+
           Dietician Dashboard
         </h1>
         <p className="dashboard-subtitle">Manage nutrition, health labels, and ingredient benefits</p>
@@ -270,145 +233,90 @@ export default function DieticianDashboard() {
               <p>Choose a recipe from the left to start editing nutrition details.</p>
             </div>
           ) : (
-            <>
-              {/* Tabs */}
-              <div className="editor-tabs">
-                <button className={`tab-btn ${activeTab === 'nutrition' ? 'active' : ''}`} onClick={() => setActiveTab('nutrition')}>
-                  <FaAppleAlt /> Nutrition
-                </button>
-                <button className={`tab-btn ${activeTab === 'tags' ? 'active' : ''}`} onClick={() => setActiveTab('tags')}>
-                  <FaTags /> Tags & Benefits
-                </button>
-                <button className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>
-                  <FaHeartbeat /> Inbox
-                </button>
+            <div className="nutrition-tab">
+              <div className="recipe-header">
+                <h2>{selected.name}</h2>
+                <span className="health-flag" style={{ background: ratingColor }}>
+                  {nut.ratingFlag === 'weight-loss' ? '🌱 Weight Loss' : nut.ratingFlag === 'weight-gain' ? '💪 Weight Gain' : '⚖️ Balanced'}
+                </span>
               </div>
 
-              {/* Nutrition Tab */}
-              {activeTab === 'nutrition' && (
-                <div className="nutrition-tab">
-                  <div className="recipe-header">
-                    <h2>{selected.name}</h2>
-                    <span className="health-flag" style={{ background: ratingColor }}>
-                      {nut.ratingFlag === 'weight-loss' ? '🌱 Weight Loss' : nut.ratingFlag === 'weight-gain' ? '💪 Weight Gain' : '⚖️ Balanced'}
-                    </span>
+              <div className="nutrition-form">
+                <div className="form-row four-col">
+                  <div className="input-group">
+                    <label>Calories (kcal)</label>
+                    <input type="number" value={nut.calories} onChange={e => setNut({ ...nut, calories: Number(e.target.value) })} />
                   </div>
-
-                  <div className="nutrition-form">
-                    <div className="form-row four-col">
-                      <div className="input-group">
-                        <label>Calories (kcal)</label>
-                        <input type="number" value={nut.calories} onChange={e => setNut({...nut, calories: Number(e.target.value)})} />
-                      </div>
-                      <div className="input-group">
-                        <label>Protein (g)</label>
-                        <input type="number" value={nut.protein} onChange={e => setNut({...nut, protein: Number(e.target.value)})} />
-                      </div>
-                      <div className="input-group">
-                        <label>Carbs (g)</label>
-                        <input type="number" value={nut.carbs} onChange={e => setNut({...nut, carbs: Number(e.target.value)})} />
-                      </div>
-                      <div className="input-group">
-                        <label>Fat (g)</label>
-                        <input type="number" value={nut.fat} onChange={e => setNut({...nut, fat: Number(e.target.value)})} />
-                      </div>
-                    </div>
-
-                    <div className="form-row">
-                      <div className="input-group">
-                        <label>Health Label</label>
-                        <select value={nut.ratingFlag} onChange={e => setNut({...nut, ratingFlag: e.target.value})}>
-                          <option value="weight-loss">🌱 Weight Loss Friendly</option>
-                          <option value="neutral">⚖️ Balanced</option>
-                          <option value="weight-gain">💪 Weight Gain</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="macro-section">
-                      <h4>Macronutrient Distribution</h4>
-                      <MacroPie protein={chartData.protein} carbs={chartData.carbs} fat={chartData.fat} />
-                    </div>
-
-                    <div className="vitamins-section">
-                      <h4>Vitamins & Minerals</h4>
-                      {nut.vitamins.map((v, i) => (
-                        <div key={i} className="vitamin-row">
-                          <input placeholder="Vitamin name" value={v.name} onChange={e => {
-                            const arr = [...nut.vitamins];
-                            arr[i].name = e.target.value;
-                            setNut({...nut, vitamins: arr});
-                          }} />
-                          <input placeholder="Amount (e.g., 12 mg)" value={v.amount} onChange={e => {
-                            const arr = [...nut.vitamins];
-                            arr[i].amount = e.target.value;
-                            setNut({...nut, vitamins: arr});
-                          }} />
-                          <button onClick={() => {
-                            const arr = nut.vitamins.filter((_, idx) => idx !== i);
-                            setNut({...nut, vitamins: arr});
-                          }}><FaTrash /></button>
-                        </div>
-                      ))}
-                      <button className="add-btn" onClick={() => setNut({...nut, vitamins: [...nut.vitamins, {name: '', amount: ''}]})}>
-                        <FaPlus /> Add Vitamin
-                      </button>
-                    </div>
-
-                    <div className="benefits-section">
-                      <h4>Ingredient Benefits</h4>
-                      <textarea
-                        rows={4}
-                        placeholder="One per line, e.g., Goraka – good for digestion"
-                        value={nut.benefits.join('\n')}
-                        onChange={e => setNut({...nut, benefits: e.target.value.split('\n').filter(Boolean)})}
-                      />
-                    </div>
-
-                    <div className="form-actions">
-                      <button onClick={saveNutrition} className="btn-primary"><FaSave /> Save Nutrition</button>
-                    </div>
+                  <div className="input-group">
+                    <label>Protein (g)</label>
+                    <input type="number" value={nut.protein} onChange={e => setNut({ ...nut, protein: Number(e.target.value) })} />
+                  </div>
+                  <div className="input-group">
+                    <label>Carbs (g)</label>
+                    <input type="number" value={nut.carbs} onChange={e => setNut({ ...nut, carbs: Number(e.target.value) })} />
+                  </div>
+                  <div className="input-group">
+                    <label>Fat (g)</label>
+                    <input type="number" value={nut.fat} onChange={e => setNut({ ...nut, fat: Number(e.target.value) })} />
                   </div>
                 </div>
-              )}
 
-              {/* Tags Tab */}
-              {activeTab === 'tags' && (
-                <div className="tags-tab">
-                  <div className="tags-section">
-                    <h4>Recipe Tags</h4>
-                    <div className="tags-list">
-                      {selected.tags?.map(tag => (
-                        <span key={tag} className="tag-pill" onClick={() => removeTag(tag)}>
-                          {tag} ✕
-                        </span>
-                      ))}
-                      {(!selected.tags || selected.tags.length === 0) && <span className="muted">No tags yet</span>}
-                    </div>
-                    <div className="add-tag">
-                      <input
-                        type="text"
-                        placeholder="Add tags (comma separated, e.g., Vegan, Gluten-Free)"
-                        value={newTags}
-                        onChange={e => setNewTags(e.target.value)}
-                      />
-                      <button onClick={addTags} className="btn-secondary"><FaPlus /> Add</button>
-                    </div>
+                <div className="form-row">
+                  <div className="input-group">
+                    <label>Health Label</label>
+                    <select value={nut.ratingFlag} onChange={e => setNut({ ...nut, ratingFlag: e.target.value })}>
+                      <option value="weight-loss">🌱 Weight Loss Friendly</option>
+                      <option value="neutral">⚖️ Balanced</option>
+                      <option value="weight-gain">💪 Weight Gain</option>
+                    </select>
                   </div>
                 </div>
-              )}
 
-              {/* Chat / Inbox Tab – now only the header (no Chat component inside) */}
-              {activeTab === 'chat' && (
-                <div className="inbox-tab">
-                  <div className="inbox-header">
-                    <h4><FaHeartbeat /> Messages from Visitors</h4>
-                    <p>Respond to visitor inquiries about this recipe</p>
-                  </div>
-                  {/* The actual chat widget is rendered globally below – no need to duplicate */}
+                <div className="macro-section">
+                  <h4>Macronutrient Distribution</h4>
+                  <MacroPie protein={chartData.protein} carbs={chartData.carbs} fat={chartData.fat} />
                 </div>
-              )}
-            </>
+
+                <div className="vitamins-section">
+                  <h4>Vitamins & Minerals</h4>
+                  {nut.vitamins.map((v, i) => (
+                    <div key={i} className="vitamin-row">
+                      <input placeholder="Vitamin name" value={v.name} onChange={e => {
+                        const arr = [...nut.vitamins];
+                        arr[i].name = e.target.value;
+                        setNut({ ...nut, vitamins: arr });
+                      }} />
+                      <input placeholder="Amount (e.g., 12 mg)" value={v.amount} onChange={e => {
+                        const arr = [...nut.vitamins];
+                        arr[i].amount = e.target.value;
+                        setNut({ ...nut, vitamins: arr });
+                      }} />
+                      <button onClick={() => {
+                        const arr = nut.vitamins.filter((_, idx) => idx !== i);
+                        setNut({ ...nut, vitamins: arr });
+                      }}><FaTrash /></button>
+                    </div>
+                  ))}
+                  <button className="add-btn" onClick={() => setNut({ ...nut, vitamins: [...nut.vitamins, { name: '', amount: '' }] })}>
+                    <FaPlus /> Add Vitamin
+                  </button>
+                </div>
+
+                <div className="benefits-section">
+                  <h4>Ingredient Benefits</h4>
+                  <textarea
+                    rows={4}
+                    placeholder="One per line, e.g., Goraka – good for digestion"
+                    value={nut.benefits.join('\n')}
+                    onChange={e => setNut({ ...nut, benefits: e.target.value.split('\n').filter(Boolean) })}
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button onClick={saveNutrition} className="btn-primary"><FaSave /> Save Nutrition</button>
+                </div>
+              </div>
+            </div>
           )}
         </main>
       </div>

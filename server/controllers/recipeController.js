@@ -46,7 +46,10 @@ exports.createRecipe = async (req, res) => {
           await createNotification(
             chef._id,
             'New Recipe Submission',
-            `${submitter?.name || 'A user'} submitted a recipe "${recipe.title}" for approval.`
+            `${submitter?.name || 'A user'} submitted a recipe "${recipe.name}" for approval.`,
+            'recipe_approval',
+            '/headchef',
+            { referenceId: recipe._id }
           );
         }
       } catch (notifyErr) {

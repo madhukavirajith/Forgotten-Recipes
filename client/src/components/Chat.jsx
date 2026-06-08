@@ -8,7 +8,7 @@ import {
   FaComment, FaUserMd, FaUtensils, FaPaperPlane, FaTimes,
   FaMinus, FaExpand, FaCompress, FaSmile, FaPaperclip,
   FaCheck, FaCheckDouble, FaSpinner, FaUserCircle,
-  FaShieldAlt, FaUsers, FaHistory, FaInfoCircle,
+  FaShieldAlt, FaUsers, FaInfoCircle,
   FaArrowLeft, FaEdit, FaTrash, FaReply, FaSearch
 } from 'react-icons/fa';
 
@@ -81,10 +81,10 @@ const getRoleIcon = (role) => {
 
 // ---------- Main Component ----------
 const Chat = () => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const payload = useMemo(() => (token ? decodeJWT(token) : {}), [token]);
-  const userRole = payload?.role || localStorage.getItem('role') || 'visitor';
-  const userId = payload?.id || payload?._id || localStorage.getItem('userId');
+  const userRole = payload?.role || sessionStorage.getItem('role') || 'visitor';
+  const userId = payload?.id || payload?._id || sessionStorage.getItem('userId');
   const userName = payload?.name || 'Guest';
 
   const [availableRecipients, setAvailableRecipients] = useState([]);
@@ -99,7 +99,6 @@ const Chat = () => {
   const [onlineStatus, setOnlineStatus] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [recentConversations, setRecentConversations] = useState([]);
   const [socketConnected, setSocketConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -130,23 +129,20 @@ const Chat = () => {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setAvailableRecipients(data);
+      if (Array.isArray(data)) {
+        setOnlineStatus(prev => {
+          const next = { ...prev };
+          data.forEach(r => {
+            if (r.id) next[r.id] = r.isOnline;
+          });
+          return next;
+        });
+      }
     } catch (err) {
       console.error('Error fetching recipients:', err);
     }
   }, [token]);
 
-  const fetchRecentConversations = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_ROOT}/chat/recent-conversations`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setRecentConversations(data);
-    } catch (err) {
-      console.error('Error fetching conversations:', err);
-    }
-  }, [token]);
 
   const loadHistory = async (convId) => {
     try {
@@ -225,11 +221,24 @@ const Chat = () => {
   // ---------- Socket handlers ----------
   const handleIncomingMessage = useCallback((msg) => {
     if (msg.conversation === conversationId) {
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => {
+        // Prevent duplicating messages we sent optimistically by replacing the temp message
+        const msgSenderId = msg.senderId?.toString();
+        const currentUserId = userId?.toString();
+        if (msgSenderId && currentUserId && msgSenderId === currentUserId) {
+          const idx = prev.findIndex(m => m._id && m._id.length < 24 && m.text === msg.text);
+          if (idx !== -1) {
+            const updated = [...prev];
+            updated[idx] = msg;
+            return updated;
+          }
+        }
+        return [...prev, msg];
+      });
       scrollToBottom();
       if (!isOpen || isMinimized) setUnreadCount(prev => prev + 1);
     }
-  }, [conversationId, isOpen, isMinimized, scrollToBottom]);
+  }, [conversationId, isOpen, isMinimized, scrollToBottom, userId]);
 
   const handleTyping = useCallback((data) => {
     if (data.conversation === conversationId && data.senderId !== userId) {
@@ -273,9 +282,8 @@ const Chat = () => {
   useEffect(() => {
     if (socketConnected) {
       fetchAvailableRecipients();
-      fetchRecentConversations();
     }
-  }, [socketConnected, fetchAvailableRecipients, fetchRecentConversations]);
+  }, [socketConnected, fetchAvailableRecipients]);
 
   // Join conversation room when conversationId changes
   useEffect(() => {
@@ -389,7 +397,7 @@ const Chat = () => {
 
   if (!userId) {
     return (
-      <div className="chat-widget">
+      <div className="chat-toggle-wrap">
         <button className="chat-toggle-btn" onClick={() => alert('Please login to chat')}>
           <FaComment /> <span>Chat</span>
         </button>
@@ -398,182 +406,172 @@ const Chat = () => {
   }
 
   return (
-    <div className={`chat-widget ${isOpen ? 'open' : ''} ${isExpanded ? 'expanded' : ''} ${isMinimized ? 'minimized' : ''}`}>
-      {/* Header */}
-      <div className="chat-header" onClick={!isOpen ? toggleChat : undefined}>
-        <div className="chat-header-info">
-          <div className="chat-avatar">
-            {selectedRecipient ? recipientInfo?.icon : <FaComment />}
-            {selectedRecipient && isOnline && <span className="online-dot"></span>}
-          </div>
-          <div className="chat-header-text">
-            <h3>{selectedRecipient ? `Chat with ${recipientInfo?.name}` : `${userPermissions.label} Support`}</h3>
-            <p className="chat-status">
-              {selectedRecipient ? (
-                isOnline ? <><span className="status-dot online"></span> Online</> : <><span className="status-dot offline"></span> Offline</>
-              ) : 'Select a recipient to start chatting'}
-            </p>
-          </div>
+    <>
+      {!isOpen && (
+        <div className="chat-toggle-wrap">
+          <button className="chat-toggle-btn" onClick={toggleChat}>
+            <FaComment />
+            <span>Chat</span>
+            {unreadCount > 0 && <span className="chat-unread-badge">{unreadCount}</span>}
+          </button>
         </div>
-        {isOpen && (
-          <div className="chat-header-actions">
-            {selectedRecipient && (
-              <button onClick={goBack} className="chat-action-btn" title="Back to contacts">
-                <FaArrowLeft />
-              </button>
-            )}
-            {selectedRecipient && (
-              <button onClick={() => setIsSearching(!isSearching)} className="chat-action-btn" title="Search messages">
-                <FaSearch />
-              </button>
-            )}
-            <button onClick={toggleMinimize} className="chat-action-btn">{isMinimized ? <FaExpand /> : <FaMinus />}</button>
-            <button onClick={toggleExpand} className="chat-action-btn">{isExpanded ? <FaCompress /> : <FaExpand />}</button>
-            <button onClick={toggleChat} className="chat-action-btn"><FaTimes /></button>
+      )}
+      <div className={`chat-widget ${isOpen ? 'open' : ''} ${isExpanded ? 'expanded' : ''} ${isMinimized ? 'minimized' : ''}`}>
+        {/* Header */}
+        <div className="chat-header" onClick={!isOpen ? toggleChat : undefined}>
+          <div className="chat-header-info">
+            <div className="chat-avatar">
+              {selectedRecipient ? recipientInfo?.icon : <FaComment />}
+              {selectedRecipient && isOnline && <span className="online-dot"></span>}
+            </div>
+            <div className="chat-header-text">
+              <h3>{selectedRecipient ? `Chat with ${recipientInfo?.name}` : `${userPermissions.label} Support`}</h3>
+              <p className="chat-status">
+                {selectedRecipient ? (
+                  isOnline ? <><span className="status-dot online"></span> Online</> : <><span className="status-dot offline"></span> Offline</>
+                ) : 'Select a recipient to start chatting'}
+              </p>
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* Search bar */}
-      {isOpen && !isMinimized && selectedRecipient && isSearching && (
-        <div className="chat-search">
-          <input
-            type="text"
-            placeholder="Search messages..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="search-input"
-          />
-          {searchResults.length > 0 && (
-            <div className="search-results">
-              {searchResults.map(msg => (
-                <div key={msg._id} className="search-result" onClick={() => {
-                  const element = document.getElementById(`message-${msg._id}`);
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                  setIsSearching(false);
-                }}>
-                  <div className="search-result-text">{msg.text}</div>
-                  <div className="search-result-time">{formatTime(msg.createdAt)}</div>
-                </div>
-              ))}
+          {isOpen && (
+            <div className="chat-header-actions">
+              {selectedRecipient && (
+                <button onClick={goBack} className="chat-action-btn" title="Back to contacts">
+                  <FaArrowLeft />
+                </button>
+              )}
+              {selectedRecipient && (
+                <button onClick={() => setIsSearching(!isSearching)} className="chat-action-btn" title="Search messages">
+                  <FaSearch />
+                </button>
+              )}
+              <button onClick={toggleChat} className="chat-action-btn"><FaTimes /></button>
             </div>
           )}
         </div>
-      )}
 
-      {/* Body */}
-      {isOpen && !isMinimized && (
-        <>
-          {!selectedRecipient ? (
-            // Recipient selection UI
-            <div className="recipient-selection">
-              <div className="selection-header">
-                <h4>Choose who to chat with</h4>
-                <p className="selection-desc">{userPermissions.description}</p>
+        {/* Search bar */}
+        {isOpen && !isMinimized && selectedRecipient && isSearching && (
+          <div className="chat-search">
+            <input
+              type="text"
+              placeholder="Search messages..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="search-input"
+            />
+            {searchResults.length > 0 && (
+              <div className="search-results">
+                {searchResults.map(msg => (
+                  <div key={msg._id} className="search-result" onClick={() => {
+                    const element = document.getElementById(`message-${msg._id}`);
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                    setIsSearching(false);
+                  }}>
+                    <div className="search-result-text">{msg.text}</div>
+                    <div className="search-result-time">{formatTime(msg.createdAt)}</div>
+                  </div>
+                ))}
               </div>
-              {recentConversations.length > 0 && (
-                <div className="recent-section">
-                  <div className="section-title"><FaHistory /> Recent Chats</div>
+            )}
+          </div>
+        )}
+
+        {/* Body */}
+        {isOpen && !isMinimized && (
+          <>
+            {!selectedRecipient ? (
+              // Recipient selection UI
+              <div className="recipient-selection">
+                <div className="selection-header">
+                  <h4>Choose who to chat with</h4>
+                  <p className="selection-desc">{userPermissions.description}</p>
+                </div>
+                <div className="available-section">
+                  <div className="section-title"><FaUsers /> Available to Chat</div>
                   <div className="recipients-list">
-                    {recentConversations.map(conv => (
-                      <button key={conv.id} className="recipient-btn recent" onClick={() => startConversation(conv.recipientId, conv.recipientRole, conv.recipientName)}>
-                        <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[conv.recipientRole]?.color }}>{getRoleIcon(conv.recipientRole)}</div>
+                    {availableRecipients.map(recipient => (
+                      <button key={recipient.id} className={`recipient-btn ${recipient.role}`} onClick={() => startConversation(recipient.id, recipient.role, recipient.name)}>
+                        <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[recipient.role]?.color }}>{getRoleIcon(recipient.role)}</div>
                         <div className="recipient-info">
-                          <div className="recipient-name">{conv.recipientName}</div>
-                          <div className="recipient-role">{CHAT_PERMISSIONS[conv.recipientRole]?.label}</div>
-                          {conv.lastMessage && <div className="recipient-last-msg">{conv.lastMessage.substring(0, 40)}</div>}
+                          <div className="recipient-name">{recipient.name}</div>
+                          <div className="recipient-role">{CHAT_PERMISSIONS[recipient.role]?.label}</div>
+                          <div className="recipient-desc">{CHAT_PERMISSIONS[recipient.role]?.description}</div>
                         </div>
-                        {onlineStatus[conv.recipientId] && <span className="online-indicator"></span>}
+                        {onlineStatus[recipient.id] && <span className="online-indicator"></span>}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
-              <div className="available-section">
-                <div className="section-title"><FaUsers /> Available to Chat</div>
-                <div className="recipients-list">
-                  {availableRecipients.map(recipient => (
-                    <button key={recipient.id} className="recipient-btn" onClick={() => startConversation(recipient.id, recipient.role, recipient.name)}>
-                      <div className="recipient-avatar" style={{ background: CHAT_PERMISSIONS[recipient.role]?.color }}>{getRoleIcon(recipient.role)}</div>
-                      <div className="recipient-info">
-                        <div className="recipient-name">{recipient.name}</div>
-                        <div className="recipient-role">{CHAT_PERMISSIONS[recipient.role]?.label}</div>
-                        <div className="recipient-desc">{CHAT_PERMISSIONS[recipient.role]?.description}</div>
-                      </div>
-                      {onlineStatus[recipient.id] && <span className="online-indicator"></span>}
-                    </button>
-                  ))}
-                </div>
               </div>
-            </div>
-          ) : (
-            // Conversation view
-            <>
-              <div className="chat-body" ref={scrollerRef}>
-                {messages.length === 0 && !isLoading && (
-                  <div className="chat-empty">
-                    <div className="chat-empty-icon"><FaComment /></div>
-                    <h4>Start a conversation!</h4>
-                    <p>Ask {recipientInfo?.name} about {recipientInfo?.description?.toLowerCase()}</p>
-                    <div className="suggested-questions">
-                      {suggestions.map((s, idx) => (
-                        <button key={idx} onClick={() => setText(s.text)}>
-                          <span className="suggestion-icon">{s.icon}</span> {s.text}
-                        </button>
-                      ))}
+            ) : (
+              // Conversation view
+              <>
+                <div className="chat-body" ref={scrollerRef}>
+                  {messages.length === 0 && !isLoading && (
+                    <div className="chat-empty">
+                      <div className="chat-empty-icon"><FaComment /></div>
+                      <h4>Start a conversation!</h4>
+                      <p>Ask {recipientInfo?.name} about {recipientInfo?.description?.toLowerCase()}</p>
+                      <div className="suggested-questions">
+                        {suggestions.map((s, idx) => (
+                          <button key={idx} onClick={() => setText(s.text)}>
+                            <span className="suggestion-icon">{s.icon}</span> {s.text}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {isLoading && <div className="chat-loading"><FaSpinner className="spinning" /></div>}
-                {messages.map((msg, idx) => {
-                  const showDate = idx === 0 || formatDate(msg.createdAt) !== formatDate(messages[idx-1]?.createdAt);
-                  const isOwn = msg.senderId === userId;
-                  return (
-                    <React.Fragment key={msg._id || idx}>
-                      {showDate && <div className="chat-date-divider"><span>{formatDate(msg.createdAt)}</span></div>}
-                      <div className={`message ${isOwn ? 'outgoing' : 'incoming'}`}>
-                        {!isOwn && <div className="message-avatar" style={{ background: CHAT_PERMISSIONS[msg.senderRole]?.color }}>{getRoleIcon(msg.senderRole)}</div>}
-                        <div className="message-bubble">
-                          {!isOwn && <div className="message-sender">{msg.senderName}</div>}
-                          <div className="message-text">{msg.text}</div>
-                          <div className="message-time">
-                            {formatTime(msg.createdAt)}
-                            {isOwn && <span className="message-status">{msg.read ? <FaCheckDouble /> : <FaCheck />}</span>}
+                  )}
+                  {isLoading && <div className="chat-loading"><FaSpinner className="spinning" /></div>}
+                  {messages.map((msg, idx) => {
+                    const showDate = idx === 0 || formatDate(msg.createdAt) !== formatDate(messages[idx - 1]?.createdAt);
+                    const isOwn = msg.senderId === userId;
+                    return (
+                      <React.Fragment key={msg._id || idx}>
+                        {showDate && <div className="chat-date-divider"><span>{formatDate(msg.createdAt)}</span></div>}
+                        <div className={`message ${isOwn ? 'outgoing' : 'incoming'}`}>
+                          {!isOwn && <div className="message-avatar" style={{ background: CHAT_PERMISSIONS[msg.senderRole]?.color }}>{getRoleIcon(msg.senderRole)}</div>}
+                          <div className="message-bubble">
+                            {!isOwn && <div className="message-sender">{msg.senderName}</div>}
+                            <div className="message-text">{msg.text}</div>
+                            <div className="message-time">
+                              {formatTime(msg.createdAt)}
+                              {isOwn && <span className="message-status">{msg.read ? <FaCheckDouble /> : <FaCheck />}</span>}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
-                {typing && (
-                  <div className="typing-indicator-wrapper">
-                    <div className="typing-indicator"><span></span><span></span><span></span><span className="typing-text">{recipientInfo?.name} is typing...</span></div>
-                  </div>
-                )}
-              </div>
-
-              <div className="chat-input-container">
-                <div className="chat-input-wrapper">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    placeholder={`Message ${recipientInfo?.name}...`}
-                    value={text}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    className="chat-input"
-                  />
-                  <button className="chat-send-btn" onClick={sendMessage} disabled={!text.trim()}>
-                    <FaPaperPlane />
-                  </button>
+                      </React.Fragment>
+                    );
+                  })}
+                  {typing && (
+                    <div className="typing-indicator-wrapper">
+                      <div className="typing-indicator"><span></span><span></span><span></span><span className="typing-text">{recipientInfo?.name} is typing...</span></div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </>
-          )}
-        </>
-      )}
-      {!isOpen && unreadCount > 0 && <div className="chat-unread-badge">{unreadCount}</div>}
-    </div>
+
+                <div className="chat-input-container">
+                  <div className="chat-input-wrapper">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      placeholder={`Message ${recipientInfo?.name}...`}
+                      value={text}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                      className="chat-input"
+                    />
+                    <button className="chat-send-btn" onClick={sendMessage} disabled={!text.trim()}>
+                      <FaPaperPlane />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

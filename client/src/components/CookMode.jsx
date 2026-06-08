@@ -41,10 +41,32 @@ function parseSteps(instructions = '') {
 function seedSecondsFromText(stepText = '') {
   const hms = stepText.match(/\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b/);
   if (hms) return (parseInt(hms[1],10)||0)*3600 + (parseInt(hms[2],10)||0)*60 + (parseInt(hms[3]||'0',10)||0);
-  const m = stepText.match(/(\d+)\s*(?:min|mins|minute|minutes)\b/i);
-  if (m) return parseInt(m[1],10)*60;
-  const s = stepText.match(/(\d+)\s*(?:sec|secs|second|seconds)\b/i);
-  return s ? parseInt(s[1],10) : 0;
+  
+  const m = stepText.match(/\b(\d+|a|an|one|two|three|four|five|ten|fifteen|twenty|thirty|forty|fifty)\s*(?:min|mins|minute|minutes)\b/i);
+  if (m) {
+    const val = m[1].toLowerCase();
+    if (val === 'a' || val === 'an' || val === 'one') return 60;
+    if (val === 'two') return 120;
+    if (val === 'three') return 180;
+    if (val === 'four') return 240;
+    if (val === 'five') return 300;
+    if (val === 'ten') return 600;
+    if (val === 'fifteen') return 900;
+    if (val === 'twenty') return 1200;
+    if (val === 'thirty') return 1800;
+    if (val === 'forty') return 2400;
+    if (val === 'fifty') return 3000;
+    return parseInt(m[1], 10) * 60;
+  }
+  
+  const s = stepText.match(/\b(\d+|a|an|one)\s*(?:sec|secs|second|seconds)\b/i);
+  if (s) {
+    const val = s[1].toLowerCase();
+    if (val === 'a' || val === 'an' || val === 'one') return 1;
+    return parseInt(s[1], 10);
+  }
+  
+  return 0;
 }
 
 function fmtTime(total) {
@@ -144,7 +166,7 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
 
   const toggleTimer = () => (running ? stopTimer() : startTimer());
 
-  // When step changes
+  // When step or steps list changes
   useEffect(() => {
     stopTimer();
     const seed = seedSecondsFromText(steps[stepIdx] || '');
@@ -152,7 +174,7 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
     setTimeout(() => {
       stepLiveRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, 50);
-  }, [stepIdx]);
+  }, [stepIdx, steps]);
 
   useEffect(() => () => stopTimer(), []);
 
@@ -282,6 +304,12 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
                   <button className="timer-btn outline" onClick={resetTimer}>
                     <FaSyncAlt /> Reset
                   </button>
+                </div>
+                <div className="timer-adjustments">
+                  <button className="timer-adjust-btn" onClick={() => setSeconds(s => s + 60)}>+1 Min</button>
+                  <button className="timer-adjust-btn" onClick={() => setSeconds(s => Math.max(0, s - 60))}>-1 Min</button>
+                  <button className="timer-adjust-btn" onClick={() => setSeconds(s => s + 10)}>+10s</button>
+                  <button className="timer-adjust-btn" onClick={() => setSeconds(s => Math.max(0, s - 10))}>-10s</button>
                 </div>
                 <p className="timer-hint">Set your own pace – timer is optional.</p>
               </div>

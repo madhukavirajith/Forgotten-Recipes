@@ -6,10 +6,10 @@ import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
 
 // Import icons
-import { 
-  FaArrowRight, 
-  FaUtensils, 
-  FaChartLine, 
+import {
+  FaArrowRight,
+  FaUtensils,
+  FaChartLine,
   FaCalendarAlt,
   FaLeaf,
   FaUsers,
@@ -40,7 +40,7 @@ const Home = () => {
     users: 0,
     festivals: 0
   });
-  
+
   const carouselRef = useRef(null);
   const statsRef = useRef(null);
   const observerRef = useRef(null);
@@ -326,7 +326,7 @@ const Home = () => {
         </div>
         <div className="hero-wave">
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 64L60 69.3C120 75 240 85 360 80C480 75 600 53 720 48C840 43 960 53 1080 58.7C1200 64 1320 64 1380 64L1440 64L1440 120L1380 120C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120L0 120Z" fill="#FFF9F2"/>
+            <path d="M0 64L60 69.3C120 75 240 85 360 80C480 75 600 53 720 48C840 43 960 53 1080 58.7C1200 64 1320 64 1380 64L1440 64L1440 120L1380 120C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120L0 120Z" fill="#FFF9F2" />
           </svg>
         </div>
       </section>
@@ -415,7 +415,7 @@ const Home = () => {
             <div className="section-badge">Our Mission</div>
             <h2>Why Forgotten Recipes?</h2>
             <p>
-              We revive long-lost family recipes and Sri Lankan culinary traditions through 
+              We revive long-lost family recipes and Sri Lankan culinary traditions through
               community-driven cooking tools and cultural storytelling.
             </p>
             <div className="about-features">
@@ -453,7 +453,7 @@ const Home = () => {
           </div>
           <div className="about-stats-card">
             <div className="stat-circle">
-              <div className="stat-circle-number">500+</div>
+              <div className="stat-circle-number">2500+</div>
               <div className="stat-circle-label">Years of Heritage</div>
             </div>
             <div className="about-quote">
@@ -501,8 +501,8 @@ const Home = () => {
         </div>
         <div className="recipes-grid">
           {featuredRecipes.map((recipe) => (
-            <div 
-              key={recipe.id} 
+            <div
+              key={recipe.id}
               className="recipe-card"
               onMouseEnter={() => setHoveredRecipe(recipe.id)}
               onMouseLeave={() => setHoveredRecipe(null)}
@@ -512,8 +512,8 @@ const Home = () => {
                 <img src={recipe.image} alt={recipe.name} loading="lazy" />
                 {recipe.isNew && <span className="recipe-badge new">New</span>}
                 {recipe.isPopular && <span className="recipe-badge popular">🔥 Popular</span>}
-                <button 
-                  className="recipe-share-btn" 
+                <button
+                  className="recipe-share-btn"
                   onClick={(e) => handleShare(recipe.name, e)}
                   aria-label="Share recipe"
                 >

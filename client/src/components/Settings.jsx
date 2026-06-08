@@ -30,7 +30,7 @@ const Settings = () => {
     confirmPassword: ''
   });
 
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   useEffect(() => {
@@ -100,8 +100,8 @@ const Settings = () => {
     setLoading(true);
     try {
       await axios.delete(`${API_BASE}/api/users/account`, authHeader);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
       window.location.href = '/';
     } catch (err) {
       showNotification('Failed to delete account', 'error');

@@ -9,10 +9,12 @@ const getPendingRecipes = async (req, res) => {
     // Only show approved recipes (status: 'approved' or approved: true)
     // AND that are missing the nutrition object OR have calories = 0
     const items = await Recipe.find({
-      $or: [{ status: 'approved' }, { approved: true }],
-      $or: [
-        { 'nutrition.calories': { $exists: false } },
-        { 'nutrition.calories': 0 }
+      $and: [
+        { $or: [{ status: 'approved' }, { approved: true }] },
+        { $or: [
+          { 'nutrition.calories': { $exists: false } },
+          { 'nutrition.calories': 0 }
+        ]}
       ]
     })
       .sort({ createdAt: -1 })
@@ -69,7 +71,10 @@ const saveNutrition = async (req, res) => {
         await createNotification(
           recipe.submittedBy,
           'Nutrition Information Added',
-          `Nutrition details have been added to your recipe "${recipe.name}".`
+          `Nutrition details have been added to your recipe "${recipe.name}".`,
+          'nutrition_added',
+          `/recipes/${recipe._id}`,
+          { referenceId: recipe._id }
         );
       } catch (notifyErr) {
         console.error('Failed to send notification:', notifyErr);

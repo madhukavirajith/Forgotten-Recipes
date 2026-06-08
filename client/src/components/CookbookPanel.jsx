@@ -7,7 +7,7 @@ const API = process.env.REACT_APP_API_URL || '';
 
 
 const useAuth = () => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const headers = useMemo(
     () => (token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : {}),
     [token]

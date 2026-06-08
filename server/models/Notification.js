@@ -26,6 +26,14 @@ const NotificationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    actionUrl: {
+      type: String,
+      trim: true,
+    },
+    metadata: {
+      referenceId: { type: mongoose.Schema.Types.ObjectId },
+      senderName: { type: String, trim: true },
+    },
   },
   {
     timestamps: true,

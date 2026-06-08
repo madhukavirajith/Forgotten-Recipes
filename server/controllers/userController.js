@@ -47,7 +47,7 @@ const registerUser = async (req, res) => {
 
       res.status(201).json(response);
 
-      createNotification(user._id, 'Welcome to Forgotten Recipes', 'Your account has been created successfully.').catch((err) => {
+      createNotification(user._id, 'Welcome to Forgotten Recipes', 'Your account has been created successfully.', 'general', '/visitor').catch((err) => {
         console.error('Failed to create welcome notification:', err);
       });
     } else {
@@ -143,7 +143,7 @@ const updateUserProfile = async (req, res) => {
       address: updatedUser.address
     });
 
-    createNotification(updatedUser._id, 'Profile Updated', 'Your profile changes were saved successfully.').catch((err) => {
+    createNotification(updatedUser._id, 'Profile Updated', 'Your profile changes were saved successfully.', 'general', '/profile').catch((err) => {
       console.error('Failed to create profile update notification:', err);
     });
   } catch (error) {
@@ -180,7 +180,7 @@ const changePassword = async (req, res) => {
 
     res.json({ msg: 'Password changed successfully' });
 
-    createNotification(user._id, 'Password Changed', 'Your password has been changed successfully.').catch((err) => {
+    createNotification(user._id, 'Password Changed', 'Your password has been changed successfully.', 'general', '/settings').catch((err) => {
       console.error('Failed to create password change notification:', err);
     });
   } catch (error) {

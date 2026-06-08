@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     // Notification preferences
     notificationPreferences: {
       emailNotifications: { type: Boolean, default: true },
+      inAppNotifications: { type: Boolean, default: true },
+      pushNotifications: { type: Boolean, default: false },
       darkMode: { type: Boolean, default: false },
       language: { type: String, default: 'en' },
       privacySettings: {

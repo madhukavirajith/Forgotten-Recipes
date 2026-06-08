@@ -5,13 +5,13 @@ import axios from 'axios';
 import Chat from '../Chat';
 
 // Import icons
-import { 
-  FaUtensils, 
-  FaBook, 
-  FaScroll, 
-  FaCheckCircle, 
-  FaTimesCircle, 
-  FaEdit, 
+import {
+  FaUtensils,
+  FaBook,
+  FaScroll,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaEdit,
   FaTrash,
   FaPlus,
   FaEye,
@@ -53,7 +53,7 @@ const StatusBadge = ({ status, type }) => {
     }
     return { label: status, className: 'status-info', icon: <FaInfoCircle /> };
   };
-  
+
   const { label, className, icon } = getConfig();
   return <span className={`status-badge ${className}`}>{icon} {label}</span>;
 };
@@ -97,7 +97,7 @@ const HeadChefDashboard = () => {
   const [editRecipeId, setEditRecipeId] = useState(null);
   const [showRecipeForm, setShowRecipeForm] = useState(false);
 
-  const token = localStorage.getItem('token') || '';
+  const token = sessionStorage.getItem('token') || '';
   const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
   // Show notification
@@ -373,7 +373,6 @@ const HeadChefDashboard = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <h1 className="dashboard-title">
-            <span className="title-icon">👨‍🍳</span>
             Head Chef Dashboard
           </h1>
           <p className="dashboard-subtitle">

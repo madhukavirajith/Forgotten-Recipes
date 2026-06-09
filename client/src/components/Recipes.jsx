@@ -26,7 +26,9 @@ import {
   FaChartLine,
   FaTags,
   FaLeaf,
-  FaCheckCircle
+  FaCheckCircle,
+  FaTh,
+  FaBars
 } from 'react-icons/fa';
 
 const API = process.env.REACT_APP_API_URL || '';
@@ -464,7 +466,7 @@ const Recipes = () => {
     return (
       <div className="recipes-container">
         <div className="recipes-error">
-          <div className="error-icon">🍛</div>
+          <div className="error-icon"><FaUtensils /></div>
           <h3>Oops! Something went wrong</h3>
           <p>{error}</p>
           <button onClick={fetchRecipes} className="retry-btn">
@@ -535,14 +537,14 @@ const Recipes = () => {
               onClick={() => setViewMode('grid')}
               title="Grid View"
             >
-              ⊞
+              <FaTh />
             </button>
             <button 
               className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
               title="List View"
             >
-              ☰
+              <FaBars />
             </button>
           </div>
         </div>

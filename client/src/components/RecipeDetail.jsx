@@ -44,7 +44,12 @@ import {
   FaLaugh,
   FaAngry,
   FaThumbsUp,
-  FaThumbsDown
+  FaThumbsDown,
+  FaPepperHot,
+  FaClipboardList,
+  FaUsers,
+  FaBalanceScale,
+  FaDumbbell
 } from 'react-icons/fa';
 
 import {
@@ -288,7 +293,7 @@ const StarRating = ({ recipeId, token, initialAvg = 0, initialCount = 0 }) => {
             className={`star-btn ${(hover || my) >= n ? 'active' : ''}`}
             aria-label={`Rate ${n} stars`}
           >
-            ★
+            <FaStar />
           </button>
         ))}
       </div>
@@ -408,7 +413,7 @@ const SpicePortionSimulator = ({ ingredients, baseSpice = "Medium" }) => {
               </div>
             </div>
             <div className="sim-col">
-              <div className="label">👥 Portion Size</div>
+              <div className="label"><FaUsers /> Portion Size</div>
               <div className="segmented">
                 {PORTION_PRESETS.map(p => (
                   <button
@@ -431,7 +436,7 @@ const SpicePortionSimulator = ({ ingredients, baseSpice = "Medium" }) => {
           )}
 
           <div className="adjusted-box">
-            <div className="box-head">📝 Adjusted Ingredients</div>
+            <div className="box-head"><FaClipboardList /> Adjusted Ingredients</div>
             {adjusted.length ? (
               <ul className="ing-list">
                 {adjusted.map((l, i) => <li key={i}>{l}</li>)}
@@ -650,16 +655,16 @@ const Comments = ({ recipeId, token }) => {
             <div className="comment-reactions">
               {Object.entries(reactionCounts).slice(0, 3).map(([reaction, count]) => (
                 <button key={reaction} className="reaction-badge" onClick={() => addReaction(comment._id, reaction)}>
-                  {reactions.find(r => r.label === reaction)?.emoji || reaction} {count}
+                  {reactions.find(r => r.label === reaction)?.icon || reaction} {count}
                 </button>
               ))}
               <div className="reaction-picker-container">
-                <button className="comment-action-btn" onClick={() => setShowReactions(showReactions === comment._id ? null : comment._id)}><i className="far fa-smile"></i></button>
+                <button className="comment-action-btn" onClick={() => setShowReactions(showReactions === comment._id ? null : comment._id)}><FaSmile /></button>
                 {showReactions === comment._id && (
                   <div className="reaction-picker">
                     {reactions.map(react => (
                       <button key={react.label} className="reaction-option" onClick={() => addReaction(comment._id, react.label)}>
-                        {react.emoji}
+                        {react.icon}
                       </button>
                     ))}
                   </div>
@@ -767,7 +772,7 @@ const FeedbackModal = ({ recipeId, token, onClose }) => {
   return (
     <div className="modal-mask" onClick={onClose}>
       <form onSubmit={submit} className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header"><h3>Send Feedback</h3><button type="button" className="modal-close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><h3>Send Feedback</h3><button type="button" className="modal-close" onClick={onClose}><FaTimes /></button></div>
         <select value={type} onChange={(e) => setType(e.target.value)} className="modal-field">
           <option value="content">Content Issue</option><option value="abuse">Report Abuse</option>
           <option value="bug">Bug Report</option><option value="suggestion">Suggestion</option><option value="other">Other</option>
@@ -882,11 +887,11 @@ export default function RecipeDetail() {
   const printRecipe = () => window.print();
 
   if (loading) return <div className="page-wrap"><div className="loading-container"><FaSpinner className="loading-spinner" /><p>Loading recipe...</p></div></div>;
-  if (error || !recipe) return <div className="page-wrap"><div className="error-container"><div className="error-icon">🍛</div><h2>Recipe Not Found</h2><p>{error || 'The recipe you\'re looking for doesn\'t exist.'}</p><Link to="/recipes" className="btn-primary">Browse Recipes</Link></div></div>;
+  if (error || !recipe) return <div className="page-wrap"><div className="error-container"><div className="error-icon"><FaUtensils /></div><h2>Recipe Not Found</h2><p>{error || 'The recipe you\'re looking for doesn\'t exist.'}</p><Link to="/recipes" className="btn-primary">Browse Recipes</Link></div></div>;
 
   const n = recipe.nutrition || {};
   const flag = n.ratingFlag || 'neutral';
-  const flagText = { 'weight-loss': '🌱 Weight Loss Friendly', 'weight-gain': '💪 Weight Gain', 'neutral': '⚖️ Balanced' }[flag] || '⚖️ Balanced';
+  const flagText = { 'weight-loss': <span><FaLeaf /> Weight Loss Friendly</span>, 'weight-gain': <span><FaDumbbell /> Weight Gain</span>, 'neutral': <span><FaBalanceScale /> Balanced</span> }[flag] || <span><FaBalanceScale /> Balanced</span>;
   const pageUrl = `${window.location.origin}/recipes/${recipe._id}`;
 
   return (
@@ -904,7 +909,7 @@ export default function RecipeDetail() {
           <h1 className="rd-hero-title">{recipe.name}</h1>
           <div className="recipe-meta-tags">
             {recipe.category && <span className="meta-tag category">{recipe.category}</span>}
-            {recipe.spiceLevel && <span className="meta-tag spice">{recipe.spiceLevel} 🌶️</span>}
+            {recipe.spiceLevel && <span className="meta-tag spice">{recipe.spiceLevel} <FaPepperHot /></span>}
             {recipe.dietType && <span className="meta-tag diet">{recipe.dietType}</span>}
             {recipe.culture && <span className="meta-tag culture">{recipe.culture}</span>}
           </div>

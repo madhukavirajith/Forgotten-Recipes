@@ -285,7 +285,7 @@ const Stories = () => {
                   {story.image ? (
                     <img src={story.image} alt={story.title} loading="lazy" />
                   ) : (
-                    <div className="image-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', fontSize: '3rem' }}>📖</div>
+                    <div className="image-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', fontSize: '3rem' }}><FaBookOpen /></div>
                   )}
                   <div className="article-card-overlay">
                     <button className="quick-view-btn" onClick={(e) => { e.stopPropagation(); openStoryModal(story); }}>

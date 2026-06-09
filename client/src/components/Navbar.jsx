@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FaTimes } from 'react-icons/fa';
 
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
@@ -516,7 +517,7 @@ export default function Navbar() {
             className="search-input"
           />
           <button type="submit" className="search-submit">Search</button>
-          <button type="button" className="search-close" onClick={() => setSearchOpen(false)}>✕</button>
+          <button type="button" className="search-close" onClick={() => setSearchOpen(false)}><FaTimes /></button>
         </form>
       </div>
 
@@ -530,7 +531,7 @@ export default function Navbar() {
             <img src="/logo.jpg" alt="Forgotten Recipes" />
             <span>FORGOTTEN RECIPES</span>
           </div>
-          <button className="mobile-close" onClick={toggleMobileMenu}>✕</button>
+          <button className="mobile-close" onClick={toggleMobileMenu}><FaTimes /></button>
         </div>
 
         <div className="mobile-menu-search">

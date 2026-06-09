@@ -27,7 +27,9 @@ import {
   FaUtensils,
   FaLightbulb,
   FaStar,
-  FaVideo
+  FaVideo,
+  FaTh,
+  FaBars
 } from 'react-icons/fa';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
@@ -289,14 +291,16 @@ const Blog = () => {
             <button 
               className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
+              title="Grid View"
             >
-              ⊞
+              <FaTh />
             </button>
             <button 
               className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
+              title="List View"
             >
-              ☰
+              <FaBars />
             </button>
           </div>
         </div>
@@ -363,7 +367,7 @@ const Blog = () => {
                 {blog.image ? (
                   <img src={blog.image} alt={blog.title} loading="lazy" />
                 ) : (
-                  <div className="image-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', fontSize: '3rem' }}>🍳</div>
+                  <div className="image-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', fontSize: '3rem' }}><FaNewspaper /></div>
                 )}
                 <div className="article-card-overlay">
                   <button className="quick-view-btn" onClick={() => openBlogModal(blog)}>

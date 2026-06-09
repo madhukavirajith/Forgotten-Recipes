@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import { 
   FaClock, FaPlay, FaPause, FaSyncAlt, FaChevronLeft, FaChevronRight, 
-  FaCheckCircle, FaRegCircle, FaTimes, FaUtensils, FaListUl 
+  FaCheckCircle, FaRegCircle, FaTimes, FaUtensils, FaListUl, FaExclamationTriangle
 } from 'react-icons/fa';
 
 const API = process.env.REACT_APP_API_URL || '';
@@ -222,7 +222,7 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
     return (
       <div className="cookmode-overlay">
         <div className="cookmode cookmode-error">
-          <div className="error-icon">⚠️</div>
+          <div className="error-icon"><FaExclamationTriangle /></div>
           <h3>Recipe not found</h3>
           <p>{error || 'Unable to load the recipe. Please try again.'}</p>
           <button className="btn btn-primary" onClick={() => navigate('/recipes')}>Browse Recipes</button>

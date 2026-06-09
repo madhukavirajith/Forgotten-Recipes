@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { FaStar, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
+import { 
+  FaStar, FaInfoCircle, FaCheckCircle, 
+  FaSeedling, FaFlag, FaOm, FaGlassCheers, 
+  FaHammer, FaLightbulb, FaPray, FaCrown, 
+  FaCloudRain, FaSun, FaTree, FaLeaf 
+} from 'react-icons/fa';
 
 
 // Expanded festive events data for 2026 with more details
@@ -12,7 +17,7 @@ const festiveEvents = {
     description: 'A traditional harvest festival celebrated by Tamils to thank the Sun God for a bountiful harvest.',
     recipes: ['Pongal (Sweet & Savory)', 'Sweet Potatoes', 'Sugarcane', 'Turmeric Rice'],
     traditions: ['Cooking Pongal in clay pots', 'Kolam decorations', 'Visiting temples'],
-    emoji: '🌾'
+    icon: <FaSeedling />
   },
   '2026-02-04': {
     festival: 'Independence Day',
@@ -20,7 +25,7 @@ const festiveEvents = {
     description: 'Celebrating Sri Lanka\'s independence from British rule in 1948.',
     recipes: ['Kiribath (Milk Rice)', 'Lunu Miris (Onion Sambol)', 'Seeni Sambol (Sweet Onion Sambol)', 'Fish Curry'],
     traditions: ['Flag hoisting ceremonies', 'Parades', 'Fireworks', 'Cultural performances'],
-    emoji: '🇱🇰'
+    icon: <FaFlag />
   },
   '2026-03-06': {
     festival: 'Maha Shivaratri',
@@ -28,7 +33,7 @@ const festiveEvents = {
     description: 'The Great Night of Shiva, dedicated to Lord Shiva with night-long prayers.',
     recipes: ['Vadai (Lentil Fritters)', 'Payasam (Milk Pudding)', 'Fruit Offerings', 'Panakam (Jaggery Drink)'],
     traditions: ['All-night vigil', 'Temple visits', 'Fasting', 'Bilva leaf offerings'],
-    emoji: '🕉️'
+    icon: <FaOm />
   },
   '2026-04-14': {
     festival: 'Sinhala & Tamil New Year',
@@ -36,7 +41,7 @@ const festiveEvents = {
     description: 'The most important traditional festival celebrating the sun\'s movement from Pisces to Aries.',
     recipes: ['Kiribath (Milk Rice)', 'Kokis (Crispy Cookies)', 'Kavum (Oil Cakes)', 'Athirasa (Sweet Patties)', 'Aluwa (Sweet Diamond Cuts)'],
     traditions: ['Auspicious times (Neketh)', 'Lighting the hearth', 'Exchange of coins', 'Playing traditional games'],
-    emoji: '🎉'
+    icon: <FaGlassCheers />
   },
   '2026-05-01': {
     festival: 'May Day',
@@ -44,7 +49,7 @@ const festiveEvents = {
     description: 'International Workers\' Day celebrating labor rights and workers\' contributions.',
     recipes: ['Simple Rice and Curry', 'String Hoppers', 'Pol Sambol (Coconut Sambol)'],
     traditions: ['Parades', 'Rallies', 'Community gatherings'],
-    emoji: '👷'
+    icon: <FaHammer />
   },
   '2026-05-22': {
     festival: 'Vesak Poya',
@@ -52,7 +57,7 @@ const festiveEvents = {
     description: 'The most sacred Buddhist festival celebrating the birth, enlightenment, and passing away of Lord Buddha.',
     recipes: ['Dansal (Free Food Stalls)', 'Plantain Leaf Meals', 'Sweet Mango Curry', 'Rice Porridge'],
     traditions: ['Buddhist sermons', 'Lighting lanterns', 'Decorating streets', 'Acts of generosity'],
-    emoji: '🏮'
+    icon: <FaLightbulb />
   },
   '2026-06-20': {
     festival: 'Poson Poya',
@@ -60,7 +65,7 @@ const festiveEvents = {
     description: 'Commemorates the introduction of Buddhism to Sri Lanka by Arahant Mahinda in 247 BC.',
     recipes: ['Boiled Jackfruit', 'Gotukola Sambol (Pennywort Salad)', 'Milk Rice', 'Herbal Porridge'],
     traditions: ['Pilgrimages to Mihintale', 'Buddhist processions', 'Religious observances'],
-    emoji: '📿'
+    icon: <FaPray />
   },
   '2026-07-11': {
     festival: 'Esala Perahera Season',
@@ -68,7 +73,7 @@ const festiveEvents = {
     description: 'The grandest Buddhist procession in Kandy, honoring the Sacred Tooth Relic of Lord Buddha.',
     recipes: ['Milk Rice', 'Banana Pancakes', 'Traditional Sweets', 'Coconut Roti'],
     traditions: ['Majestic elephant parade', 'Drummers and dancers', 'Fire-dancing', 'Whip-crackers'],
-    emoji: '🐘'
+    icon: <FaCrown />
   },
   '2026-08-01': {
     festival: 'Harvest Celebration',
@@ -76,7 +81,7 @@ const festiveEvents = {
     description: 'Celebrating the Yala harvest season across rural Sri Lanka.',
     recipes: ['Boiled Manioc (Cassava)', 'Coconut Sambol', 'Fresh Vegetable Curry', 'Jaggery with Coconut'],
     traditions: ['Harvest rituals', 'Offerings to the sun', 'Community feasts', 'Folk singing'],
-    emoji: '🌽'
+    icon: <FaLeaf />
   },
   '2026-10-17': {
     festival: 'Vap Poya',
@@ -84,7 +89,7 @@ const festiveEvents = {
     description: 'Marks the beginning of the rice-growing season and rains retreat for Buddhist monks.',
     recipes: ['Pumpkin Curry', 'Gotukola Sambol', 'Green Gram Curry', 'Herbal Rice'],
     traditions: ['Plowing ceremonies', 'Offerings to monks', 'Observing Sil', 'Meditation retreats'],
-    emoji: '🌧️'
+    icon: <FaCloudRain />
   },
   '2026-11-01': {
     festival: 'Deepavali',
@@ -92,7 +97,7 @@ const festiveEvents = {
     description: 'The Festival of Lights celebrating the victory of light over darkness and good over evil.',
     recipes: ['Rava Laddu (Semolina Balls)', 'Murukku (Chickpea Snacks)', 'Gulab Jamun (Milk Dumplings)', 'Thosai', 'Vadai'],
     traditions: ['Lighting oil lamps', 'Fireworks', 'New clothes', 'Rangoli decorations'],
-    emoji: '🪔'
+    icon: <FaSun />
   },
   '2026-12-25': {
     festival: 'Christmas',
@@ -100,7 +105,7 @@ const festiveEvents = {
     description: 'Celebrating the birth of Jesus Christ with joy, family gatherings, and festive meals.',
     recipes: ['Breudher (Dutch Christmas Cake)', 'Fruit Cake', 'Love Cake', 'Roast Chicken', 'Christmas Pudding'],
     traditions: ['Midnight mass', 'Gift exchange', 'Christmas carols', 'Decorating trees'],
-    emoji: '🎄'
+    icon: <FaTree />
   }
 };
 
@@ -237,7 +242,7 @@ const CalendarPage = () => {
           {event ? (
             <div className="event-details-card">
               <div className="event-header">
-                <div className="event-emoji">{event.emoji}</div>
+                <div className="event-emoji">{event.icon}</div>
                 <div className="event-title">
                   <h3>{event.festival}</h3>
                   <span className="event-category">{event.category}</span>
@@ -356,7 +361,7 @@ const CalendarPage = () => {
                 className="upcoming-card"
                 onClick={() => setSelectedDate(new Date(event.date))}
               >
-                <div className="upcoming-emoji">{event.emoji}</div>
+                <div className="upcoming-emoji">{event.icon}</div>
                 <div className="upcoming-info">
                   <div className="upcoming-date">
                     {new Date(event.date).toDateString()}
@@ -374,8 +379,9 @@ const CalendarPage = () => {
 
       {/* Fun Fact Section */}
       <div className="fun-fact-section">
+        <FaLightbulb className="fun-fact-watermark" />
         <div className="fun-fact-content">
-          <i className="fas fa-info-circle fun-fact-icon"></i>
+          <FaInfoCircle className="fun-fact-icon" />
           <div>
             <h4>Did You Know?</h4>
             <p>

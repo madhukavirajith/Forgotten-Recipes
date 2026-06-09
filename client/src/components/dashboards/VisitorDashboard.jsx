@@ -36,7 +36,12 @@ import {
   FaPhone,
   FaMapMarkerAlt,
   FaUpload,
-  FaImage
+  FaImage,
+  FaPepperHot,
+  FaClipboardList,
+  FaPalette,
+  FaCamera,
+  FaBookOpen
 } from 'react-icons/fa';
 
 // Constants
@@ -391,7 +396,7 @@ const VisitorDashboard = () => {
                     <option value="">Select Spice Level</option>
                     {SPICE_LEVELS.map((s) => (
                       <option key={s} value={s}>
-                        {s} {s === 'Mild' ? '🌶️' : s === 'Medium' ? '🌶️🌶️' : s === 'Spicy' ? '🌶️🌶️🌶️' : '🌶️🌶️🌶️🌶️'}
+                        {s}
                       </option>
                     ))}
                   </select>
@@ -536,7 +541,7 @@ const VisitorDashboard = () => {
               </div>
             ) : myRecipes.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">📝</div>
+                <div className="empty-icon"><FaClipboardList /></div>
                 <h4>No recipes submitted yet</h4>
                 <p>Share your first recipe using the submission form!</p>
                 <button onClick={() => setActiveTab('submit')} className="empty-action-btn">
@@ -663,7 +668,7 @@ const VisitorDashboard = () => {
       {/* Western Twist Tool Section */}
       <div className="twist-tool-card">
         <div className="twist-tool-content">
-          <div className="twist-tool-icon">🎨</div>
+          <div className="twist-tool-icon"><FaPalette /></div>
           <div className="twist-tool-info">
             <h3>Feeling Creative?</h3>
             <p>Try our Western Twist Tool to transform traditional recipes with a modern twist!</p>
@@ -681,19 +686,19 @@ const VisitorDashboard = () => {
         </h4>
         <div className="tips-grid">
           <div className="tip-card">
-            <div className="tip-icon">📸</div>
+            <div className="tip-icon"><FaCamera /></div>
             <p>Add a clear, high-quality image of your finished dish</p>
           </div>
           <div className="tip-card">
-            <div className="tip-icon">📝</div>
+            <div className="tip-icon"><FaClipboardList /></div>
             <p>Include exact measurements and detailed instructions</p>
           </div>
           <div className="tip-card">
-            <div className="tip-icon">🏷️</div>
+            <div className="tip-icon"><FaTag /></div>
             <p>Select the most accurate category and diet type</p>
           </div>
           <div className="tip-card">
-            <div className="tip-icon">📖</div>
+            <div className="tip-icon"><FaBookOpen /></div>
             <p>Share the cultural story behind your recipe</p>
           </div>
         </div>

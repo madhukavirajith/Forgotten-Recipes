@@ -25,7 +25,8 @@ import {
   FaAward,
   FaRegBookmark,
   FaShareAlt,
-  FaThumbsUp
+  FaThumbsUp,
+  FaCheckCircle
 } from 'react-icons/fa';
 
 const Home = () => {
@@ -507,7 +508,7 @@ const Home = () => {
               <div className="recipe-image-wrapper">
                 <img src={recipe.image} alt={recipe.name} loading="lazy" />
                 {recipe.isNew && <span className="recipe-badge new">New</span>}
-                {recipe.isPopular && <span className="recipe-badge popular">🔥 Popular</span>}
+                {recipe.isPopular && <span className="recipe-badge popular"><FaFire /> Popular</span>}
                 <button
                   className="recipe-share-btn"
                   onClick={(e) => handleShare(recipe.name, e)}
@@ -603,9 +604,9 @@ const Home = () => {
             </Link>
           </div>
           <div className="cta-features">
-            <span>✓ Free Membership</span>
-            <span>✓ Unlimited Recipes</span>
-            <span>✓ Community Access</span>
+            <span><FaCheckCircle /> Free Membership</span>
+            <span><FaCheckCircle /> Unlimited Recipes</span>
+            <span><FaCheckCircle /> Community Access</span>
           </div>
         </div>
       </section>

@@ -21,7 +21,8 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaSpinner,
-  FaArrowLeft
+  FaArrowLeft,
+  FaUtensils
 } from 'react-icons/fa';
 
 const LoginRegisterForm = () => {
@@ -258,7 +259,7 @@ const LoginRegisterForm = () => {
 
         {/* Header */}
         <div className="auth-header">
-          <div className="auth-logo">🍛</div>
+          <div className="auth-logo"><FaUtensils /></div>
           <h2 className="auth-title">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
           <p className="auth-subtitle">
             {isRegister 

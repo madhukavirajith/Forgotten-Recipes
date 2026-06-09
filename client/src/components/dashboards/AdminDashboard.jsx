@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 
-import Chat from '../Chat';   // ✅ Add the global Chat component
+import Chat from '../Chat';   // Add the global Chat component
 
 // Icons (install react-icons if not already)
 import {
@@ -425,7 +425,7 @@ const AdminDashboard = () => {
                   {blog.image ? (
                     <div className="image-preview">
                       <img src={blog.image} alt="Preview" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); setBlog({ ...blog, image: '' }); }}>✕</button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setBlog({ ...blog, image: '' }); }}><FaTimes /></button>
                     </div>
                   ) : (
                     <div className="upload-placeholder">
@@ -530,7 +530,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ✅ Global Chat Widget - always visible */}
+      {/* Global Chat Widget - always visible */}
       <Chat />
     </div>
   );

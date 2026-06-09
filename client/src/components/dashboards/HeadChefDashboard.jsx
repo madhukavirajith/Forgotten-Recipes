@@ -36,7 +36,9 @@ import {
   FaThumbsUp,
   FaThumbsDown,
   FaArrowLeft,
-  FaArrowRight
+  FaArrowRight,
+  FaClipboardList,
+  FaSyncAlt
 } from 'react-icons/fa';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
@@ -429,7 +431,7 @@ const HeadChefDashboard = () => {
             <div className="activity-list">
               {pendingRecipes.slice(0, 5).map(recipe => (
                 <div key={recipe._id} className="activity-item">
-                  <div className="activity-icon">📝</div>
+                  <div className="activity-icon"><FaClipboardList /></div>
                   <div className="activity-content">
                     <strong>{recipe.name}</strong> submitted by {recipe.submittedBy?.name || 'Visitor'}
                     <div className="activity-time">Pending review</div>
@@ -573,7 +575,7 @@ const HeadChefDashboard = () => {
             ))}
             {pendingRecipes.length === 0 && (
               <div className="empty-state">
-                <div className="empty-icon">✅</div>
+                <div className="empty-icon"><FaCheckCircle /></div>
                 <p>No pending recipes to review</p>
               </div>
             )}
@@ -593,7 +595,7 @@ const HeadChefDashboard = () => {
                   <div className="substitutions">
                     <strong>Substitutions:</strong>
                     {twist.substitutions?.map((s, i) => (
-                      <span key={i} className="sub-badge">{s.from} → {s.to}</span>
+                      <span key={i} className="sub-badge">{s.from} <FaArrowRight /> {s.to}</span>
                     ))}
                   </div>
                 </div>
@@ -605,7 +607,7 @@ const HeadChefDashboard = () => {
             ))}
             {pendingTwists.length === 0 && (
               <div className="empty-state">
-                <div className="empty-icon">🔄</div>
+                <div className="empty-icon"><FaSyncAlt /></div>
                 <p>No pending twist submissions</p>
               </div>
             )}

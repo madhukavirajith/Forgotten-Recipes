@@ -114,6 +114,7 @@
     left: 1rem;
     right: auto;
   }
+
   .chat-toggle-btn {
     padding: 0.8rem 1.25rem;
     font-size: 0.95rem;
@@ -320,10 +321,21 @@
 }
 
 /* Border roles accents */
-.recipient-btn.dietician { border-left: 4px solid var(--brand-green); }
-.recipient-btn.headchef { border-left: 4px solid var(--brand-orange); }
-.recipient-btn.admin { border-left: 4px solid #8b5cf6; }
-.recipient-btn.visitor { border-left: 4px solid #10b981; }
+.recipient-btn.dietician {
+  border-left: 4px solid var(--brand-green);
+}
+
+.recipient-btn.headchef {
+  border-left: 4px solid var(--brand-orange);
+}
+
+.recipient-btn.admin {
+  border-left: 4px solid #8b5cf6;
+}
+
+.recipient-btn.visitor {
+  border-left: 4px solid #10b981;
+}
 
 .recipient-avatar {
   width: 46px;
@@ -698,9 +710,12 @@
 
 /* Animations definition */
 @keyframes chat-float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
@@ -711,9 +726,11 @@
   0% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
@@ -723,18 +740,23 @@
   0% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 5px rgba(34, 197, 94, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
 }
 
 @keyframes typing-bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-4px);
   }
@@ -1575,14 +1597,15 @@
   overflow: hidden;
 }
 
-.fun-fact-section::before {
-  content: '💡';
+.fun-fact-watermark {
   position: absolute;
   top: -1rem;
   left: -1rem;
-  font-size: 10rem;
+  width: 10rem;
+  height: 10rem;
   opacity: 0.1;
   transform: rotate(-10deg);
+  pointer-events: none;
 }
 
 .fun-fact-content {

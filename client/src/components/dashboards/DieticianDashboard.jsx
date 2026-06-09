@@ -8,7 +8,8 @@ import {
   FaAppleAlt, FaChartPie, FaSave, FaPlus, FaTrash,
   FaUtensils, FaClock, FaFire, FaLeaf,
   FaWeightHanging, FaBolt, FaDatabase, FaListUl,
-  FaCheckCircle, FaExclamationTriangle, FaInfoCircle
+  FaCheckCircle, FaExclamationTriangle, FaInfoCircle,
+  FaClipboardList, FaDumbbell, FaBalanceScale
 } from 'react-icons/fa';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
@@ -202,7 +203,7 @@ export default function DieticianDashboard() {
 
       {/* Main Grid */}
       <div className="dashboard-main-grid">
-        {/* Left Sidebar – Pending Recipes */}
+        {/* Left Sidebar - Pending Recipes */}
         <aside className="pending-sidebar">
           <div className="sidebar-header">
             <h3><FaListUl /> Needs Nutrition Review</h3>
@@ -210,7 +211,7 @@ export default function DieticianDashboard() {
           </div>
           <div className="pending-list">
             {loading && <div className="loading-skeleton"><div className="spinner"></div> Loading...</div>}
-            {!loading && queue.length === 0 && <div className="empty-state">✅ All caught up! No pending recipes.</div>}
+            {!loading && queue.length === 0 && <div className="empty-state"><FaCheckCircle /> All caught up! No pending recipes.</div>}
             {queue.map(r => (
               <div
                 key={r._id}
@@ -224,11 +225,11 @@ export default function DieticianDashboard() {
           </div>
         </aside>
 
-        {/* Right Content – Editor */}
+        {/* Right Content - Editor */}
         <main className="editor-area">
           {!selected ? (
             <div className="empty-editor">
-              <div className="empty-icon">📋</div>
+              <div className="empty-icon"><FaClipboardList /></div>
               <h3>Select a recipe</h3>
               <p>Choose a recipe from the left to start editing nutrition details.</p>
             </div>
@@ -237,7 +238,7 @@ export default function DieticianDashboard() {
               <div className="recipe-header">
                 <h2>{selected.name}</h2>
                 <span className="health-flag" style={{ background: ratingColor }}>
-                  {nut.ratingFlag === 'weight-loss' ? '🌱 Weight Loss' : nut.ratingFlag === 'weight-gain' ? '💪 Weight Gain' : '⚖️ Balanced'}
+                  {nut.ratingFlag === 'weight-loss' ? <span><FaLeaf /> Weight Loss</span> : nut.ratingFlag === 'weight-gain' ? <span><FaDumbbell /> Weight Gain</span> : <span><FaBalanceScale /> Balanced</span>}
                 </span>
               </div>
 
@@ -265,9 +266,9 @@ export default function DieticianDashboard() {
                   <div className="input-group">
                     <label>Health Label</label>
                     <select value={nut.ratingFlag} onChange={e => setNut({ ...nut, ratingFlag: e.target.value })}>
-                      <option value="weight-loss">🌱 Weight Loss Friendly</option>
-                      <option value="neutral">⚖️ Balanced</option>
-                      <option value="weight-gain">💪 Weight Gain</option>
+                      <option value="weight-loss">Weight Loss Friendly</option>
+                      <option value="neutral">Balanced</option>
+                      <option value="weight-gain">Weight Gain</option>
                     </select>
                   </div>
                 </div>
@@ -306,7 +307,7 @@ export default function DieticianDashboard() {
                   <h4>Ingredient Benefits</h4>
                   <textarea
                     rows={4}
-                    placeholder="One per line, e.g., Goraka – good for digestion"
+                    placeholder="One per line, e.g., Goraka - good for digestion"
                     value={nut.benefits.join('\n')}
                     onChange={e => setNut({ ...nut, benefits: e.target.value.split('\n').filter(Boolean) })}
                   />
@@ -321,7 +322,7 @@ export default function DieticianDashboard() {
         </main>
       </div>
 
-      {/* ✅ Global Chat Component – always mounted, always connected */}
+      {/* Global Chat Component - always mounted, always connected */}
       <Chat />
     </div>
   );

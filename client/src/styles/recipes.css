@@ -153,10 +153,20 @@
     justify-content: space-between;
     width: 100%;
   }
-  .sort-select, .filter-toggle {
+  .sort-wrapper {
+    flex: 1;
+    display: flex;
+  }
+  .sort-select {
+    width: 100%;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  .filter-toggle {
     flex: 1;
     padding: 0.75rem 0.5rem;
     font-size: 0.85rem;
+    justify-content: center;
   }
 }
 
@@ -304,6 +314,9 @@
   .recipes-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+  .view-toggle {
+    display: none;
   }
 }
 
@@ -1809,7 +1822,84 @@
   overflow: hidden;
 }
 
-@media (max-width: 1024px) { .cm-grid { grid-template-columns: 1fr; } .cm-aside { display: none; } }
+.cm-ingredients-toggle-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-bounce);
+  margin-right: 0.5rem;
+}
+
+.cm-ingredients-toggle-btn:hover {
+  background: var(--brand-orange);
+  transform: scale(1.05);
+}
+
+.aside-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: var(--transition-smooth);
+}
+
+.aside-close-btn:hover {
+  color: var(--brand-orange);
+}
+
+@media (max-width: 1024px) {
+  .cm-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cm-ingredients-toggle-btn {
+    display: flex;
+  }
+  
+  .aside-close-btn {
+    display: block;
+    margin-left: auto;
+  }
+  
+  .cm-aside {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 320px;
+    height: 100dvh;
+    z-index: 10000;
+    box-shadow: var(--shadow-xl);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg-white);
+  }
+  
+  .cm-aside.open {
+    left: 0;
+  }
+  
+  .cm-ingredients-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+  }
+}
 
 .cm-aside {
   background: var(--bg-secondary);
@@ -2147,8 +2237,8 @@
 .preview-line.original { color: var(--text-muted); opacity: 0.5; font-style: italic; }
 
 .substitution-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 200px;
   align-items: center;
   gap: 2rem;
   padding: 1.5rem;
@@ -2162,6 +2252,7 @@
 .substitution-label { font-weight: 800; color: var(--brand-brown); font-size: 1.1rem; }
 
 .substitution-select {
+  width: 100%;
   padding: 0.75rem 1.25rem;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -2173,6 +2264,13 @@
 }
 
 .substitution-select:focus { border-color: var(--brand-orange); outline: none; }
+
+@media (max-width: 480px) {
+  .substitution-item {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
 
 .submit-section {
   text-align: center;

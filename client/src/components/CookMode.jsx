@@ -91,6 +91,7 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showIngredientsDrawer, setShowIngredientsDrawer] = useState(false);
 
   const intervalRef = useRef(null);
   const stepLiveRef = useRef(null);
@@ -248,15 +249,36 @@ export default function CookMode({ recipe: recipeProp, onClose }) {
             </div>
           </div>
           <div className="cm-header-right">
+            <button 
+              className="cm-ingredients-toggle-btn" 
+              onClick={() => setShowIngredientsDrawer(true)} 
+              title="Ingredients"
+              aria-label="Toggle ingredients list"
+            >
+              <FaListUl />
+            </button>
             <button className="btn-exit" onClick={confirmExit}><FaTimes /></button>
           </div>
         </div>
 
         <div className="cm-grid">
-          <aside className="cm-aside">
+          {showIngredientsDrawer && (
+            <div 
+              className="cm-ingredients-overlay" 
+              onClick={() => setShowIngredientsDrawer(false)}
+            />
+          )}
+          <aside className={`cm-aside ${showIngredientsDrawer ? 'open' : ''}`}>
             <div className="aside-header">
               <h3><FaListUl className="aside-icon" /> Ingredients</h3>
               <div className="aside-stats">{checkedCount}/{totalIngredients} checked</div>
+              <button 
+                className="aside-close-btn" 
+                onClick={() => setShowIngredientsDrawer(false)}
+                aria-label="Close ingredients list"
+              >
+                <FaTimes />
+              </button>
             </div>
             <div className="aside-tools">
               <button className="btn-pill" onClick={checkAll}><FaCheckCircle /> All</button>

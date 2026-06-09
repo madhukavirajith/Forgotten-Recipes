@@ -402,8 +402,16 @@
 }
 
 @media (max-width: 500px) {
+  .auth-wrapper {
+    padding: 100px 1rem 2rem;
+  }
+  
   .auth-container {
-    padding: 2.5rem 1.5rem;
+    padding: 2rem 1.25rem;
+  }
+  
+  .auth-title {
+    font-size: 1.8rem;
   }
   
   .social-buttons {

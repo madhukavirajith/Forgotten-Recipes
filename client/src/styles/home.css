@@ -138,11 +138,12 @@
 @media (max-width: 768px) {
   .hero-stats {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 1.5rem;
     padding: 2rem 1.5rem;
   }
   .stat-item {
+    width: 220px;
     justify-content: flex-start;
     text-align: left;
   }
@@ -150,6 +151,7 @@
 }
 
 @media (max-width: 480px) {
+  .stat-item { width: 200px; }
   .stat-number { font-size: 1.75rem; }
   .stat-icon { font-size: 1.3rem; }
 }

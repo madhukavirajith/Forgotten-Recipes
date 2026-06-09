@@ -37,8 +37,7 @@ const Home = () => {
   const [stats, setStats] = useState({
     recipes: 0,
     stories: 0,
-    users: 0,
-    festivals: 0
+    users: 0
   });
 
   const carouselRef = useRef(null);
@@ -50,8 +49,7 @@ const Home = () => {
     const targetStats = {
       recipes: 250,
       stories: 45,
-      users: 12500,
-      festivals: 12
+      users: 12500
     };
 
     const animateStats = () => {
@@ -66,8 +64,7 @@ const Home = () => {
           setStats({
             recipes: Math.floor((targetStats.recipes * currentStep) / steps),
             stories: Math.floor((targetStats.stories * currentStep) / steps),
-            users: Math.floor((targetStats.users * currentStep) / steps),
-            festivals: Math.floor((targetStats.festivals * currentStep) / steps)
+            users: Math.floor((targetStats.users * currentStep) / steps)
           });
         } else {
           clearInterval(interval);
@@ -260,8 +257,7 @@ const Home = () => {
   const statsData = [
     { value: stats.recipes, label: "Recipes", icon: <FaUtensils />, suffix: "+" },
     { value: stats.stories, label: "Stories", icon: <FaQuoteLeft />, suffix: "+" },
-    { value: stats.users.toLocaleString(), label: "Members", icon: <FaUsers />, suffix: "+" },
-    { value: stats.festivals, label: "Festivals", icon: <FaCalendarAlt />, suffix: "" }
+    { value: stats.users.toLocaleString(), label: "Members", icon: <FaUsers />, suffix: "+" }
   ];
 
   // Handle recipe click

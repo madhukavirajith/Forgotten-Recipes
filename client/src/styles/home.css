@@ -7,7 +7,7 @@
 .hero-section {
   position: relative;
   height: 100vh;
-  min-height: 700px;
+  min-height: 800px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,7 +118,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 3rem;
+  gap: 2rem;
+  flex-wrap: wrap;
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }

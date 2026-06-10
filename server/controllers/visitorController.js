@@ -97,6 +97,7 @@ exports.submitRecipe = async (req, res) => {
       ingredients,
       instructions,
       image,
+      images,
       culture,
       category,
       spiceLevel,
@@ -118,11 +119,17 @@ exports.submitRecipe = async (req, res) => {
       return res.status(400).json({ error: 'Invalid diet type' });
     }
 
+    // Build images array — accept either the legacy single `image` or the new `images` array
+    const imagesArray = Array.isArray(images) && images.length > 0
+      ? images
+      : (image ? [image] : []);
+
     const newRecipe = new Recipe({
       name,
       ingredients,
       instructions,
-      image,
+      image: imagesArray[0] || image || '', // primary image for backwards compat
+      images: imagesArray,
       culture,
       category,
       spiceLevel,
@@ -163,6 +170,7 @@ exports.submitRecipe = async (req, res) => {
     res.status(status).json({ error: err.message });
   }
 };
+
 
 /* --------------------------- Sri Lankan → Western Subs --------------------------- */
 // Substitution suggestions for traditional ingredients

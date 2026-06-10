@@ -90,7 +90,6 @@ const VisitorDashboard = () => {
     name: '',
     ingredients: '',
     instructions: '',
-    image: '',
     culture: '',
     category: '',
     spiceLevel: '',
@@ -99,6 +98,7 @@ const VisitorDashboard = () => {
     cookTime: '',
     servings: ''
   });
+  const [recipeImages, setRecipeImages] = useState([]); // array of base64 strings
 
   const [feedbackMsg, setFeedbackMsg] = useState('');
   const [feedbackType, setFeedbackType] = useState('other');
@@ -148,19 +148,38 @@ const VisitorDashboard = () => {
     setTimeout(() => setNotification({ show: false, message: '', type: '' }), 3000);
   };
 
-  // Handle recipe image upload
-  const handleRecipeImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle multi-image upload (up to 5)
+  const handleRecipeImages = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      showNotification('Image size should be less than 5MB', 'error');
+    const remaining = 5 - recipeImages.length;
+    if (remaining <= 0) {
+      showNotification('Maximum 5 images allowed', 'error');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => setNewRecipe((prev) => ({ ...prev, image: reader.result }));
-    reader.readAsDataURL(file);
+    const toProcess = files.slice(0, remaining);
+    const oversized = toProcess.filter(f => f.size > 5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      showNotification('Each image must be under 5MB', 'error');
+      return;
+    }
+
+    toProcess.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setRecipeImages(prev => prev.length < 5 ? [...prev, reader.result] : prev);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input so same file can be re-selected if removed
+    e.target.value = '';
+  };
+
+  const removeRecipeImage = (index) => {
+    setRecipeImages(prev => prev.filter((_, i) => i !== index));
   };
 
   // Submit new recipe
@@ -179,7 +198,12 @@ const VisitorDashboard = () => {
 
     try {
       setSubmitting(true);
-      await axios.post(`${API_BASE}/api/visitor/submit-recipe`, newRecipe, authHeader);
+      const payload = {
+        ...newRecipe,
+        images: recipeImages,
+        image: recipeImages[0] || '', // primary image for backwards compat
+      };
+      await axios.post(`${API_BASE}/api/visitor/submit-recipe`, payload, authHeader);
 
       showNotification('Recipe submitted for approval!', 'success');
 
@@ -187,7 +211,6 @@ const VisitorDashboard = () => {
         name: '',
         ingredients: '',
         instructions: '',
-        image: '',
         culture: '',
         category: '',
         spiceLevel: '',
@@ -196,6 +219,7 @@ const VisitorDashboard = () => {
         cookTime: '',
         servings: ''
       });
+      setRecipeImages([]);
 
       fetchMyRecipes();
       setActiveTab('myrecipes');
@@ -478,37 +502,51 @@ const VisitorDashboard = () => {
               </div>
 
               <div className="form-group">
-                <label>Recipe Image</label>
-                <div className="image-upload-area" onClick={() => fileInputRef.current?.click()}>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleRecipeImage}
-                    style={{ display: 'none' }}
-                  />
-                  {newRecipe.image ? (
-                    <div className="image-preview">
-                      <img src={newRecipe.image} alt="Recipe preview" />
-                      <button
-                        type="button"
-                        className="remove-image"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setNewRecipe(prev => ({ ...prev, image: '' }));
-                        }}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  ) : (
+                <label>
+                  Recipe Images
+                  <span style={{ fontWeight: 400, fontSize: '0.8rem', color: '#888', marginLeft: '0.5rem' }}>
+                    ({recipeImages.length}/5) — First image is the main photo
+                  </span>
+                </label>
+
+                {/* Image preview grid */}
+                {recipeImages.length > 0 && (
+                  <div className="multi-image-preview-grid">
+                    {recipeImages.map((src, idx) => (
+                      <div key={idx} className="multi-image-thumb">
+                        <img src={src} alt={`Recipe photo ${idx + 1}`} />
+                        {idx === 0 && <span className="primary-badge">Primary</span>}
+                        <button
+                          type="button"
+                          className="remove-image"
+                          onClick={() => removeRecipeImage(idx)}
+                          title="Remove image"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload button — only show if under limit */}
+                {recipeImages.length < 5 && (
+                  <div className="image-upload-area" onClick={() => fileInputRef.current?.click()}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleRecipeImages}
+                      style={{ display: 'none' }}
+                    />
                     <div className="upload-placeholder">
                       <FaImage />
-                      <span>Click to upload image</span>
-                      <small>PNG, JPG up to 5MB</small>
+                      <span>Click to add {recipeImages.length === 0 ? 'images' : 'more images'}</span>
+                      <small>PNG, JPG up to 5MB each · Max 5 photos</small>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               <button type="submit" disabled={submitting} className="submit-btn">

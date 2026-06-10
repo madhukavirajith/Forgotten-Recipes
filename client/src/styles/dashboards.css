@@ -2931,6 +2931,130 @@
   box-shadow: 0 4px 10px rgba(153, 27, 27, 0.2);
 }
 
+/* Details toggle button */
+.headchef-dashboard .details-btn {
+  background: #f1f5f9;
+  color: var(--text-secondary);
+  border: 1px solid #cbd5e1 !important;
+  font-size: 0.85rem;
+}
+
+.headchef-dashboard .details-btn:hover {
+  background: #e2e8f0;
+  color: var(--brand-brown);
+  border-color: #94a3b8 !important;
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+/* Pending item: header row (info + actions side-by-side) */
+.headchef-dashboard .pending-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+}
+
+.headchef-dashboard .pending-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .headchef-dashboard .pending-item-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+}
+
+/* Expandable details panel */
+.headchef-dashboard .pending-details-panel {
+  border-top: 1px solid var(--border-color);
+  padding: 2rem;
+  background: #fafafa;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  animation: fadeInDown 0.25s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Image strip */
+.headchef-dashboard .pending-images {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+
+.headchef-dashboard .pending-preview-img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Two-column grid for ingredients & instructions */
+.headchef-dashboard .pending-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .headchef-dashboard .pending-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.headchef-dashboard .pending-detail-section h5 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--brand-orange);
+  margin: 0 0 0.75rem;
+}
+
+/* Scrollable pre block for ingredients / instructions */
+.headchef-dashboard .pending-pre {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.headchef-dashboard .pending-culture {
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.headchef-dashboard .pending-culture strong {
+  color: var(--brand-brown);
+}
+
+
 /* Empty placeholder board status */
 .headchef-dashboard .empty-state {
   background: var(--bg-white);

@@ -747,6 +747,140 @@
   object-fit: cover;
 }
 
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: scale(1.03); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Gallery navigation dots */
+.hero-gallery-dots {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.6rem;
+  z-index: 5;
+}
+
+.hero-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.25s;
+  padding: 0;
+}
+
+.hero-dot.active {
+  background: white;
+  transform: scale(1.3);
+}
+
+/* Gallery arrow buttons */
+.hero-gallery-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(6px);
+  border: none;
+  color: white;
+  font-size: 2.5rem;
+  line-height: 1;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 5;
+}
+
+.hero-gallery-arrow.left  { left: 1.5rem; }
+.hero-gallery-arrow.right { right: 1.5rem; }
+
+.hero-gallery-arrow:hover {
+  background: rgba(255,255,255,0.4);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Image counter badge */
+.hero-gallery-counter {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: rgba(0,0,0,0.45);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+
+/* Multi-image upload preview grid (visitor form) */
+.multi-image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.multi-image-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.multi-image-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.primary-badge {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  background: var(--brand-orange);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.multi-image-thumb .remove-image {
+  position: absolute;
+  bottom: 0.35rem;
+  right: 0.35rem;
+  background: rgba(220, 38, 38, 0.85);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.multi-image-thumb .remove-image:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+
 .rd-hero-overlay {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;

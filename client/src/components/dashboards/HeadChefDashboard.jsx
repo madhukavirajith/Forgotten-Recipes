@@ -81,6 +81,7 @@ const HeadChefDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [expandedPendingId, setExpandedPendingId] = useState(null);
 
   const [story, setStory] = useState({ title: '', content: '', image: '' });
   const [editStoryId, setEditStoryId] = useState(null);
@@ -91,13 +92,14 @@ const HeadChefDashboard = () => {
     ingredients: '',
     instructions: '',
     culture: '',
-    image: '',
     category: '',
     spiceLevel: '',
     dietType: '',
   });
+  const [recipeImages, setRecipeImages] = useState([]); // array of base64 strings
   const [editRecipeId, setEditRecipeId] = useState(null);
   const [showRecipeForm, setShowRecipeForm] = useState(false);
+  const recipeFileInputRef = useRef(null);
 
   const token = sessionStorage.getItem('token') || '';
   const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
@@ -165,23 +167,52 @@ const HeadChefDashboard = () => {
     fetchAllData();
   }, [fetchAllData]);
 
-  // Recipe CRUD
-  const handleRecipeImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setNewRecipe((prev) => ({ ...prev, image: reader.result }));
-    reader.readAsDataURL(file);
+  // Recipe CRUD — multi-image handler (up to 5)
+  const handleRecipeImages = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const remaining = 5 - recipeImages.length;
+    if (remaining <= 0) {
+      showNotification('Maximum 5 images allowed', 'error');
+      return;
+    }
+
+    const toProcess = files.slice(0, remaining);
+    const oversized = toProcess.filter(f => f.size > 5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      showNotification('Each image must be under 5MB', 'error');
+      return;
+    }
+
+    toProcess.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setRecipeImages(prev => prev.length < 5 ? [...prev, reader.result] : prev);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
+  };
+
+  const removeChefRecipeImage = (index) => {
+    setRecipeImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleRecipeSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...newRecipe,
+        images: recipeImages,
+        image: recipeImages[0] || newRecipe.image || '',
+      };
       if (editRecipeId) {
-        await axios.put(`${API_BASE}/api/recipes/${editRecipeId}`, newRecipe, authHeader);
+        await axios.put(`${API_BASE}/api/recipes/${editRecipeId}`, payload, authHeader);
         showNotification('Recipe updated successfully!', 'success');
       } else {
-        await axios.post(`${API_BASE}/api/recipes`, { ...newRecipe, status: 'approved', approved: true }, authHeader);
+        await axios.post(`${API_BASE}/api/recipes`, { ...payload, status: 'approved', approved: true }, authHeader);
         showNotification('Recipe created successfully!', 'success');
       }
       resetRecipeForm();
@@ -199,11 +230,15 @@ const HeadChefDashboard = () => {
       ingredients: recipe.ingredients || '',
       instructions: recipe.instructions || '',
       culture: recipe.culture || '',
-      image: recipe.image || '',
       category: recipe.category || '',
       spiceLevel: recipe.spiceLevel || '',
       dietType: recipe.dietType || '',
     });
+    // Populate images: prefer the images array, fall back to single image
+    const imgs = Array.isArray(recipe.images) && recipe.images.length > 0
+      ? recipe.images
+      : recipe.image ? [recipe.image] : [];
+    setRecipeImages(imgs);
     setEditRecipeId(recipe._id);
     setShowRecipeForm(true);
   };
@@ -226,11 +261,11 @@ const HeadChefDashboard = () => {
       ingredients: '',
       instructions: '',
       culture: '',
-      image: '',
       category: '',
       spiceLevel: '',
       dietType: '',
     });
+    setRecipeImages([]);
     setEditRecipeId(null);
   };
 
@@ -510,15 +545,48 @@ const HeadChefDashboard = () => {
                   <textarea rows={5} value={newRecipe.instructions} onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })} required />
                 </div>
                 <div className="form-group">
-                  <label>Recipe Image</label>
-                  <div className="image-upload" onClick={() => document.getElementById('recipeImageInput').click()}>
-                    <input id="recipeImageInput" type="file" accept="image/*" onChange={handleRecipeImage} style={{ display: 'none' }} />
-                    {newRecipe.image ? (
-                      <img src={newRecipe.image} alt="Preview" />
-                    ) : (
-                      <div className="upload-placeholder"><FaImage /> Click to upload image</div>
-                    )}
-                  </div>
+                  <label>
+                    Recipe Images
+                    <span style={{ fontWeight: 400, fontSize: '0.8rem', color: '#888', marginLeft: '0.5rem' }}>
+                      ({recipeImages.length}/5) — First image is the main photo
+                    </span>
+                  </label>
+
+                  {recipeImages.length > 0 && (
+                    <div className="multi-image-preview-grid">
+                      {recipeImages.map((src, idx) => (
+                        <div key={idx} className="multi-image-thumb">
+                          <img src={src} alt={`Recipe photo ${idx + 1}`} />
+                          {idx === 0 && <span className="primary-badge">Primary</span>}
+                          <button
+                            type="button"
+                            className="remove-image"
+                            onClick={() => removeChefRecipeImage(idx)}
+                            title="Remove image"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {recipeImages.length < 5 && (
+                    <div className="image-upload" onClick={() => recipeFileInputRef.current?.click()}>
+                      <input
+                        ref={recipeFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleRecipeImages}
+                        style={{ display: 'none' }}
+                      />
+                      <div className="upload-placeholder">
+                        <FaImage /> Click to add {recipeImages.length === 0 ? 'images' : 'more images'}
+                        <small style={{ display: 'block', fontSize: '0.75rem', marginTop: '0.25rem' }}>PNG, JPG up to 5MB each · Max 5 photos</small>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="form-actions">
                   <button type="button" onClick={() => { resetRecipeForm(); setShowRecipeForm(false); }} className="btn-secondary">Cancel</button>
@@ -558,19 +626,60 @@ const HeadChefDashboard = () => {
           <div className="items-list">
             {pendingRecipes.map(recipe => (
               <div key={recipe._id} className="pending-item">
-                <div className="pending-info">
-                  <h4>{recipe.name}</h4>
-                  <p>Submitted by <strong>{recipe.submittedBy?.name || recipe.createdBy?.name || 'Visitor'}</strong></p>
-                  <div className="item-meta">
-                    <span className="meta-tag">{recipe.category}</span>
-                    <span className="meta-tag spice">{recipe.spiceLevel}</span>
-                    <span className="meta-tag diet">{recipe.dietType}</span>
+                <div className="pending-item-header">
+                  <div className="pending-info">
+                    <h4>{recipe.name}</h4>
+                    <p>Submitted by <strong>{recipe.submittedBy?.name || recipe.createdBy?.name || 'Visitor'}</strong></p>
+                    <div className="item-meta">
+                      <span className="meta-tag">{recipe.category}</span>
+                      <span className="meta-tag spice">{recipe.spiceLevel}</span>
+                      <span className="meta-tag diet">{recipe.dietType}</span>
+                    </div>
+                  </div>
+                  <div className="pending-actions">
+                    <button
+                      onClick={() => setExpandedPendingId(expandedPendingId === recipe._id ? null : recipe._id)}
+                      className="action-btn details-btn"
+                      title={expandedPendingId === recipe._id ? 'Hide details' : 'View details'}
+                    >
+                      {expandedPendingId === recipe._id ? <FaChevronUp /> : <FaChevronDown />}
+                      {expandedPendingId === recipe._id ? 'Hide' : 'Details'}
+                    </button>
+                    <button onClick={() => approveRecipe(recipe._id)} className="approve-btn"><FaCheckCircle /> Approve</button>
+                    <button onClick={() => rejectRecipe(recipe._id)} className="reject-btn"><FaTimesCircle /> Reject</button>
                   </div>
                 </div>
-                <div className="pending-actions">
-                  <button onClick={() => approveRecipe(recipe._id)} className="approve-btn"><FaCheckCircle /> Approve</button>
-                  <button onClick={() => rejectRecipe(recipe._id)} className="reject-btn"><FaTimesCircle /> Reject</button>
-                </div>
+
+                {/* Expandable details panel */}
+                {expandedPendingId === recipe._id && (
+                  <div className="pending-details-panel">
+                    {/* Image(s) */}
+                    {(recipe.images?.length > 0 || recipe.image) && (
+                      <div className="pending-images">
+                        {(recipe.images?.length > 0 ? recipe.images : [recipe.image]).map((src, i) => (
+                          <img key={i} src={src} alt={`${recipe.name} ${i + 1}`} className="pending-preview-img" />
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pending-details-grid">
+                      <div className="pending-detail-section">
+                        <h5><FaClipboardList /> Ingredients</h5>
+                        <pre className="pending-pre">{recipe.ingredients || 'No ingredients provided.'}</pre>
+                      </div>
+                      <div className="pending-detail-section">
+                        <h5><FaUtensils /> Instructions</h5>
+                        <pre className="pending-pre">{recipe.instructions || 'No instructions provided.'}</pre>
+                      </div>
+                    </div>
+
+                    {recipe.culture && (
+                      <p className="pending-culture">
+                        <strong>Cultural Origin:</strong> {recipe.culture}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             {pendingRecipes.length === 0 && (

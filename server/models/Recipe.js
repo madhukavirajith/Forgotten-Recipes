@@ -35,7 +35,8 @@ const recipeSchema = new mongoose.Schema(
     ingredients: { type: String, required: true },
     instructions: { type: String, required: true },
     culture: { type: String, default: '' },
-    image: { type: String }, // base64 or URL
+    image: { type: String }, // primary image (base64 or URL)
+    images: [{ type: String }], // additional images gallery
 
     // Visitor-facing filters
     category: {

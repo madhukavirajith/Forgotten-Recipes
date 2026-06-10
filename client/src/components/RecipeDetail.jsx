@@ -805,6 +805,58 @@ const ShareBar = ({ url, title }) => {
   );
 };
 
+// ==================== Hero Image Gallery ====================
+const HeroGallery = ({ recipe }) => {
+  const allImages = React.useMemo(() => {
+    const imgs = Array.isArray(recipe.images) && recipe.images.length > 0
+      ? recipe.images
+      : recipe.image
+        ? [recipe.image]
+        : ['https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop'];
+    return imgs;
+  }, [recipe]);
+
+  const [activeIdx, setActiveIdx] = React.useState(0);
+
+  return (
+    <div className="rd-hero-image">
+      <img
+        key={activeIdx}
+        src={allImages[activeIdx]}
+        alt={`${recipe.name} photo ${activeIdx + 1}`}
+        style={{ animation: 'heroFadeIn 0.4s ease' }}
+      />
+      {allImages.length > 1 && (
+        <>
+          {/* Dot navigation */}
+          <div className="hero-gallery-dots">
+            {allImages.map((_, i) => (
+              <button
+                key={i}
+                className={`hero-dot ${i === activeIdx ? 'active' : ''}`}
+                onClick={() => setActiveIdx(i)}
+                aria-label={`View photo ${i + 1}`}
+              />
+            ))}
+          </div>
+          {/* Arrow controls */}
+          <button
+            className="hero-gallery-arrow left"
+            onClick={() => setActiveIdx(i => (i - 1 + allImages.length) % allImages.length)}
+            aria-label="Previous image"
+          >&#8249;</button>
+          <button
+            className="hero-gallery-arrow right"
+            onClick={() => setActiveIdx(i => (i + 1) % allImages.length)}
+            aria-label="Next image"
+          >&#8250;</button>
+          <span className="hero-gallery-counter">{activeIdx + 1} / {allImages.length}</span>
+        </>
+      )}
+    </div>
+  );
+};
+
 // ==================== Main Component ====================
 export default function RecipeDetail() {
   const { id } = useParams();
@@ -898,9 +950,7 @@ export default function RecipeDetail() {
     <div className="page-wrap">
       {/* Premium Hero Section */}
       <div className="rd-hero">
-        <div className="rd-hero-image">
-          <img src={recipe.image || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop'} alt={recipe.name} />
-        </div>
+        <HeroGallery recipe={recipe} />
         <div className="rd-hero-overlay"></div>
         <div className="rd-hero-content">
           <button onClick={() => navigate('/recipes')} className="back-button" style={{ color: 'white' }}>
@@ -911,7 +961,6 @@ export default function RecipeDetail() {
             {recipe.category && <span className="meta-tag category">{recipe.category}</span>}
             {recipe.spiceLevel && <span className="meta-tag spice">{recipe.spiceLevel} <FaPepperHot /></span>}
             {recipe.dietType && <span className="meta-tag diet">{recipe.dietType}</span>}
-            {recipe.culture && <span className="meta-tag culture">{recipe.culture}</span>}
           </div>
           <div className="rd-stats-grid">
             <div className="rd-stat-box">

@@ -48,26 +48,87 @@ const CHAT_PERMISSIONS = {
   admin: { allowedRoles: ['headchef', 'dietician'], label: 'Admin', color: '#8b5cf6', description: 'Platform management and support' }
 };
 
+// Suggestion matrix keyed by "senderRole_recipientRole"
 const CHAT_SUGGESTIONS = {
-  visitor: [
+
+  // ── Visitor chatting with Head Chef ──
+  visitor_headchef: [
+    { text: "I submitted a recipe — can you review it?", icon: <FaEdit /> },
+    { text: "What makes a recipe authentically Sri Lankan?", icon: <FaInfoCircle /> },
+    { text: "How do I improve the texture of my dish?", icon: <FaUtensils /> },
+    { text: "Can you explain the approval process?", icon: <FaInfoCircle /> },
+  ],
+
+  // ── Visitor chatting with Dietician ──
+  visitor_dietician: [
+    { text: "Can you check the nutrition in my recipe?", icon: <FaInfoCircle /> },
+    { text: "I need a healthy substitute for coconut milk", icon: <FaInfoCircle /> },
+    { text: "What are low-calorie versions of Sri Lankan dishes?", icon: <FaInfoCircle /> },
+    { text: "Is my recipe suitable for a vegan diet?", icon: <FaInfoCircle /> },
+  ],
+
+  // ── Head Chef chatting with Visitor ──
+  headchef_visitor: [
+    { text: "I reviewed your recipe submission", icon: <FaEdit /> },
+    { text: "Here are some tips to improve your recipe", icon: <FaUtensils /> },
+    { text: "Your recipe has been approved!", icon: <FaInfoCircle /> },
+    { text: "Can you clarify the ingredients you used?", icon: <FaInfoCircle /> },
+  ],
+
+  // ── Head Chef chatting with Admin ──
+  headchef_admin: [
+    { text: "I have a concern about a user submission", icon: <FaInfoCircle /> },
+    { text: "Can you help resolve a content policy issue?", icon: <FaShieldAlt /> },
+    { text: "I need help managing the approval queue", icon: <FaEdit /> },
+    { text: "There's a technical issue on the dashboard", icon: <FaInfoCircle /> },
+  ],
+
+  // ── Dietician chatting with Visitor ──
+  dietician_visitor: [
+    { text: "I've reviewed your recipe's nutrition", icon: <FaUserMd /> },
+    { text: "Here is your personalised nutrition advice", icon: <FaInfoCircle /> },
+    { text: "I recommend these healthier alternatives", icon: <FaInfoCircle /> },
+    { text: "Would you like a full dietary analysis?", icon: <FaUserMd /> },
+  ],
+
+  // ── Dietician chatting with Admin ──
+  dietician_admin: [
+    { text: "I need access to nutrition report data", icon: <FaInfoCircle /> },
+    { text: "Can you update my profile or permissions?", icon: <FaShieldAlt /> },
+    { text: "There's a discrepancy in the recipe database", icon: <FaInfoCircle /> },
+    { text: "I'd like to share a platform improvement idea", icon: <FaComment /> },
+  ],
+
+  // ── Admin chatting with Head Chef ──
+  admin_headchef: [
+    { text: "Please review the pending recipe backlog", icon: <FaEdit /> },
+    { text: "There's a content policy question for you", icon: <FaShieldAlt /> },
+    { text: "Can you verify the authenticity of a recipe?", icon: <FaUtensils /> },
+    { text: "A user flagged an issue with an approved recipe", icon: <FaInfoCircle /> },
+  ],
+
+  // ── Admin chatting with Dietician ──
+  admin_dietician: [
+    { text: "Please review the nutrition reports this week", icon: <FaUserMd /> },
+    { text: "A recipe needs an updated nutritional analysis", icon: <FaInfoCircle /> },
+    { text: "Can you audit recent dietary recommendations?", icon: <FaUserMd /> },
+    { text: "There's a data access request for you", icon: <FaShieldAlt /> },
+  ],
+
+  // ── Fallback (generic) ──
+  default: [
     { text: "I need help with a recipe", icon: <FaUtensils /> },
     { text: "Can you suggest healthy alternatives?", icon: <FaInfoCircle /> },
     { text: "How do I reduce spice in a curry?", icon: <FaInfoCircle /> },
-    { text: "What are authentic Sri Lankan ingredients?", icon: <FaInfoCircle /> }
+    { text: "What are authentic Sri Lankan ingredients?", icon: <FaInfoCircle /> },
   ],
-  dietician: [
-    { text: "Review a recipe for nutritional value", icon: <FaInfoCircle /> },
-    { text: "Suggest healthy modifications", icon: <FaInfoCircle /> }
-  ],
-  headchef: [
-    { text: "Review pending recipe submission", icon: <FaEdit /> },
-    { text: "Discuss recipe authenticity", icon: <FaInfoCircle /> }
-  ],
-  admin: [
-    { text: "User reported issue", icon: <FaInfoCircle /> },
-    { text: "Platform feedback", icon: <FaComment /> }
-  ]
 };
+
+const getSuggestions = (senderRole, recipientRole) => {
+  const key = `${senderRole}_${recipientRole}`;
+  return CHAT_SUGGESTIONS[key] || CHAT_SUGGESTIONS.default;
+};
+
 
 const getRoleIcon = (role) => {
   const iconMap = {
@@ -110,7 +171,8 @@ const Chat = () => {
   const typingTimeoutRef = useRef(null);
 
   const userPermissions = CHAT_PERMISSIONS[userRole] || CHAT_PERMISSIONS.visitor;
-  const suggestions = CHAT_SUGGESTIONS[userRole] || CHAT_SUGGESTIONS.visitor;
+  // Suggestions update dynamically based on who the user is talking to
+  const suggestions = getSuggestions(userRole, selectedRecipient?.role);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {

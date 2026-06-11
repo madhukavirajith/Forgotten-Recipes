@@ -480,7 +480,7 @@ const Recipes = () => {
   return (
     <div className="recipes-container">
       {/* Hero Section */}
-      <div className="recipes-hero">
+      <div className="recipes-hero" style={{ backgroundImage: "linear-gradient(135deg, rgba(44, 24, 16, 0.85), rgba(74, 42, 27, 0.85)), url('/recipes.png')" }}>
         <h1 className="recipes-hero-title">
           <span className="hero-icon"><FaUtensils /></span>
           Explore Traditional Recipes

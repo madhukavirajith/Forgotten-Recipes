@@ -200,7 +200,7 @@ const Stories = () => {
   return (
     <div className="stories-container" ref={storiesRef}>
       {/* Hero Section */}
-      <div className="stories-hero">
+      <div className="stories-hero" style={{ backgroundImage: "linear-gradient(rgba(44, 24, 16, 0.75), rgba(44, 24, 16, 0.75)), url('/cultural.png')" }}>
         <div className="stories-hero-content">
           <h1 className="stories-hero-title">
             <span className="hero-icon"><FaBookOpen /></span>

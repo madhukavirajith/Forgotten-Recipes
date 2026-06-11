@@ -106,18 +106,18 @@ CLIENT_URL=http://localhost:3000
 
 ```
 ForgottenRecipes/
-├── client/                 # React Frontend
-│   ├── public/             # Static assets
-│   └── src/
-│       ├── components/     # Functional React components
-│       ├── styles/         # Modular CSS files
-│       └── utils/          # API helpers and logic
-├── server/                 # Express Backend
-│   ├── config/             # Database & Security configs
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # API endpoints
-│   └── middleware/         # Auth & validation logic
-└── README.md
+├- client/                 # React Frontend
+│   ├- public/             # Static assets
+│   └- src/
+│       ├- components/     # Functional React components
+│       ├- styles/         # Modular CSS files
+│       └- utils/          # API helpers and logic
+├- server/                 # Express Backend
+│   ├- config/             # Database & Security configs
+│   ├- models/             # Mongoose schemas
+│   ├- routes/             # API endpoints
+│   └- middleware/         # Auth & validation logic
+└- README.md
 ```
 
 ---

@@ -505,7 +505,7 @@ const VisitorDashboard = () => {
                 <label>
                   Recipe Images
                   <span style={{ fontWeight: 400, fontSize: '0.8rem', color: '#888', marginLeft: '0.5rem' }}>
-                    ({recipeImages.length}/5) — First image is the main photo
+                    ({recipeImages.length}/5) - First image is the main photo
                   </span>
                 </label>
 
@@ -529,7 +529,7 @@ const VisitorDashboard = () => {
                   </div>
                 )}
 
-                {/* Upload button — only show if under limit */}
+                {/* Upload button - only show if under limit */}
                 {recipeImages.length < 5 && (
                   <div className="image-upload-area" onClick={() => fileInputRef.current?.click()}>
                     <input

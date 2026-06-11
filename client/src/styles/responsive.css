@@ -99,11 +99,11 @@
    ========================================================================== */
 
 @media (max-width: 1024px) {
-  .recipes-container { padding: 90px 1.5rem 3rem; }
+  .recipes-container { padding: 0 1.5rem 3rem; }
 }
 
 @media (max-width: 768px) {
-  .recipes-container { padding: 80px 1rem 2.5rem; }
+  .recipes-container { padding: 0 1rem 2.5rem; }
   .recipes-hero { margin-bottom: 2.5rem; }
   .recipes-hero-title { font-size: clamp(1.75rem, 6vw, 2.5rem); gap: 0.75rem; }
   .recipes-hero-subtitle { font-size: 1rem; }
@@ -112,7 +112,7 @@
 }
 
 @media (max-width: 480px) {
-  .recipes-container { padding: 75px 0.75rem 2rem; }
+  .recipes-container { padding: 0 0.75rem 2rem; }
   .filters-grid { grid-template-columns: 1fr; }
   .pagination { gap: 0.75rem; }
   .page-btn { padding: 0.6rem 1rem; font-size: 0.85rem; }
@@ -444,7 +444,7 @@
    ========================================================================== */
 
 @media (max-width: 768px) {
-  .stories-container { padding: 80px 1rem 2.5rem; }
+  .stories-container { padding: 0 1rem 2.5rem; }
   .stories-hero { padding: 4rem 1.25rem 6rem; border-radius: 0 0 2rem 2rem; margin-bottom: 2.5rem; }
   .stories-hero-title { font-size: clamp(2rem, 7vw, 3.5rem); gap: 1rem; }
   .story-grid, .blog-grid, .article-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
@@ -457,12 +457,12 @@
   .modal-content { font-size: 1.1rem; }
   .modal-image { height: 220px; }
 
-  .blog-container { padding: 80px 1rem 2.5rem; }
+  .blog-container { padding: 0 1rem 2.5rem; }
   .blog-hero { padding: 4rem 1.25rem; border-radius: 0 0 1.5rem 1.5rem; margin-bottom: 3rem; }
 }
 
 @media (max-width: 480px) {
-  .stories-container { padding: 75px 0.75rem 2rem; }
+  .stories-container { padding: 0 0.75rem 2rem; }
   .story-grid, .blog-grid, .article-grid { grid-template-columns: 1fr; gap: 1.5rem; }
   .story-card-image, .blog-card-image, .article-card-image { height: 200px; }
   .modal-content::first-letter { font-size: 3rem; }

@@ -173,7 +173,7 @@ const CalendarPage = () => {
   return (
     <div className="calendar-page-container">
       {/* Header Section */}
-      <div className="calendar-header">
+      <div className="calendar-header" style={{ backgroundImage: "linear-gradient(135deg, rgba(44, 24, 16, 0.85), rgba(74, 42, 27, 0.85)), url('/calender.png')" }}>
         <h1>
           <i className="fas fa-calendar-alt calendar-icon"></i>
           Sri Lankan Festive Recipe Calendar 2026

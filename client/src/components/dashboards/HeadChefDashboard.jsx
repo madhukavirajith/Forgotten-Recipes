@@ -167,7 +167,7 @@ const HeadChefDashboard = () => {
     fetchAllData();
   }, [fetchAllData]);
 
-  // Recipe CRUD — multi-image handler (up to 5)
+  // Recipe CRUD - multi-image handler (up to 5)
   const handleRecipeImages = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -548,7 +548,7 @@ const HeadChefDashboard = () => {
                   <label>
                     Recipe Images
                     <span style={{ fontWeight: 400, fontSize: '0.8rem', color: '#888', marginLeft: '0.5rem' }}>
-                      ({recipeImages.length}/5) — First image is the main photo
+                      ({recipeImages.length}/5) - First image is the main photo
                     </span>
                   </label>
 

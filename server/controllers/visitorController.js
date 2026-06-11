@@ -119,7 +119,7 @@ exports.submitRecipe = async (req, res) => {
       return res.status(400).json({ error: 'Invalid diet type' });
     }
 
-    // Build images array — accept either the legacy single `image` or the new `images` array
+    // Build images array - accept either the legacy single `image` or the new `images` array
     const imagesArray = Array.isArray(images) && images.length > 0
       ? images
       : (image ? [image] : []);

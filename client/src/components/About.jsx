@@ -118,10 +118,10 @@ const About = () => {
   const teamMembers = [
     {
       id: 1,
-      name: "Amara Weerasinghe",
+      name: "Harini de Silva",
       role: "Founder & Culinary Historian",
       bio: "Passionate about preserving Sri Lanka's culinary heritage for future generations.",
-      image: "/amara.png",
+      image: "/harini.png",
       social: { twitter: "#", linkedin: "#" }
     },
     {
@@ -172,7 +172,7 @@ const About = () => {
   return (
     <div className="about-container">
       {/* Hero Section */}
-      <section className="about-hero">
+      <section className="about-hero" style={{ backgroundImage: "url('/about.png')" }}>
         <div className="about-hero-overlay"></div>
         <div className="about-hero-content">
           <div className="hero-badge">
@@ -307,11 +307,13 @@ const About = () => {
             </div>
           </div>
           <div className="section-image">
-            <div className="video-container">
+            <div className={`video-container ${isVideoPlaying ? 'playing' : ''}`}>
               <video
                 ref={videoRef}
                 poster="/about-video-poster.jpg"
                 className="about-video"
+                onClick={toggleVideo}
+                style={{ cursor: 'pointer' }}
               >
                 <source src="/about-video.mp4" type="video/mp4" />
               </video>

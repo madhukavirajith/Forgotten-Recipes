@@ -247,7 +247,7 @@ const Blog = () => {
   return (
     <div className="blog-container" ref={blogRef}>
       {/* Hero Section - Blog Focused */}
-      <div className="blog-hero">
+      <div className="blog-hero" style={{ backgroundImage: "linear-gradient(135deg, rgba(44, 24, 16, 0.85), rgba(74, 42, 27, 0.85)), url('/blog.png')" }}>
         <div className="blog-hero-content">
           <h1 className="blog-hero-title">
             <span className="hero-icon"><FaNewspaper /></span>

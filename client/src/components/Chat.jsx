@@ -51,15 +51,15 @@ const CHAT_PERMISSIONS = {
 // Suggestion matrix keyed by "senderRole_recipientRole"
 const CHAT_SUGGESTIONS = {
 
-  // ── Visitor chatting with Head Chef ──
+  // - Visitor chatting with Head Chef -
   visitor_headchef: [
-    { text: "I submitted a recipe — can you review it?", icon: <FaEdit /> },
+    { text: "I submitted a recipe - can you review it?", icon: <FaEdit /> },
     { text: "What makes a recipe authentically Sri Lankan?", icon: <FaInfoCircle /> },
     { text: "How do I improve the texture of my dish?", icon: <FaUtensils /> },
     { text: "Can you explain the approval process?", icon: <FaInfoCircle /> },
   ],
 
-  // ── Visitor chatting with Dietician ──
+  // - Visitor chatting with Dietician -
   visitor_dietician: [
     { text: "Can you check the nutrition in my recipe?", icon: <FaInfoCircle /> },
     { text: "I need a healthy substitute for coconut milk", icon: <FaInfoCircle /> },
@@ -67,7 +67,15 @@ const CHAT_SUGGESTIONS = {
     { text: "Is my recipe suitable for a vegan diet?", icon: <FaInfoCircle /> },
   ],
 
-  // ── Head Chef chatting with Visitor ──
+  // - Visitor chatting with Admin -
+  visitor_admin: [
+    { text: "I'm having trouble logging in to my account.", icon: <FaShieldAlt /> },
+    { text: "How do I update my profile details?", icon: <FaEdit /> },
+    { text: "Is my personal data secure on this platform?", icon: <FaShieldAlt /> },
+    { text: "How can I report a bug or suggest a feature?", icon: <FaComment /> },
+  ],
+
+  // - Head Chef chatting with Visitor -
   headchef_visitor: [
     { text: "I reviewed your recipe submission", icon: <FaEdit /> },
     { text: "Here are some tips to improve your recipe", icon: <FaUtensils /> },
@@ -75,7 +83,15 @@ const CHAT_SUGGESTIONS = {
     { text: "Can you clarify the ingredients you used?", icon: <FaInfoCircle /> },
   ],
 
-  // ── Head Chef chatting with Admin ──
+  // - Head Chef chatting with Dietician -
+  headchef_dietician: [
+    { text: "Could you review the ingredient substitutions for my recipe?", icon: <FaUtensils /> },
+    { text: "How does this cooking method affect the nutritional value?", icon: <FaUserMd /> },
+    { text: "Let's review the menu options for dietary restrictions.", icon: <FaInfoCircle /> },
+    { text: "Can we verify the allergen tags on this new dish?", icon: <FaInfoCircle /> },
+  ],
+
+  // - Head Chef chatting with Admin -
   headchef_admin: [
     { text: "I have a concern about a user submission", icon: <FaInfoCircle /> },
     { text: "Can you help resolve a content policy issue?", icon: <FaShieldAlt /> },
@@ -83,7 +99,7 @@ const CHAT_SUGGESTIONS = {
     { text: "There's a technical issue on the dashboard", icon: <FaInfoCircle /> },
   ],
 
-  // ── Dietician chatting with Visitor ──
+  // - Dietician chatting with Visitor -
   dietician_visitor: [
     { text: "I've reviewed your recipe's nutrition", icon: <FaUserMd /> },
     { text: "Here is your personalised nutrition advice", icon: <FaInfoCircle /> },
@@ -91,7 +107,15 @@ const CHAT_SUGGESTIONS = {
     { text: "Would you like a full dietary analysis?", icon: <FaUserMd /> },
   ],
 
-  // ── Dietician chatting with Admin ──
+  // - Dietician chatting with Head Chef -
+  dietician_headchef: [
+    { text: "Can we discuss the nutritional balance of the new recipe?", icon: <FaUserMd /> },
+    { text: "Are there healthier alternative ingredients for this traditional dish?", icon: <FaUtensils /> },
+    { text: "Let's collaborate on the diabetic-friendly menu layout.", icon: <FaInfoCircle /> },
+    { text: "Do you have the exact preparation details for this recipe?", icon: <FaInfoCircle /> },
+  ],
+
+  // - Dietician chatting with Admin -
   dietician_admin: [
     { text: "I need access to nutrition report data", icon: <FaInfoCircle /> },
     { text: "Can you update my profile or permissions?", icon: <FaShieldAlt /> },
@@ -99,7 +123,15 @@ const CHAT_SUGGESTIONS = {
     { text: "I'd like to share a platform improvement idea", icon: <FaComment /> },
   ],
 
-  // ── Admin chatting with Head Chef ──
+  // - Admin chatting with Visitor -
+  admin_visitor: [
+    { text: "How can I assist you with your account today?", icon: <FaShieldAlt /> },
+    { text: "Have you verified your email address yet?", icon: <FaInfoCircle /> },
+    { text: "Let me help you update your profile information.", icon: <FaEdit /> },
+    { text: "Are you experiencing any technical issues on the site?", icon: <FaComment /> },
+  ],
+
+  // - Admin chatting with Head Chef -
   admin_headchef: [
     { text: "Please review the pending recipe backlog", icon: <FaEdit /> },
     { text: "There's a content policy question for you", icon: <FaShieldAlt /> },
@@ -107,7 +139,7 @@ const CHAT_SUGGESTIONS = {
     { text: "A user flagged an issue with an approved recipe", icon: <FaInfoCircle /> },
   ],
 
-  // ── Admin chatting with Dietician ──
+  // - Admin chatting with Dietician -
   admin_dietician: [
     { text: "Please review the nutrition reports this week", icon: <FaUserMd /> },
     { text: "A recipe needs an updated nutritional analysis", icon: <FaInfoCircle /> },
@@ -115,7 +147,7 @@ const CHAT_SUGGESTIONS = {
     { text: "There's a data access request for you", icon: <FaShieldAlt /> },
   ],
 
-  // ── Fallback (generic) ──
+  // - Fallback (generic) -
   default: [
     { text: "I need help with a recipe", icon: <FaUtensils /> },
     { text: "Can you suggest healthy alternatives?", icon: <FaInfoCircle /> },
@@ -144,9 +176,26 @@ const getRoleIcon = (role) => {
 const Chat = () => {
   const token = sessionStorage.getItem('token');
   const payload = useMemo(() => (token ? decodeJWT(token) : {}), [token]);
-  const userRole = payload?.role || sessionStorage.getItem('role') || 'visitor';
-  const userId = payload?.id || payload?._id || sessionStorage.getItem('userId');
-  const userName = payload?.name || 'Guest';
+
+  const user = useMemo(() => {
+    try {
+      const u = sessionStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  }, [token]);
+
+  const userRole = useMemo(() => {
+    let r = payload?.role || sessionStorage.getItem('role') || user?.role || 'visitor';
+    r = r.toLowerCase();
+    if (r === 'headchef' || r === 'head-chef') r = 'headchef';
+    if (r === 'registered-visitor' || r === 'visitor') r = 'visitor';
+    return r;
+  }, [payload, user]);
+
+  const userId = payload?.id || payload?._id || user?.id || user?._id || sessionStorage.getItem('userId');
+  const userName = payload?.name || user?.name || 'Guest';
 
   const [availableRecipients, setAvailableRecipients] = useState([]);
   const [selectedRecipient, setSelectedRecipient] = useState(null);

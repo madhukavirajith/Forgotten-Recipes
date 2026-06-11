@@ -10,7 +10,7 @@
 @import './styles/profile.css';
 @import './styles/settings.css';
 @import './styles/notifications.css';
-/* Comprehensive responsive overrides — must be last */
+/* Comprehensive responsive overrides - must be last */
 @import './styles/responsive.css';
 
 /* Global Reset & Base Styles */
@@ -47,7 +47,9 @@ button {
   outline: none;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
   outline: none;
 }

@@ -386,7 +386,7 @@ const VisitorDashboard = () => {
                   <input
                     name="culture"
                     type="text"
-                    placeholder="e.g., Sri Lankan, Italian, Thai"
+                    placeholder="e.g., Indigenous, Malay, Moor, Colonial"
                     value={newRecipe.culture}
                     onChange={handleInputChange}
                   />

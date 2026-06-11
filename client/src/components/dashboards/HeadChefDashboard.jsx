@@ -43,6 +43,10 @@ import {
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
 
+const CATEGORIES = ['Main Course', 'Snack', 'Dessert', 'Beverage', 'Soup', 'Salad', 'Bread'];
+const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy', 'Extra Spicy'];
+const DIET_TYPES = ['Vegan', 'Vegetarian', 'Non-Vegetarian', 'Gluten-Free', 'Keto'];
+
 // Status Badge Component
 const StatusBadge = ({ status, type }) => {
   const getConfig = () => {
@@ -95,6 +99,9 @@ const HeadChefDashboard = () => {
     category: '',
     spiceLevel: '',
     dietType: '',
+    prepTime: '',
+    cookTime: '',
+    servings: ''
   });
   const [recipeImages, setRecipeImages] = useState([]); // array of base64 strings
   const [editRecipeId, setEditRecipeId] = useState(null);
@@ -233,6 +240,9 @@ const HeadChefDashboard = () => {
       category: recipe.category || '',
       spiceLevel: recipe.spiceLevel || '',
       dietType: recipe.dietType || '',
+      prepTime: recipe.prepTime || '',
+      cookTime: recipe.cookTime || '',
+      servings: recipe.servings || '',
     });
     // Populate images: prefer the images array, fall back to single image
     const imgs = Array.isArray(recipe.images) && recipe.images.length > 0
@@ -264,9 +274,17 @@ const HeadChefDashboard = () => {
       category: '',
       spiceLevel: '',
       dietType: '',
+      prepTime: '',
+      cookTime: '',
+      servings: ''
     });
     setRecipeImages([]);
     setEditRecipeId(null);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewRecipe(prev => ({ ...prev, [name]: value }));
   };
 
   // Story CRUD
@@ -505,44 +523,124 @@ const HeadChefDashboard = () => {
               <form onSubmit={handleRecipeSubmit} className="recipe-form">
                 <div className="form-row two-col">
                   <div className="form-group">
-                    <label>Recipe Name *</label>
-                    <input type="text" value={newRecipe.name} onChange={(e) => setNewRecipe({ ...newRecipe, name: e.target.value })} required />
+                    <label>Recipe Name <span className="required">*</span></label>
+                    <input
+                      name="name"
+                      type="text"
+                      placeholder="e.g., Grandma's Special Curry"
+                      required
+                      value={newRecipe.name}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="form-group">
                     <label>Cultural Origin</label>
-                    <input type="text" value={newRecipe.culture} onChange={(e) => setNewRecipe({ ...newRecipe, culture: e.target.value })} />
+                    <input
+                      name="culture"
+                      type="text"
+                      placeholder="e.g., Indigenous, Malay, Moor, Colonial"
+                      value={newRecipe.culture}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
                 <div className="form-row three-col">
                   <div className="form-group">
-                    <label>Category *</label>
-                    <select value={newRecipe.category} onChange={(e) => setNewRecipe({ ...newRecipe, category: e.target.value })} required>
+                    <label>Category <span className="required">*</span></label>
+                    <select
+                      name="category"
+                      value={newRecipe.category}
+                      onChange={handleInputChange}
+                      required
+                    >
                       <option value="">Select Category</option>
-                      <option>Main Course</option><option>Snack</option><option>Dessert</option><option>Beverage</option>
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Spice Level *</label>
-                    <select value={newRecipe.spiceLevel} onChange={(e) => setNewRecipe({ ...newRecipe, spiceLevel: e.target.value })} required>
+                    <label>Spice Level <span className="required">*</span></label>
+                    <select
+                      name="spiceLevel"
+                      value={newRecipe.spiceLevel}
+                      onChange={handleInputChange}
+                      required
+                    >
                       <option value="">Select Spice Level</option>
-                      <option>Mild</option><option>Medium</option><option>Spicy</option>
+                      {SPICE_LEVELS.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Diet Type *</label>
-                    <select value={newRecipe.dietType} onChange={(e) => setNewRecipe({ ...newRecipe, dietType: e.target.value })} required>
+                    <label>Diet Type <span className="required">*</span></label>
+                    <select
+                      name="dietType"
+                      value={newRecipe.dietType}
+                      onChange={handleInputChange}
+                      required
+                    >
                       <option value="">Select Diet Type</option>
-                      <option>Vegan</option><option>Vegetarian</option><option>Non-Vegetarian</option>
+                      {DIET_TYPES.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
-                <div className="form-group">
-                  <label>Ingredients *</label>
-                  <textarea rows={4} value={newRecipe.ingredients} onChange={(e) => setNewRecipe({ ...newRecipe, ingredients: e.target.value })} required />
+                <div className="form-row three-col">
+                  <div className="form-group">
+                    <label>Prep Time (minutes)</label>
+                    <input
+                      name="prepTime"
+                      type="number"
+                      placeholder="e.g., 15"
+                      value={newRecipe.prepTime}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Cook Time (minutes)</label>
+                    <input
+                      name="cookTime"
+                      type="number"
+                      placeholder="e.g., 30"
+                      value={newRecipe.cookTime}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Servings</label>
+                    <input
+                      name="servings"
+                      type="number"
+                      placeholder="e.g., 4"
+                      value={newRecipe.servings}
+                      onChange={handleInputChange}
+                    />
+                  </div>
                 </div>
                 <div className="form-group">
-                  <label>Instructions *</label>
-                  <textarea rows={5} value={newRecipe.instructions} onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })} required />
+                  <label>Ingredients <span className="required">*</span></label>
+                  <textarea
+                    name="ingredients"
+                    placeholder="List all ingredients with quantities..."
+                    rows={5}
+                    required
+                    value={newRecipe.ingredients}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Instructions <span className="required">*</span></label>
+                  <textarea
+                    name="instructions"
+                    placeholder="Step by step cooking instructions..."
+                    rows={6}
+                    required
+                    value={newRecipe.instructions}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="form-group">
                   <label>

@@ -41,16 +41,19 @@ const recipeSchema = new mongoose.Schema(
     // Visitor-facing filters
     category: {
       type: String,
-      enum: ['Main Course', 'Snack', 'Dessert', 'Beverage'],
+      enum: ['Main Course', 'Snack', 'Dessert', 'Beverage', 'Soup', 'Salad', 'Bread'],
     },
     spiceLevel: {
       type: String,
-      enum: ['Mild', 'Medium', 'Spicy'],
+      enum: ['Mild', 'Medium', 'Spicy', 'Extra Spicy'],
     },
     dietType: {
       type: String,
-      enum: ['Vegan', 'Vegetarian', 'Non-Vegetarian'],
+      enum: ['Vegan', 'Vegetarian', 'Non-Vegetarian', 'Gluten-Free', 'Keto'],
     },
+    prepTime: { type: String, default: '' },
+    cookTime: { type: String, default: '' },
+    servings: { type: String, default: '' },
 
     // Dietician data / labels
     nutrition: nutritionSchema,

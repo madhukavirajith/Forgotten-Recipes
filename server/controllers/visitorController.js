@@ -17,9 +17,9 @@ const getUserIdFromToken = (req) => {
   return decoded.id;
 };
 
-const CATEGORIES = ['Main Course', 'Snack', 'Dessert', 'Beverage'];
-const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy'];
-const DIET_TYPES = ['Vegan', 'Vegetarian', 'Non-Vegetarian'];
+const CATEGORIES = ['Main Course', 'Snack', 'Dessert', 'Beverage', 'Soup', 'Salad', 'Bread'];
+const SPICE_LEVELS = ['Mild', 'Medium', 'Spicy', 'Extra Spicy'];
+const DIET_TYPES = ['Vegan', 'Vegetarian', 'Non-Vegetarian', 'Gluten-Free', 'Keto'];
 
 /* ------------------------------ cookbook ------------------------------ */
 exports.getCookbook = async (req, res) => {
@@ -102,6 +102,9 @@ exports.submitRecipe = async (req, res) => {
       category,
       spiceLevel,
       dietType,
+      prepTime,
+      cookTime,
+      servings,
     } = req.body;
 
     if (!name || !ingredients || !instructions) {
@@ -134,6 +137,9 @@ exports.submitRecipe = async (req, res) => {
       category,
       spiceLevel,
       dietType,
+      prepTime,
+      cookTime,
+      servings,
       status: 'pending',
       approved: false,
       submittedBy: userId,
@@ -241,6 +247,9 @@ exports.createTwist = async (req, res) => {
       category: base.category,
       spiceLevel: base.spiceLevel,
       dietType: base.dietType,
+      prepTime: base.prepTime,
+      cookTime: base.cookTime,
+      servings: base.servings,
 
       isTwist: true,
       parentRecipe: base._id,

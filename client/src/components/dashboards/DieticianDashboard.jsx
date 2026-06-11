@@ -87,6 +87,9 @@ export default function DieticianDashboard() {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
 
+  const token = sessionStorage.getItem('token') || '';
+  const headers = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token]);
+
   const showNotification = (msg, type = 'success') => {
     setNotification({ msg, type });
     setTimeout(() => setNotification(null), 3000);
@@ -94,7 +97,7 @@ export default function DieticianDashboard() {
 
   const loadQueue = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/dietician/pending`);
+      const res = await fetch(`${API}/dietician/pending`, { headers });
       const data = await res.json();
       setQueue(data.items || []);
     } catch (e) {
@@ -102,11 +105,11 @@ export default function DieticianDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [headers]);
 
   const loadRecipe = useCallback(async (id) => {
     try {
-      const res = await fetch(`${API}/dietician/recipes/${id}`);
+      const res = await fetch(`${API}/dietician/recipes/${id}`, { headers });
       if (!res.ok) return;
       const r = await res.json();
       setSelected(r);
@@ -122,7 +125,7 @@ export default function DieticianDashboard() {
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [headers]);
 
   const selectFromQueue = (r) => {
     setSelected(r);
@@ -145,7 +148,10 @@ export default function DieticianDashboard() {
     try {
       const res = await fetch(`${API}/dietician/recipes/${selected._id}/nutrition`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
         body: JSON.stringify(nut)
       });
       if (!res.ok) throw new Error();

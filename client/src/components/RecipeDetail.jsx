@@ -118,11 +118,12 @@ const AdvancedNutritionChart = ({ nutrition }) => {
   const proteinCalories = (Number(nutrition.protein) || 0) * 4;
   const carbsCalories = (Number(nutrition.carbs) || 0) * 4;
   const fatCalories = (Number(nutrition.fat) || 0) * 9;
+  const sumCalories = proteinCalories + carbsCalories + fatCalories;
   
   const calorieBreakdown = [
-    { name: 'Protein', value: proteinCalories, percentage: totalCalories ? (proteinCalories / totalCalories) * 100 : 0, color: '#3b82f6' },
-    { name: 'Carbs', value: carbsCalories, percentage: totalCalories ? (carbsCalories / totalCalories) * 100 : 0, color: '#f59e0b' },
-    { name: 'Fat', value: fatCalories, percentage: totalCalories ? (fatCalories / totalCalories) * 100 : 0, color: '#ef4444' }
+    { name: 'Protein', value: proteinCalories, percentage: sumCalories ? (proteinCalories / sumCalories) * 100 : 0, color: '#3b82f6' },
+    { name: 'Carbs', value: carbsCalories, percentage: sumCalories ? (carbsCalories / sumCalories) * 100 : 0, color: '#f59e0b' },
+    { name: 'Fat', value: fatCalories, percentage: sumCalories ? (fatCalories / sumCalories) * 100 : 0, color: '#ef4444' }
   ];
 
   // Simple Pie Chart without ResponsiveContainer to avoid errors
@@ -133,41 +134,47 @@ const AdvancedNutritionChart = ({ nutrition }) => {
     const outerRadius = radius * 0.9;
     
     let startAngle = -90;
-    let endAngle = 270;
+    
+    // Calculate sum of macro calories
+    const sumCalories = proteinCalories + carbsCalories + fatCalories;
     
     return (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {macroData.map((item, index) => {
-          const percentage = totalCalories ? (item.value / totalCalories) * 100 : 0;
-          const angle = (percentage / 100) * 360;
-          const start = startAngle;
-          const end = start + angle;
-          
-          const startRad = (start * Math.PI) / 180;
-          const endRad = (end * Math.PI) / 180;
-          
-          const x1 = radius + radius * Math.cos(startRad);
-          const y1 = radius + radius * Math.sin(startRad);
-          const x2 = radius + radius * Math.cos(endRad);
-          const y2 = radius + radius * Math.sin(endRad);
-          
-          const largeArc = angle > 180 ? 1 : 0;
-          
-          const pathData = `M ${radius} ${radius} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-          
-          const result = (
-            <path
-              key={item.name}
-              d={pathData}
-              fill={item.color}
-              stroke="white"
-              strokeWidth="2"
-            />
-          );
-          
-          startAngle = end;
-          return result;
-        })}
+        {sumCalories > 0 ? (
+          calorieBreakdown.map((item, index) => {
+            const percentage = (item.value / sumCalories) * 100;
+            const angle = (percentage / 100) * 360;
+            const start = startAngle;
+            const end = start + angle;
+            
+            const startRad = (start * Math.PI) / 180;
+            const endRad = (end * Math.PI) / 180;
+            
+            const x1 = radius + radius * Math.cos(startRad);
+            const y1 = radius + radius * Math.sin(startRad);
+            const x2 = radius + radius * Math.cos(endRad);
+            const y2 = radius + radius * Math.sin(endRad);
+            
+            const largeArc = angle > 180 ? 1 : 0;
+            
+            const pathData = `M ${radius} ${radius} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+            
+            const result = (
+              <path
+                key={item.name}
+                d={pathData}
+                fill={item.color}
+                stroke="white"
+                strokeWidth="2"
+              />
+            );
+            
+            startAngle = end;
+            return result;
+          })
+        ) : (
+          <circle cx={radius} cy={radius} r={radius} fill="#e5e7eb" />
+        )}
         <circle cx={radius} cy={radius} r={innerRadius} fill="white" />
       </svg>
     );
@@ -1042,6 +1049,16 @@ export default function RecipeDetail() {
                 {flagText}
               </div>
             </Section>
+
+            {n.benefits && n.benefits.length > 0 && (
+              <Section title="Health Benefits" icon={<FaLeaf />}>
+                <ul className="benefits-list" style={{ paddingLeft: '1.25rem', margin: 0, color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  {n.benefits.map((b, i) => (
+                    <li key={i} style={{ marginBottom: '0.5rem' }}>{b}</li>
+                  ))}
+                </ul>
+              </Section>
+            )}
 
             <SpicePortionSimulator ingredients={recipe.ingredients} baseSpice={recipe.spiceLevel} />
 

@@ -145,7 +145,7 @@
   .nutrition-tabs { flex-wrap: wrap; gap: 0.75rem; }
   .nutri-tab { padding: 0.75rem 1.25rem; }
   .macro-stat-value { font-size: 1.4rem; }
-  .micro-bar-item { grid-template-columns: 100px 1fr 80px; gap: 1rem; }
+  .micro-bar-item, .radar-item { grid-template-columns: 100px 1fr 80px; gap: 1rem; }
   .add-comment { flex-direction: column; padding: 1.5rem; }
   .add-comment-avatar { display: none; }
   .comment-item { gap: 1rem; }
@@ -166,7 +166,7 @@
   .recipe-card-image-wrapper.list { width: 100%; height: 200px; }
   .recipe-card-title-list { font-size: 1.4rem; }
   .recipe-card-footer-list { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .micro-bar-item { grid-template-columns: 90px 1fr 65px; gap: 0.75rem; font-size: 0.85rem; }
+  .micro-bar-item, .radar-item { grid-template-columns: 90px 1fr 65px; gap: 0.75rem; font-size: 0.85rem; }
   .comment-reply { margin-left: 1rem; padding-left: 1rem; }
 }
 

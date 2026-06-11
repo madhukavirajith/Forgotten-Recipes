@@ -8,6 +8,7 @@ const nutritionSchema = new mongoose.Schema(
     protein: { type: Number, default: 0 }, 
     carbs:   { type: Number, default: 0 }, 
     fat:     { type: Number, default: 0 }, 
+    fiber:   { type: Number, default: 0 }, 
     vitamins: [{ name: String, amount: String }],
     ratingFlag: {
       type: String,

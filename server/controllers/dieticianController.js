@@ -48,6 +48,7 @@ const saveNutrition = async (req, res) => {
       protein = 0,
       carbs = 0,
       fat = 0,
+      fiber = 0,
       vitamins = [],
       ratingFlag = 'neutral',
       benefits = []
@@ -57,7 +58,7 @@ const saveNutrition = async (req, res) => {
       id,
       {
         $set: {
-          nutrition: { calories, protein, carbs, fat, vitamins, ratingFlag, benefits }
+          nutrition: { calories, protein, carbs, fat, fiber, vitamins, ratingFlag, benefits }
         }
       },
       { new: true }

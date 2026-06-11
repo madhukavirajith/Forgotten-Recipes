@@ -20,6 +20,7 @@ const emptyNut = {
   protein: 0,
   carbs: 0,
   fat: 0,
+  fiber: 0,
   vitamins: [],
   ratingFlag: 'neutral',
   benefits: []
@@ -118,6 +119,7 @@ export default function DieticianDashboard() {
         protein: r?.nutrition?.protein || 0,
         carbs: r?.nutrition?.carbs || 0,
         fat: r?.nutrition?.fat || 0,
+        fiber: r?.nutrition?.fiber || 0,
         vitamins: r?.nutrition?.vitamins || [],
         ratingFlag: r?.nutrition?.ratingFlag || 'neutral',
         benefits: r?.nutrition?.benefits || []
@@ -134,6 +136,7 @@ export default function DieticianDashboard() {
       protein: r?.nutrition?.protein || 0,
       carbs: r?.nutrition?.carbs || 0,
       fat: r?.nutrition?.fat || 0,
+      fiber: r?.nutrition?.fiber || 0,
       vitamins: r?.nutrition?.vitamins || [],
       ratingFlag: r?.nutrition?.ratingFlag || 'neutral',
       benefits: r?.nutrition?.benefits || []
@@ -265,6 +268,10 @@ export default function DieticianDashboard() {
                   <div className="input-group">
                     <label>Fat (g)</label>
                     <input type="number" value={nut.fat} onChange={e => setNut({ ...nut, fat: Number(e.target.value) })} />
+                  </div>
+                  <div className="input-group">
+                    <label>Fiber (g)</label>
+                    <input type="number" value={nut.fiber || 0} onChange={e => setNut({ ...nut, fiber: Number(e.target.value) })} />
                   </div>
                 </div>
 

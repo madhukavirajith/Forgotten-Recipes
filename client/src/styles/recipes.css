@@ -1373,34 +1373,34 @@
   text-transform: uppercase;
 }
 
-.micro-bars {
+.micro-bars, .radar-chart-container {
   display: grid;
   gap: 1.5rem;
 }
 
-.micro-bar-item {
+.micro-bar-item, .radar-item {
   display: grid;
   grid-template-columns: 150px 1fr 100px;
   align-items: center;
   gap: 2rem;
 }
 
-.micro-bar-label { font-weight: 800; color: var(--brand-brown); }
+.micro-bar-label, .radar-label { font-weight: 800; color: var(--brand-brown); }
 
-.micro-bar-bg {
+.micro-bar-bg, .radar-bar-bg {
   height: 12px;
   background: var(--bg-secondary);
   border-radius: 6px;
   overflow: hidden;
 }
 
-.micro-bar-fill {
+.micro-bar-fill, .radar-bar-fill {
   height: 100%;
   border-radius: 6px;
   transition: width 1s ease-out;
 }
 
-.micro-bar-value {
+.micro-bar-value, .radar-value {
   font-weight: 700;
   text-align: right;
   color: var(--brand-orange);

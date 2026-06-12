@@ -37,6 +37,42 @@ const API = process.env.REACT_APP_API_URL || '';
 const trimText = (txt = '', len = 100) =>
   txt.length > len ? txt.slice(0, len).trim() + '…' : txt;
 
+// Helper to format/calculate estimated time from prepTime and cookTime
+const calculateEstimatedTime = (recipe) => {
+  const parseToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const clean = String(timeStr).toLowerCase().trim();
+    const num = parseInt(clean.replace(/[^0-9]/g, ''), 10);
+    if (isNaN(num)) return 0;
+
+    if (clean.includes('hour') || clean.includes('hr')) {
+      return num * 60;
+    }
+    return num;
+  };
+
+  const prep = recipe.prepTime ? String(recipe.prepTime).trim() : '';
+  const cook = recipe.cookTime ? String(recipe.cookTime).trim() : '';
+
+  if (!prep && !cook) return '30-45 min';
+
+  const prepMins = parseToMinutes(prep);
+  const cookMins = parseToMinutes(cook);
+  const totalMins = prepMins + cookMins;
+
+  if (totalMins > 0) {
+    if (totalMins >= 60) {
+      const hrs = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+    }
+    return `${totalMins} min`;
+  }
+
+  if (prep && cook) return `${prep} + ${cook}`;
+  return prep || cook || '30-45 min';
+};
+
 // Recipe Card Component (Integrated)
 const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -63,7 +99,7 @@ const RecipeCard = ({ recipe, viewMode, isSaved, isLiked, onSave, onLike }) => {
   };
   
   const difficulty = getDifficultyColor(recipe.spiceLevel);
-  const estimatedTime = recipe.estimatedTime || '30-45 min';
+  const estimatedTime = calculateEstimatedTime(recipe);
   
   const handleSave = (e) => {
     e.preventDefault();

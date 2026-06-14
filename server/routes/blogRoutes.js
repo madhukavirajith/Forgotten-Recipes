@@ -16,6 +16,9 @@ const {
   editBlogComment
 } = require('../controllers/blogController');
 
+// Protected admin endpoints
+router.get('/admin-list', protect, adminOnly, getAdminBlogs);
+
 // Public endpoints
 router.get('/', getBlogs);
 router.get('/:id', getBlogById);
@@ -28,8 +31,7 @@ router.post('/:id/comments', protect, addBlogComment);
 router.put('/:id/comments/:commentId', protect, editBlogComment);
 router.delete('/:id/comments/:commentId', protect, deleteBlogComment);
 
-// Protected admin endpoints
-router.get('/admin-list', protect, adminOnly, getAdminBlogs);
+// Protected admin CRUD endpoints
 router.post('/', protect, adminOnly, createBlog);
 router.put('/:id', protect, adminOnly, updateBlog);
 router.delete('/:id', protect, adminOnly, deleteBlog);

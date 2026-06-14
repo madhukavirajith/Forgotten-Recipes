@@ -28,7 +28,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState(null);
 
-  const [blog, setBlog] = useState({ title: '', content: '', image: '' });
+  const [blog, setBlog] = useState({ title: '', content: '', image: '', category: '', tags: '', authorName: '', status: 'Draft' });
   const [blogSubmitting, setBlogSubmitting] = useState(false);
   const [blogs, setBlogs] = useState([]);
   const [editingBlogId, setEditingBlogId] = useState(null);
@@ -72,12 +72,12 @@ const AdminDashboard = () => {
 
   const fetchBlogs = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/blogs`);
-      setBlogs(res.data || []);
+      const res = await axios.get(`${API_BASE}/api/blogs/admin-list`, authHeader);
+      setBlogs(res.data.blogs || []);
     } catch (err) {
       console.error('Error loading blogs:', err.response?.data || err.message);
     }
-  }, []);
+  }, [authHeader]);
 
   useEffect(() => {
     if (!token) {
@@ -144,6 +144,26 @@ const AdminDashboard = () => {
     reader.readAsDataURL(file);
   };
 
+  const insertFormat = (tagBefore, tagAfter = '') => {
+    const textarea = document.getElementById('blogContent');
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+
+    const replacement = tagBefore + selectedText + tagAfter;
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+
+    setBlog(prev => ({ ...prev, content: newContent }));
+    
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + tagBefore.length, start + tagBefore.length + selectedText.length);
+    }, 0);
+  };
+
   const handleBlogSubmit = async (e) => {
     e.preventDefault();
     if (!blog.title.trim() || !blog.content.trim()) {
@@ -151,16 +171,31 @@ const AdminDashboard = () => {
       return;
     }
     setBlogSubmitting(true);
+
+    const tagsArray = blog.tags
+      ? blog.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      : [];
+
+    const blogPayload = {
+      title: blog.title,
+      content: blog.content,
+      image: blog.image,
+      category: blog.category || '',
+      tags: tagsArray,
+      authorName: blog.authorName,
+      status: blog.status
+    };
+
     try {
       if (editingBlogId) {
-        await axios.put(`${API_BASE}/api/blogs/${editingBlogId}`, blog, authHeader);
+        await axios.put(`${API_BASE}/api/blogs/${editingBlogId}`, blogPayload, authHeader);
         showNotification('Blog updated successfully!', 'success');
         setEditingBlogId(null);
       } else {
-        await axios.post(`${API_BASE}/api/blogs`, blog, authHeader);
+        await axios.post(`${API_BASE}/api/blogs`, blogPayload, authHeader);
         showNotification('Blog posted successfully!', 'success');
       }
-      setBlog({ title: '', content: '', image: '' });
+      setBlog({ title: '', content: '', image: '', category: '', tags: '', authorName: '', status: 'Draft' });
       fetchBlogs();
     } catch (err) {
       showNotification(editingBlogId ? 'Failed to update blog' : 'Failed to post blog', 'error');
@@ -170,7 +205,15 @@ const AdminDashboard = () => {
   };
 
   const handleEditBlog = (post) => {
-    setBlog({ title: post.title, content: post.content, image: post.image || '' });
+    setBlog({ 
+      title: post.title, 
+      content: post.content, 
+      image: post.image || '',
+      category: post.category || '',
+      tags: Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ''),
+      authorName: post.authorName || '',
+      status: post.status || 'Draft'
+    });
     setEditingBlogId(post._id);
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
@@ -182,7 +225,7 @@ const AdminDashboard = () => {
       showNotification('Blog post deleted successfully', 'success');
       fetchBlogs();
       if (editingBlogId === blogId) {
-        setBlog({ title: '', content: '', image: '' });
+        setBlog({ title: '', content: '', image: '', category: '', tags: '', authorName: '', status: 'Draft' });
         setEditingBlogId(null);
       }
     } catch (err) {
@@ -409,10 +452,67 @@ const AdminDashboard = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Blog Content *</label>
+                <label>Category *</label>
+                <select
+                  value={blog.category}
+                  onChange={(e) => setBlog({ ...blog, category: e.target.value })}
+                  required
+                >
+                  <option value="" disabled>Select a Category</option>
+                  <option value="Cooking Tips">Cooking Tips</option>
+                  <option value="Chef Interviews">Chef Interviews</option>
+                  <option value="Restaurant Reviews">Restaurant Reviews</option>
+                  <option value="Ingredient Guides">Ingredient Guides</option>
+                  <option value="Kitchen Techniques">Kitchen Techniques</option>
+                  <option value="Food Trends">Food Trends</option>
+                  <option value="Recipe Tutorials">Recipe Tutorials</option>
+                  <option value="Kitchen Tools">Kitchen Tools</option>
+                  <option value="Health & Nutrition">Health & Nutrition</option>
+                  <option value="Travel & Food">Travel & Food</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Tags (comma separated)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., traditional spices, cooking tips, street food"
+                  value={blog.tags}
+                  onChange={(e) => setBlog({ ...blog, tags: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Author Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter author name (e.g. Guest Chef, Admin)"
+                  value={blog.authorName}
+                  onChange={(e) => setBlog({ ...blog, authorName: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Status *</label>
+                <select
+                  value={blog.status}
+                  onChange={(e) => setBlog({ ...blog, status: e.target.value })}
+                  required
+                >
+                  <option value="Draft">Draft</option>
+                  <option value="Published">Published</option>
+                </select>
+              </div>
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem' }}>Blog Content *</label>
+                <div className="rte-toolbar" style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.4rem', flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: '0.4rem', borderRadius: 'var(--radius-sm)' }}>
+                  <button type="button" onClick={() => insertFormat('**', '**')} title="Bold" style={{ padding: '0.2rem 0.6rem', cursor: 'pointer', fontWeight: 'bold', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', color: 'var(--text-primary)' }}>B</button>
+                  <button type="button" onClick={() => insertFormat('*', '*')} title="Italic" style={{ padding: '0.2rem 0.6rem', cursor: 'pointer', fontStyle: 'italic', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', color: 'var(--text-primary)' }}>I</button>
+                  <button type="button" onClick={() => insertFormat('### ')} title="Heading" style={{ padding: '0.2rem 0.6rem', cursor: 'pointer', fontWeight: 'bold', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', color: 'var(--text-primary)' }}>H</button>
+                  <button type="button" onClick={() => insertFormat('- ')} title="Bullet List" style={{ padding: '0.2rem 0.6rem', cursor: 'pointer', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', color: 'var(--text-primary)' }}>• List</button>
+                  <button type="button" onClick={() => insertFormat('[', '](url)')} title="Link" style={{ padding: '0.2rem 0.6rem', cursor: 'pointer', textDecoration: 'underline', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', color: 'var(--text-primary)' }}>Link</button>
+                </div>
                 <textarea
+                  id="blogContent"
                   rows={8}
-                  placeholder="Write your blog content here..."
+                  placeholder="Write your blog content here... Use the toolbar above for formatting."
                   value={blog.content}
                   onChange={(e) => setBlog({ ...blog, content: e.target.value })}
                   required
@@ -444,7 +544,7 @@ const AdminDashboard = () => {
                     type="button"
                     className="action-btn"
                     onClick={() => {
-                      setBlog({ title: '', content: '', image: '' });
+                      setBlog({ title: '', content: '', image: '', category: '', tags: '', authorName: '', status: 'Draft' });
                       setEditingBlogId(null);
                     }}
                     style={{ flex: 0.3 }}

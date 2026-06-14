@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
 
     cookbook: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }],
     myRecipes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }],
+    bookmarkedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
   },
   { timestamps: true }
 );

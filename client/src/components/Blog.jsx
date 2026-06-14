@@ -1,52 +1,360 @@
 // client/src/components/Blog.jsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
 
 // Import icons
 import { 
   FaSearch, 
   FaUser, 
   FaCalendar, 
-  FaTag, 
   FaHeart, 
   FaComment, 
   FaShare,
   FaBookmark,
-  FaEye,
   FaArrowRight,
   FaTimes,
   FaFilter,
   FaSpinner,
   FaChevronLeft,
   FaChevronRight,
-  FaQuoteLeft,
   FaNewspaper,
   FaClock,
-  FaUtensils,
-  FaLightbulb,
-  FaStar,
-  FaVideo,
   FaTh,
-  FaBars
+  FaBars,
+  FaReply,
+  FaCheck,
+  FaTrash,
+  FaEdit,
+  FaThumbsUp,
+  FaSmile,
+  FaLaugh,
+  FaSadTear,
+  FaAngry,
+  FaUserCircle
 } from 'react-icons/fa';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
 
+// ==================== Sub-Component: Blog Comments Section ====================
+const BlogComments = ({ blogId, token }) => {
+  const [comments, setComments] = useState([]);
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [showReactions, setShowReactions] = useState(null);
+
+  const currentUser = token ? JSON.parse(sessionStorage.getItem('user') || '{}') : null;
+  const textareaRef = useRef(null);
+
+  const loadComments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE}/api/blogs/${blogId}/comments?limit=100`);
+      const data = res.data.comments || [];
+      
+      const commentMap = new Map();
+      const rootComments = [];
+      
+      data.forEach(comment => {
+        commentMap.set(comment._id, { ...comment, replies: [], userReaction: null });
+      });
+      
+      data.forEach(comment => {
+        if (comment.parentId && commentMap.has(comment.parentId)) {
+          commentMap.get(comment.parentId).replies.push(commentMap.get(comment._id));
+        } else {
+          rootComments.push(commentMap.get(comment._id));
+        }
+      });
+      
+      const sortComments = (list) => {
+        if (sortBy === 'newest') {
+          list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        } else if (sortBy === 'oldest') {
+          list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        }
+        list.forEach(comment => {
+          if (comment.replies?.length) sortComments(comment.replies);
+        });
+        return list;
+      };
+      
+      setComments(sortComments(rootComments));
+    } catch (err) {
+      console.error('Error loading comments:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [blogId, sortBy]);
+
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
+
+  const submitComment = async (e) => {
+    e.preventDefault();
+    if (!token) return alert('Please login to comment');
+    if (!text.trim()) return;
+    
+    setSubmitting(true);
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      await axios.post(`${API_BASE}/api/blogs/${blogId}/comments`, {
+        text: text.trim(),
+        parentId: replyTo?._id || null
+      }, { headers });
+      
+      await loadComments();
+      setText('');
+      setReplyTo(null);
+    } catch (err) {
+      console.error('Error posting comment:', err);
+      alert('Failed to post comment');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteComment = async (commentId) => {
+    if (!window.confirm('Delete this comment?')) return;
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      await axios.delete(`${API_BASE}/api/blogs/${blogId}/comments/${commentId}`, { headers });
+      await loadComments();
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+    }
+  };
+
+  const editComment = async (commentId) => {
+    if (!editText.trim()) return;
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      await axios.put(`${API_BASE}/api/blogs/${blogId}/comments/${commentId}`, {
+        text: editText.trim()
+      }, { headers });
+      await loadComments();
+      setEditingId(null);
+      setEditText('');
+    } catch (err) {
+      console.error('Error editing comment:', err);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getAvatarColor = (name) => {
+    const colors = ['#D2691E', '#5A2E17', '#e6a817', '#10b981', '#3b82f6', '#8b5cf6'];
+    const index = (name?.charCodeAt(0) || 0) % colors.length;
+    return colors[index];
+  };
+
+  const getTotalComments = () => {
+    const countReplies = (commentsList) => {
+      return commentsList.reduce((acc, comment) => acc + 1 + (comment.replies?.length || 0), 0);
+    };
+    return countReplies(comments);
+  };
+
+  const renderComment = (comment, isReply = false) => {
+    const isOwner = currentUser?.id === comment.user?._id || currentUser?._id === comment.user?._id;
+    
+    return (
+      <div key={comment._id} className={`comment-item ${isReply ? 'comment-reply' : ''}`} style={{ borderLeft: isReply ? '2px solid var(--border-color)' : 'none', paddingLeft: isReply ? '1rem' : '0', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="comment-avatar" style={{ 
+            background: getAvatarColor(comment.user?.name),
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '0.85rem'
+          }}>
+            {comment.user?.name?.charAt(0).toUpperCase() || <FaUserCircle />}
+          </div>
+          <div className="comment-content" style={{ flex: 1 }}>
+            <div className="comment-header" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <span className="comment-author" style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{comment.user?.name || 'Anonymous'}</span>
+              <span className="comment-date" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{formatDate(comment.createdAt)}</span>
+            </div>
+            
+            {editingId === comment._id ? (
+              <div className="comment-edit-form" style={{ marginTop: '0.5rem' }}>
+                <textarea 
+                  value={editText} 
+                  onChange={(e) => setEditText(e.target.value)} 
+                  rows={2}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}
+                />
+                <div className="comment-edit-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                  <button onClick={() => editComment(comment._id)} style={{ padding: '0.2rem 0.5rem', background: 'var(--brand-brown)', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}><FaCheck /> Save</button>
+                  <button onClick={() => { setEditingId(null); setEditText(''); }} style={{ padding: '0.2rem 0.5rem', background: 'none', border: '1px solid var(--border-color)', borderRadius: '3px', cursor: 'pointer' }}><FaTimes /> Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="comment-text" style={{ fontSize: '0.95rem', margin: '0.25rem 0', lineHeight: '1.4' }}>{comment.text}</div>
+            )}
+            
+            <div className="comment-actions" style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', marginTop: '0.4rem', color: 'var(--text-muted)' }}>
+              <button 
+                className="comment-reply-btn" 
+                onClick={() => setReplyTo(replyTo === comment ? null : comment)}
+                style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+              >
+                <FaReply /> Reply
+              </button>
+              
+              {isOwner && (
+                <>
+                  <button 
+                    className="comment-edit-btn" 
+                    onClick={() => { setEditingId(comment._id); setEditText(comment.text); }}
+                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button 
+                    className="comment-delete-btn" 
+                    onClick={() => deleteComment(comment._id)}
+                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                  >
+                    <FaTrash /> Delete
+                  </button>
+                </>
+              )}
+            </div>
+            
+            {replyTo === comment && (
+              <div className="reply-form" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <textarea 
+                  ref={textareaRef} 
+                  value={text} 
+                  onChange={(e) => setText(e.target.value)} 
+                  placeholder={`Reply to ${comment.user?.name || 'user'}...`} 
+                  rows={2} 
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}
+                />
+                <div className="reply-actions" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button onClick={() => setReplyTo(null)} style={{ background: 'none', border: '1px solid var(--border-color)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}>Cancel</button>
+                  <button 
+                    onClick={submitComment} 
+                    disabled={!text.trim() || submitting}
+                    style={{ background: 'var(--brand-brown)', color: 'white', border: 'none', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+                  >
+                    {submitting ? <FaSpinner className="spinning" /> : 'Reply'}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {comment.replies?.length > 0 && (
+              <div className="replies-container">
+                {comment.replies.map(reply => renderComment(reply, true))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="comments-section" style={{ marginTop: '2.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+      <div className="comments-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <FaComment /> Comments <span className="comment-count" style={{ background: 'var(--bg-secondary)', padding: '0.1rem 0.5rem', borderRadius: '10px', fontSize: '0.85rem' }}>{getTotalComments()}</span>
+        </h3>
+        <div className="comments-sort" style={{ display: 'flex', gap: '0.5rem', fontSize: '0.85rem' }}>
+          <button className={sortBy === 'newest' ? 'active' : ''} onClick={() => setSortBy('newest')} style={{ background: sortBy === 'newest' ? 'var(--brand-brown)' : 'none', color: sortBy === 'newest' ? 'white' : 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', padding: '0.2rem 0.5rem', cursor: 'pointer' }}>Newest</button>
+          <button className={sortBy === 'oldest' ? 'active' : ''} onClick={() => setSortBy('oldest')} style={{ background: sortBy === 'oldest' ? 'var(--brand-brown)' : 'none', color: sortBy === 'oldest' ? 'white' : 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '3px', padding: '0.2rem 0.5rem', cursor: 'pointer' }}>Oldest</button>
+        </div>
+      </div>
+      
+      <div className="add-comment" style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
+        <div className="add-comment-avatar" style={{ 
+          background: getAvatarColor(currentUser?.name || 'A'),
+          width: '36px',
+          height: '36px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold'
+        }}>
+          {currentUser?.name?.charAt(0).toUpperCase() || <FaUserCircle />}
+        </div>
+        <form onSubmit={submitComment} className="add-comment-form" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <textarea 
+            placeholder={token ? "Share your thoughts about this article..." : "Please log in to leave a comment"} 
+            value={text} 
+            onChange={(e) => setText(e.target.value)} 
+            disabled={!token} 
+            rows={3} 
+            style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: token ? 'var(--bg-primary)' : 'var(--bg-secondary)', resize: 'vertical' }}
+          />
+          {token && (
+            <button 
+              type="submit" 
+              disabled={!text.trim() || submitting}
+              style={{ alignSelf: 'flex-end', background: 'var(--brand-brown)', color: 'white', border: 'none', padding: '0.4rem 1.2rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              {submitting ? <FaSpinner className="spinning" /> : 'Post Comment'}
+            </button>
+          )}
+        </form>
+      </div>
+      
+      <div className="comments-list">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}><FaSpinner className="spinning" /> Loading comments...</div>
+        ) : comments.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+            <p style={{ margin: '0 0 0.25rem 0', fontWeight: 'bold' }}>No comments yet</p>
+            <p style={{ margin: 0, fontSize: '0.85rem' }}>Be the first to share your thoughts!</p>
+          </div>
+        ) : (
+          comments.map(comment => renderComment(comment))
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ==================== Main Component ====================
 const Blog = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
-  const [filteredBlogs, setFilteredBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedTag, setSelectedTag] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalBlogs, setTotalBlogs] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
-  const [likedPosts, setLikedPosts] = useState({});
-  const [bookmarkedPosts, setBookmarkedPosts] = useState({});
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('newest');
   const [selectedBlog, setSelectedBlog] = useState(null);
@@ -56,7 +364,10 @@ const Blog = () => {
   const blogRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Blog categories (different from cultural stories)
+  const token = sessionStorage.getItem('token');
+  const currentUser = token ? JSON.parse(sessionStorage.getItem('user') || '{}') : null;
+  const authHeader = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
+
   const blogCategories = [
     'Cooking Tips',
     'Chef Interviews',
@@ -70,80 +381,53 @@ const Blog = () => {
     'Travel & Food'
   ];
 
-  // Fetch blogs
+  // Dynamic SEO implementation
   useEffect(() => {
-    fetchBlogs();
-  }, []);
+    if (selectedBlog) {
+      document.title = `${selectedBlog.title} | Food Blog | Forgotten Recipes`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        const plainTextContent = selectedBlog.content?.replace(/[#*`[\]]/g, '').substring(0, 150) || '';
+        metaDesc.setAttribute('content', plainTextContent);
+      }
+    } else {
+      document.title = 'Food Blog | Forgotten Recipes';
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', 'Explore authentic Sri Lankan food recipes, cooking tips, techniques, and cultural heritage.');
+      }
+    }
+  }, [selectedBlog]);
 
-  // Load saved likes/bookmarks from localStorage
-  useEffect(() => {
-    const savedLikes = localStorage.getItem('blogLikes');
-    const savedBookmarks = localStorage.getItem('blogBookmarks');
-    if (savedLikes) setLikedPosts(JSON.parse(savedLikes));
-    if (savedBookmarks) setBookmarkedPosts(JSON.parse(savedBookmarks));
-  }, []);
-
-  const fetchBlogs = async () => {
+  // Fetch blogs paginated and filtered from the server
+  const fetchBlogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_BASE}/api/blogs`);
-      setBlogs(response.data);
-      setFilteredBlogs(response.data);
+      
+      const params = {
+        page: currentPage,
+        limit: postsPerPage,
+        category: selectedCategory,
+        search: searchTerm
+      };
+
+      const response = await axios.get(`${API_BASE}/api/blogs`, { params });
+      
+      setBlogs(response.data.blogs || []);
+      setTotalBlogs(response.data.total || 0);
+      setTotalPages(response.data.pages || 1);
     } catch (err) {
       console.error('Error fetching blogs:', err);
       setError('Failed to load blog posts. Please try again later.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, selectedCategory, searchTerm]);
 
-  // Extract unique categories and tags from blogs
-  const categories = ['all', ...new Set(blogs.map(blog => blog.category).filter(Boolean))];
-  const tags = ['all', ...new Set(blogs.flatMap(blog => blog.tags || []).filter(Boolean))];
-
-  // Filter and sort blogs
   useEffect(() => {
-    let filtered = [...blogs];
-
-    if (searchTerm) {
-      filtered = filtered.filter(blog =>
-        blog.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(blog => blog.category === selectedCategory);
-    }
-
-    if (selectedTag !== 'all') {
-      filtered = filtered.filter(blog => blog.tags?.includes(selectedTag));
-    }
-
-    switch (sortBy) {
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        break;
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        break;
-      case 'popular':
-        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-        break;
-      default:
-        break;
-    }
-
-    setFilteredBlogs(filtered);
-    setCurrentPage(1);
-  }, [blogs, searchTerm, selectedCategory, selectedTag, sortBy]);
-
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentBlogs = filteredBlogs.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(filteredBlogs.length / postsPerPage);
+    fetchBlogs();
+  }, [fetchBlogs]);
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -151,21 +435,78 @@ const Blog = () => {
   };
 
   const handleLike = async (blogId) => {
-    const newLikedState = !likedPosts[blogId];
-    setLikedPosts(prev => ({ ...prev, [blogId]: newLikedState }));
-    localStorage.setItem('blogLikes', JSON.stringify({ ...likedPosts, [blogId]: newLikedState }));
+    if (!token) {
+      alert('Please log in to like this post.');
+      return;
+    }
     
+    // Optimistic UI updates
+    const userId = currentUser._id || currentUser.id;
+    setBlogs(prevBlogs => prevBlogs.map(b => {
+      if (b._id === blogId) {
+        const alreadyLiked = b.likes?.includes(userId);
+        const newLikes = alreadyLiked
+          ? (b.likes || []).filter(id => id !== userId)
+          : [...(b.likes || []), userId];
+        return { ...b, likes: newLikes };
+      }
+      return b;
+    }));
+
+    if (selectedBlog && selectedBlog._id === blogId) {
+      const alreadyLiked = selectedBlog.likes?.includes(userId);
+      const newLikes = alreadyLiked
+        ? (selectedBlog.likes || []).filter(id => id !== userId)
+        : [...(selectedBlog.likes || []), userId];
+      setSelectedBlog(prev => ({ ...prev, likes: newLikes }));
+    }
+
     try {
-      await axios.post(`${API_BASE}/api/blogs/${blogId}/like`);
+      const response = await axios.post(`${API_BASE}/api/blogs/${blogId}/like`, {}, authHeader);
+      
+      setBlogs(prevBlogs => prevBlogs.map(b => b._id === blogId ? { ...b, likes: response.data.likes } : b));
+      if (selectedBlog && selectedBlog._id === blogId) {
+        setSelectedBlog(prev => ({ ...prev, likes: response.data.likes }));
+      }
     } catch (err) {
       console.error('Error liking post:', err);
+      fetchBlogs();
     }
   };
 
-  const handleBookmark = (blogId) => {
-    const newBookmarkState = !bookmarkedPosts[blogId];
-    setBookmarkedPosts(prev => ({ ...prev, [blogId]: newBookmarkState }));
-    localStorage.setItem('blogBookmarks', JSON.stringify({ ...bookmarkedPosts, [blogId]: newBookmarkState }));
+  const handleBookmark = async (blogId) => {
+    if (!token) {
+      alert('Please log in to bookmark this post.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/blogs/${blogId}/bookmark`, {}, authHeader);
+      
+      if (currentUser) {
+        const savedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+        const bookmarkedBlogs = savedUser.bookmarkedBlogs || [];
+        const index = bookmarkedBlogs.indexOf(blogId);
+        if (response.data.bookmarked) {
+          if (index === -1) bookmarkedBlogs.push(blogId);
+        } else {
+          if (index > -1) bookmarkedBlogs.splice(index, 1);
+        }
+        savedUser.bookmarkedBlogs = bookmarkedBlogs;
+        sessionStorage.setItem('user', JSON.stringify(savedUser));
+      }
+      
+      // Update bookmarks counts in list
+      setBlogs(prevBlogs => prevBlogs.map(b => 
+        b._id === blogId ? { ...b, bookmarksCount: response.data.bookmarksCount } : b
+      ));
+
+      if (selectedBlog && selectedBlog._id === blogId) {
+        setSelectedBlog(prev => ({ ...prev, bookmarksCount: response.data.bookmarksCount }));
+      }
+    } catch (err) {
+      console.error('Error bookmarking post:', err);
+    }
   };
 
   const handleShare = async (blog) => {
@@ -173,14 +514,14 @@ const Blog = () => {
       try {
         await navigator.share({
           title: blog.title,
-          text: blog.excerpt || blog.content?.substring(0, 100),
-          url: `${window.location.origin}/blog/${blog._id}`
+          text: blog.content?.substring(0, 100),
+          url: `${window.location.origin}/blog`
         });
       } catch (err) {
         console.log('Error sharing:', err);
       }
     } else {
-      navigator.clipboard.writeText(`${window.location.origin}/blog/${blog._id}`);
+      navigator.clipboard.writeText(`${window.location.origin}/blog`);
       alert('Link copied to clipboard!');
     }
   };
@@ -204,21 +545,90 @@ const Blog = () => {
 
   const truncateText = (text, maxLength = 150) => {
     if (!text) return '';
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    // Strip markdown characters for display excerpt
+    const plainText = text.replace(/[#*`[\]]/g, '');
+    if (plainText.length <= maxLength) return plainText;
+    return plainText.substring(0, maxLength) + '...';
   };
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCategory('all');
-    setSelectedTag('all');
     setSortBy('newest');
+    setCurrentPage(1);
     if (searchInputRef.current) {
       searchInputRef.current.value = '';
     }
   };
 
-  if (loading) {
+  // Safe custom parsing of simplified Markdown formats
+  const formatContent = (text) => {
+    if (!text) return '';
+    
+    return text.split('\n').map((paragraph, index) => {
+      const trimmed = paragraph.trim();
+      if (!trimmed) return <div key={index} style={{ height: '0.8rem' }} />;
+
+      if (trimmed.startsWith('### ')) {
+        return <h3 key={index} style={{ margin: '1.25rem 0 0.5rem 0', color: 'var(--brand-brown)', fontSize: '1.15rem', fontWeight: 'bold' }}>{trimmed.slice(4)}</h3>;
+      }
+
+      if (trimmed.startsWith('- ')) {
+        return <li key={index} style={{ marginLeft: '1.5rem', marginBottom: '0.25rem', listStyleType: 'disc' }}>{parseInlineMarkdown(trimmed.slice(2))}</li>;
+      }
+
+      return <p key={index} style={{ marginBottom: '0.75rem', lineHeight: '1.6', fontSize: '1rem', color: 'var(--text-primary)' }}>{parseInlineMarkdown(trimmed)}</p>;
+    });
+  };
+
+  const parseInlineMarkdown = (text) => {
+    const elements = [];
+    let lastIndex = 0;
+    const regex = /(\*\*.*?\*\*|\*.*?\*|\[.*?\]\(.*?\))/g;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      const matchText = match[0];
+      const matchIndex = match.index;
+      
+      if (matchIndex > lastIndex) {
+        elements.push(text.substring(lastIndex, matchIndex));
+      }
+      
+      if (matchText.startsWith('**') && matchText.endsWith('**')) {
+        elements.push(<strong key={matchIndex}>{matchText.slice(2, -2)}</strong>);
+      } else if (matchText.startsWith('*') && matchText.endsWith('*')) {
+        elements.push(<em key={matchIndex}>{matchText.slice(1, -1)}</em>);
+      } else if (matchText.startsWith('[') && matchText.includes('](')) {
+        const closeBracket = matchText.indexOf(']');
+        const linkText = matchText.slice(1, closeBracket);
+        const linkUrl = matchText.slice(closeBracket + 2, -1);
+        elements.push(<a key={matchIndex} href={linkUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-brown)', textDecoration: 'underline', fontWeight: 'bold' }}>{linkText}</a>);
+      }
+      
+      lastIndex = regex.lastIndex;
+    }
+    
+    if (lastIndex < text.length) {
+      elements.push(text.substring(lastIndex));
+    }
+    
+    return elements.length > 0 ? elements : text;
+  };
+
+  const getSortedBlogs = () => {
+    let sorted = [...blogs];
+    if (sortBy === 'oldest') {
+      sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else if (sortBy === 'popular') {
+      sorted.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+    } else {
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+    return sorted;
+  };
+
+  if (loading && blogs.length === 0) {
     return (
       <div className="blog-container">
         <div className="blog-loading">
@@ -229,7 +639,7 @@ const Blog = () => {
     );
   }
 
-  if (error) {
+  if (error && blogs.length === 0) {
     return (
       <div className="blog-container">
         <div className="blog-error">
@@ -246,7 +656,7 @@ const Blog = () => {
 
   return (
     <div className="blog-container" ref={blogRef}>
-      {/* Hero Section - Blog Focused */}
+      {/* Hero Section */}
       <div className="blog-hero" style={{ backgroundImage: "linear-gradient(135deg, rgba(44, 24, 16, 0.85), rgba(74, 42, 27, 0.85)), url('/blog.png')" }}>
         <div className="blog-hero-content">
           <h1 className="blog-hero-title">
@@ -268,12 +678,15 @@ const Blog = () => {
             ref={searchInputRef}
             type="text"
             placeholder="Search articles..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            defaultValue={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="search-input"
           />
           {searchTerm && (
-            <button className="clear-search" onClick={() => setSearchTerm('')}>
+            <button className="clear-search" onClick={() => { setSearchTerm(''); setCurrentPage(1); searchInputRef.current.value = ''; }}>
               <FaTimes />
             </button>
           )}
@@ -320,7 +733,7 @@ const Blog = () => {
 
           <div className="filter-group">
             <label>Category</label>
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+            <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Categories</option>
               {blogCategories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -328,7 +741,7 @@ const Blog = () => {
             </select>
           </div>
 
-          {(searchTerm || selectedCategory !== 'all' || selectedTag !== 'all') && (
+          {(searchTerm || selectedCategory !== 'all') && (
             <button className="clear-filters-btn" onClick={clearFilters}>
               Clear Filters
             </button>
@@ -339,14 +752,14 @@ const Blog = () => {
       {/* Results Count */}
       <div className="blog-results">
         <p>
-          {filteredBlogs.length === 0 
+          {blogs.length === 0 
             ? 'No articles found' 
-            : `Showing ${filteredBlogs.length} ${filteredBlogs.length === 1 ? 'article' : 'articles'}`}
+            : `Showing ${totalBlogs} ${totalBlogs === 1 ? 'article' : 'articles'}`}
         </p>
       </div>
 
       {/* Blog Grid/List */}
-      {filteredBlogs.length === 0 ? (
+      {blogs.length === 0 ? (
         <div className="no-results">
           <div className="no-results-icon"><FaSearch /></div>
           <h3>No articles found</h3>
@@ -357,7 +770,7 @@ const Blog = () => {
         </div>
       ) : (
         <div className={`article-grid blog-${viewMode}`}>
-          {currentBlogs.map((blog, index) => (
+          {getSortedBlogs().map((blog, index) => (
             <article 
               key={blog._id} 
               className={`article-card ${viewMode === 'list' ? 'list-view' : ''}`}
@@ -381,11 +794,16 @@ const Blog = () => {
                   <span className="article-date">
                     <FaCalendar /> {formatDate(blog.createdAt)}
                   </span>
+                  {blog.authorName && (
+                    <span className="article-author" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <FaUser /> {blog.authorName}
+                    </span>
+                  )}
                   {blog.category && (
                     <span className="article-category">{blog.category}</span>
                   )}
                   <span className="article-read-time">
-                    <FaClock /> {Math.ceil(blog.content?.length / 1000)} min read
+                    <FaClock /> {Math.ceil((blog.content || '').length / 1000)} min read
                   </span>
                 </div>
                 
@@ -462,17 +880,65 @@ const Blog = () => {
               <div className="modal-meta">
                 <span><FaCalendar /> {formatDate(selectedBlog.createdAt)}</span>
                 {selectedBlog.category && <span className="modal-category">{selectedBlog.category}</span>}
-                <span><FaClock /> {Math.ceil(selectedBlog.content?.length / 1000)} min read</span>
+                <span><FaClock /> {Math.ceil((selectedBlog.content || '').length / 1000)} min read</span>
               </div>
               
               <h2 className="modal-title">{selectedBlog.title}</h2>
+              {selectedBlog.authorName && (
+                <p className="modal-author" style={{ fontSize: '0.95rem', color: 'var(--text-muted)', margin: '-0.5rem 0 1.25rem 0', fontWeight: 'bold' }}>
+                  By {selectedBlog.authorName}
+                </p>
+              )}
               
-              <div className="modal-content">
-                <p>{selectedBlog.content}</p>
+              <div className="modal-content" style={{ marginTop: '1.25rem' }}>
+                {formatContent(selectedBlog.content)}
               </div>
+
+              {/* Dynamic Comments System embedded inside modal */}
+              <BlogComments blogId={selectedBlog._id} token={token} />
             </div>
             
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  className={`like-btn ${selectedBlog.likes?.includes(currentUser?.id || currentUser?._id) ? 'active' : ''}`}
+                  onClick={() => handleLike(selectedBlog._id)}
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.4rem', 
+                    background: selectedBlog.likes?.includes(currentUser?.id || currentUser?._id) ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-secondary)', 
+                    border: '1px solid var(--border-color)', 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: 'var(--radius-sm)', 
+                    cursor: 'pointer',
+                    color: selectedBlog.likes?.includes(currentUser?.id || currentUser?._id) ? '#ef4444' : 'var(--text-primary)',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <FaHeart /> {selectedBlog.likes?.length || 0} Likes
+                </button>
+                <button 
+                  className={`bookmark-btn ${JSON.parse(sessionStorage.getItem('user') || '{}').bookmarkedBlogs?.includes(selectedBlog._id) ? 'active' : ''}`}
+                  onClick={() => handleBookmark(selectedBlog._id)}
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.4rem', 
+                    background: JSON.parse(sessionStorage.getItem('user') || '{}').bookmarkedBlogs?.includes(selectedBlog._id) ? 'rgba(245, 158, 11, 0.1)' : 'var(--bg-secondary)', 
+                    border: '1px solid var(--border-color)', 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: 'var(--radius-sm)', 
+                    cursor: 'pointer',
+                    color: JSON.parse(sessionStorage.getItem('user') || '{}').bookmarkedBlogs?.includes(selectedBlog._id) ? '#f59e0b' : 'var(--text-primary)',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <FaBookmark /> Bookmark
+                </button>
+              </div>
               <button className="share-modal-btn" onClick={() => handleShare(selectedBlog)}>
                 <FaShare /> Share this article
               </button>

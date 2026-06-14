@@ -1,12 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const { protect, adminOnly } = require('../middleware/auth');
-const { createBlog, getBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/blogController');
+const {
+  createBlog,
+  getBlogs,
+  getAdminBlogs,
+  getBlogById,
+  updateBlog,
+  deleteBlog,
+  likeBlog,
+  bookmarkBlog,
+  getBlogComments,
+  addBlogComment,
+  deleteBlogComment,
+  editBlogComment
+} = require('../controllers/blogController');
 
+// Public endpoints
 router.get('/', getBlogs);
 router.get('/:id', getBlogById);
+router.get('/:id/comments', getBlogComments);
 
-// Protected routes (Admin only)
+// Protected user endpoints
+router.post('/:id/like', protect, likeBlog);
+router.post('/:id/bookmark', protect, bookmarkBlog);
+router.post('/:id/comments', protect, addBlogComment);
+router.put('/:id/comments/:commentId', protect, editBlogComment);
+router.delete('/:id/comments/:commentId', protect, deleteBlogComment);
+
+// Protected admin endpoints
+router.get('/admin-list', protect, adminOnly, getAdminBlogs);
 router.post('/', protect, adminOnly, createBlog);
 router.put('/:id', protect, adminOnly, updateBlog);
 router.delete('/:id', protect, adminOnly, deleteBlog);

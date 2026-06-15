@@ -478,22 +478,8 @@ const Comments = ({ recipeId, token }) => {
     try {
       setLoading(true);
       const res = await fetch(`${API}/api/recipes/${recipeId}/comments?limit=100`);
-      const data = await res.json();
-      
-      const commentMap = new Map();
-      const rootComments = [];
-      
-      data.forEach(comment => {
-        commentMap.set(comment._id, { ...comment, replies: [], userReaction: null });
-      });
-      
-      data.forEach(comment => {
-        if (comment.parentId && commentMap.has(comment.parentId)) {
-          commentMap.get(comment.parentId).replies.push(commentMap.get(comment._id));
-        } else {
-          rootComments.push(commentMap.get(comment._id));
-        }
-      });
+      const responseData = await res.json();
+      const rawComments = responseData.comments || [];
       
       const sortComments = (list) => {
         if (sortBy === 'newest') {
@@ -509,7 +495,9 @@ const Comments = ({ recipeId, token }) => {
         return list;
       };
       
-      setComments(sortComments(rootComments));
+      // Clone rawComments to avoid mutating state directly
+      const commentsCloned = JSON.parse(JSON.stringify(rawComments));
+      setComments(sortComments(commentsCloned));
     } catch (err) {
       console.error('Error loading comments:', err);
     } finally {

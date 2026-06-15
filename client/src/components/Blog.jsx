@@ -55,22 +55,7 @@ const BlogComments = ({ blogId, token }) => {
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE}/api/blogs/${blogId}/comments?limit=100`);
-      const data = res.data.comments || [];
-      
-      const commentMap = new Map();
-      const rootComments = [];
-      
-      data.forEach(comment => {
-        commentMap.set(comment._id, { ...comment, replies: [], userReaction: null });
-      });
-      
-      data.forEach(comment => {
-        if (comment.parentId && commentMap.has(comment.parentId)) {
-          commentMap.get(comment.parentId).replies.push(commentMap.get(comment._id));
-        } else {
-          rootComments.push(commentMap.get(comment._id));
-        }
-      });
+      const rawComments = res.data.comments || [];
       
       const sortComments = (list) => {
         if (sortBy === 'newest') {
@@ -84,7 +69,9 @@ const BlogComments = ({ blogId, token }) => {
         return list;
       };
       
-      setComments(sortComments(rootComments));
+      // Clone rawComments to avoid mutating state directly
+      const commentsCloned = JSON.parse(JSON.stringify(rawComments));
+      setComments(sortComments(commentsCloned));
     } catch (err) {
       console.error('Error loading comments:', err);
     } finally {

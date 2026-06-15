@@ -87,7 +87,7 @@ const HeadChefDashboard = () => {
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
   const [expandedPendingId, setExpandedPendingId] = useState(null);
 
-  const [story, setStory] = useState({ title: '', content: '', image: '' });
+  const [story, setStory] = useState({ title: '', content: '', image: '', category: '', region: '', author: '', readTime: '', tags: '' });
   const [editStoryId, setEditStoryId] = useState(null);
   const [showStoryForm, setShowStoryForm] = useState(false);
 
@@ -299,11 +299,16 @@ const HeadChefDashboard = () => {
   const handleStorySubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...story,
+        readTime: story.readTime ? parseInt(story.readTime, 10) : undefined,
+        tags: story.tags ? story.tags.split(',').map(t => t.trim()).filter(Boolean) : []
+      };
       if (editStoryId) {
-        await axios.put(`${API_BASE}/api/stories/${editStoryId}`, story, authHeader);
+        await axios.put(`${API_BASE}/api/stories/${editStoryId}`, payload, authHeader);
         showNotification('Story updated successfully!', 'success');
       } else {
-        await axios.post(`${API_BASE}/api/stories`, story, authHeader);
+        await axios.post(`${API_BASE}/api/stories`, payload, authHeader);
         showNotification('Story created successfully!', 'success');
       }
       resetStoryForm();
@@ -320,6 +325,11 @@ const HeadChefDashboard = () => {
       title: s.title || '',
       content: s.content || '',
       image: s.image || '',
+      category: s.category || '',
+      region: s.region || '',
+      author: s.author || '',
+      readTime: s.readTime || '',
+      tags: Array.isArray(s.tags) ? s.tags.join(', ') : '',
     });
     setEditStoryId(s._id);
     setShowStoryForm(true);
@@ -338,7 +348,7 @@ const HeadChefDashboard = () => {
   };
 
   const resetStoryForm = () => {
-    setStory({ title: '', content: '', image: '' });
+    setStory({ title: '', content: '', image: '', category: '', region: '', author: '', readTime: '', tags: '' });
     setEditStoryId(null);
   };
 
@@ -838,6 +848,36 @@ const HeadChefDashboard = () => {
                 <div className="form-group">
                   <label>Story Title *</label>
                   <input type="text" value={story.title} onChange={(e) => setStory({ ...story, title: e.target.value })} required />
+                </div>
+                <div className="form-row two-col">
+                  <div className="form-group">
+                    <label>Category</label>
+                    <select value={story.category} onChange={(e) => setStory({ ...story, category: e.target.value })}>
+                      <option value="">Select Category</option>
+                      <option value="Festival Foods">Festival Foods</option>
+                      <option value="Spices & Traditions">Spices & Traditions</option>
+                      <option value="Regional Specialties">Regional Specialties</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Region</label>
+                    <input type="text" placeholder="e.g., Southern Province, Nationwide" value={story.region} onChange={(e) => setStory({ ...story, region: e.target.value })} />
+                  </div>
+                </div>
+                <div className="form-row three-col">
+                  <div className="form-group">
+                    <label>Author / Source</label>
+                    <input type="text" placeholder="Defaults to your name" value={story.author} onChange={(e) => setStory({ ...story, author: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label>Read Time (minutes)</label>
+                    <input type="number" placeholder="e.g., 5" value={story.readTime} onChange={(e) => setStory({ ...story, readTime: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" placeholder="e.g., Kiri Bath, New Year, Sacred Food" value={story.tags} onChange={(e) => setStory({ ...story, tags: e.target.value })} />
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Story Content *</label>

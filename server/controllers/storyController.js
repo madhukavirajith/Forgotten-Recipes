@@ -16,7 +16,7 @@ exports.createStory = async (req, res) => {
       return res.status(403).json({ error: 'Access denied. Only admins and head chefs can create stories.' });
     }
 
-    const { title, content, image } = req.body;
+    const { title, content, image, category, region, author, readTime, tags } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
@@ -26,6 +26,11 @@ exports.createStory = async (req, res) => {
       title, 
       content, 
       image, 
+      category,
+      region,
+      author,
+      readTime,
+      tags,
       createdBy: req.user._id,
       updatedBy: req.user._id 
     });
@@ -46,7 +51,19 @@ exports.updateStory = async (req, res) => {
     }
 
     const { id } = req.params;
-    const updateData = { ...req.body, updatedBy: req.user._id };
+    const { title, content, image, category, region, author, readTime, tags } = req.body;
+
+    const updateData = { 
+      title, 
+      content, 
+      image, 
+      category,
+      region,
+      author,
+      readTime,
+      tags,
+      updatedBy: req.user._id 
+    };
     
     const updatedStory = await Story.findByIdAndUpdate(id, updateData, { new: true })
       .populate('createdBy', 'name role')

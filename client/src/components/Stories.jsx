@@ -83,7 +83,10 @@ const Stories = () => {
   const storiesRef = useRef(null);
 
   // Extract unique categories from stories
-  const categories = ['all', ...new Set(FALLBACK_STORIES.map(s => s.category), ...stories.map(s => s.category))];
+  const categories = ['all', ...new Set([
+    ...FALLBACK_STORIES.map(s => s.category),
+    ...stories.map(s => s.category).filter(Boolean)
+  ])];
 
   // Fetch stories from API
   const fetchStories = useCallback(async () => {
@@ -378,13 +381,13 @@ const Stories = () => {
                 {selectedStory.category && <span className="modal-category">{selectedStory.category}</span>}
                 {selectedStory.region && <span className="modal-region"><FaMapMarkerAlt /> {selectedStory.region}</span>}
                 {selectedStory.readTime && <span className="modal-read-time"><FaRegClock /> {selectedStory.readTime} min read</span>}
-                {selectedStory.date && <span className="modal-date"><FaCalendarAlt /> {formatDate(selectedStory.date)}</span>}
+                {(selectedStory.createdAt || selectedStory.date) && <span className="modal-date"><FaCalendarAlt /> {formatDate(selectedStory.createdAt || selectedStory.date)}</span>}
               </div>
 
               <h2 className="modal-title">{selectedStory.title}</h2>
 
-              {selectedStory.author && (
-                <p className="modal-author">By {selectedStory.author}</p>
+              {(selectedStory.author || selectedStory.createdBy?.name) && (
+                <p className="modal-author">By {selectedStory.author || selectedStory.createdBy?.name}</p>
               )}
 
               <div className="modal-content">
